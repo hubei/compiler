@@ -19,3 +19,6 @@
 %option noyywrap		
 
 %%
+[A-Za-z_][A-Za-z_0-9]*	return identifier;
+0|[1-9][0-9]*			return integer;
+\/\/.*\n				return comment;
