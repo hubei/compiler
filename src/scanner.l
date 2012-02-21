@@ -19,6 +19,19 @@
 %option noyywrap		
 
 %%
-[A-Za-z_][A-Za-z_0-9]*	return identifier;
-0|[1-9][0-9]*			return integer;
+do						return DO;
+while					return WHILE;
+if						return IF;
+else					return ELSE;
+int						return INT;
+void					return VOID;
+return					return RETURN;
+:						return COLON;
+,						return COMMA;
+;						return SEMICOLON;
+\(						return BRACE_OPEN;
+\)						return BRACE_CLOSE;
+EOF						return END_OF_FILE
+[A-Za-z_][A-Za-z_0-9]*	return ID;
+0|[1-9][0-9]*			return NUM;
 \/\/.*\n				return comment;
