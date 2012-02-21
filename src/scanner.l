@@ -31,7 +31,7 @@ return					return RETURN;
 ;						return SEMICOLON;
 \(						return BRACE_OPEN;
 \)						return BRACE_CLOSE;
-EOF						return END_OF_FILE
+EOF if (yywrap( ))		return END_OF_FILE
 [A-Za-z_][A-Za-z_0-9]*	return ID;
 0|[1-9][0-9]*			return NUM;
 \/\/.*\n				return comment;
