@@ -16,7 +16,13 @@
 %option yylineno
 
 /* finish after scanning the provided file */
-%option noyywrap		
+%option noyywrap
+
+
+/*\!						return NOT;
+\-						return UNARY_MINUS;
+\+						return UNARY_PLUS;
+\/\/.*\n				return comment;*/
 
 %%
 do						return DO;
@@ -29,9 +35,31 @@ return					return RETURN;
 :						return COLON;
 ,						return COMMA;
 ;						return SEMICOLON;
-\(						return BRACE_OPEN;
-\)						return BRACE_CLOSE;
-EOF if (yywrap( ))		return END_OF_FILE
+\{						return BRACE_OPEN;
+\}						return BRACE_CLOSE;
+EOF if (yywrap( ))		return END_OF_FILE;
 [A-Za-z_][A-Za-z_0-9]*	return ID;
 0|[1-9][0-9]*			return NUM;
-\/\/.*\n				return comment;
+
+=						return ASSIGN;
+\|\|						return LOGICAL_OR; 
+!						return LOGICAL_NOT; 
+&&						return LOGICAL_AND; 
+==						return EQ; 
+!=						return NE; 
+\<						return LS; 
+\<=						return LSEQ; 
+>=						return GTEQ; 
+>						return GT;
+\+						return PLUS; 
+\-						return MINUS; 
+\*						return MUL; 
+\/						return DIV; 
+\%						return MOD;
+\[						return BRACKET_OPEN;
+\]						return BRACKET_CLOSE;
+\(						return PARA_OPEN; 
+\)						return PARA_CLOSE;
+
+
+

@@ -37,6 +37,17 @@
 %token NOT UNARY_MINUS UNARY_PLUS
 %token BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
+// source: http://en.wikipedia.org/wiki/Operators_in_C_and_C%2B%2B
+%left COMMA
+%right ASSIGN
+%left LOGICAL_OR
+%left LOGICAL_AND
+%left EQ NE 
+%left LS LSEQ GTEQ GT
+%left PLUS MINUS
+%left MUL DIV MOD 
+%right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
+
 %%
 
 /* 
