@@ -18,7 +18,10 @@ CFLAGS = -O0 -Wall -Wextra -pedantic -g $(INCLUDES) $(STANDARDS) -Wno-unused-par
 CFLAGS_GEN = -O2 -g -I$(OBJDIR) -w $(INCLUDES) $(STANDARDS)
 
 .PHONY: all check test
-all: compiler 
+all: bindir compiler 
+
+bindir:
+	mkdir -p bin
 
 ###############################################
 # DHBW Compiler                               #
