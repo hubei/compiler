@@ -19,10 +19,12 @@
 %option noyywrap
 
 
-/*\!						return NOT;
+/*
+\!						return NOT;
 \-						return UNARY_MINUS;
 \+						return UNARY_PLUS;
-\/\/.*\n				return comment;*/
+\/\/.*\n				return comment;
+*/
 
 %%
 do						return DO;
