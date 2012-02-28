@@ -24,6 +24,7 @@
 \-						return UNARY_MINUS;
 \+						return UNARY_PLUS;
 \/\/.*\n				return comment;
+ggg
 */
 
 %%
