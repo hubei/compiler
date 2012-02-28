@@ -28,6 +28,7 @@
 
 %token ID
 %token NUM
+%token COMMENT
 
 /* TODO: add associativity and precedence so that the 256 shift-reduce vanish */
 %token ASSIGN

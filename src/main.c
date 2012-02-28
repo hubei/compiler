@@ -19,6 +19,27 @@ cc_options_t cc_options = {
   .output_file = NULL
 };
 
+/**
+ * @brief Duplicate the given string
+ * This function is standard in some compilers, but not all...
+ * This is why it produces warnings...
+ * As it it is a very simple function, it is just defined here
+ * to avoid the warnings
+ *
+ * @param str string to duplicate
+ * @return reference to the duplicated string
+ */
+char *strdup(const char *str)
+{
+    int n = strlen(str) + 1;
+    char *dup = malloc(n);
+    if(dup)
+    {
+        strcpy(dup, str);
+    }
+    return dup;
+}
+
 /** 
  * \brief Print the help.
  * \param prg_name The file name of the executable.
