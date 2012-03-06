@@ -4,8 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "parser.h"
 
 #include "main.h"
+
+extern FILE *yyin;
 
 /* Constants */
 static const char *C_EXT = ".c";
@@ -282,7 +285,9 @@ int main (int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  FILE *yyin = fopen(cc_options.input_file,"r");
+  yyin = fopen(cc_options.input_file,"r");
+  if (!yyin)
+      exit (2);
   yyparse();
   fclose(yyin);
 
