@@ -95,7 +95,7 @@ program_element
  * instruction.
 */
 type
-     : INT
+     : INT {printf("int found");}
      | VOID
      ;
 
@@ -244,7 +244,7 @@ expression
      | expression LSEQ expression 
      | expression GTEQ expression 
      | expression GT expression
-     | expression PLUS expression
+     | expression PLUS expression {printf("hey, du kannst plus rechnen");}
      | expression MINUS expression
      | expression MUL expression
      | expression DIV expression 
@@ -257,7 +257,7 @@ expression
      ;
 
 primary
-     : NUM
+     : NUM {printf("nummer");}
      | ID
      ;
 
