@@ -7,7 +7,9 @@
 
 #include "include/uthash.h"
 #include "symboltable.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 void add(int key) {
-
+	fprintf(stdout,"key: %d", key);
 }

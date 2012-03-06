@@ -67,7 +67,7 @@ int i;
  * of grammar 'program'. 
  */
 program
-     : program_element_list
+     : program_element_list { add(3);}
      ;
 
 /*
@@ -85,7 +85,7 @@ program_element_list
  * function prototypes and type definitions for the basic version of the compiler. 
  */									
 program_element
-     : declaration SEMICOLON
+     : declaration SEMICOLON { add(2);}
      | function_definition
      | SEMICOLON
      ;
@@ -95,7 +95,7 @@ program_element
  * instruction.
 */
 type
-     : INT {printf("int found");}
+     : INT { add(1);}
      | VOID
      ;
 
