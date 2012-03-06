@@ -22,16 +22,14 @@
 
 /*
 \!						return NOT;
-\-						return UNARY_MINUS;
-\+						return UNARY_PLUS;
 
 */
 
-
+/*EOF if (yywrap( ))		return END_OF_FILE;*/
 
 %%
 
-\/\/.*\n				return COMMENT;
+\/\/.*\n				;
 
 do						return DO;
 while					return WHILE;
@@ -44,7 +42,8 @@ return					return RETURN;
 ,						return COMMA;
 ;						return SEMICOLON;
 =						return ASSIGN;
-EOF if (yywrap( ))		return END_OF_FILE;
+
+<<EOF>>					return END_OF_FILE;
 
 
 \|\|					return LOGICAL_OR; 
@@ -72,7 +71,15 @@ EOF if (yywrap( ))		return END_OF_FILE;
 \}						return BRACE_CLOSE;
 
 [A-Za-z_][A-Za-z_0-9]*	return ID;
-0|[1-9][0-9]*			return NUM;
+0|[1-9][0-9]*			{yylval->i = atoi(yytext); return NUM;}
 
 
+%%
 
+/*
+int main() {
+	while(1) {
+		yylex(0,0);
+	}
+}
+*/

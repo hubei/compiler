@@ -3,11 +3,17 @@
  */
  
 %{
+	#include <stdio.h>
+	#include "symboltable.h"
 %}
  
 %debug
 %locations
 %start program
+
+%union {
+int i;
+}
 
 /*
  * One shift/reduce conflict is expected for the "dangling-else" problem. This
@@ -28,7 +34,6 @@
 
 %token ID
 %token NUM
-%token COMMENT
 
 /* TODO: add associativity and precedence so that the 256 shift-reduce vanish */
 %token ASSIGN
@@ -39,7 +44,7 @@
 %token BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 // source: http://en.wikipedia.org/wiki/Operators_in_C_and_C%2B%2B
-%left COMMA
+/*%left COMMA not needed */
 %right ASSIGN
 %left LOGICAL_OR
 %left LOGICAL_AND
@@ -49,6 +54,8 @@
 %left MUL DIV MOD 
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE
+
+%type <i> NUM
 
 %%
 
@@ -119,15 +126,15 @@ declaration_element
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE
-     | ID
+     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE {printf("blubb");}
+     | ID { add(1); }
      ;
 
 /*
  * The non-terminal 'function_definition' is the beginning of the function definition.
  */									
 function_definition
-     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE
+     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE {printf("blubb");}
      ;
 
 /*
@@ -275,4 +282,6 @@ function_call_parameters
 
 void yyerror (const char *msg)
 {
+	fprintf(stderr,"Syntax Error!\n");
 }
+

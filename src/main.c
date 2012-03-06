@@ -89,7 +89,7 @@ int has_file_extension (const char *file, const char *ext) {
  */
 char *get_file_basename (const char *file) {
   size_t baselen;
-  char *filebase, *pos_ext;;
+  char *filebase, *pos_ext;
 
   if (file == NULL) return NULL;
 
@@ -281,6 +281,10 @@ int main (int argc, char *argv[]) {
     rm_cleanup_resources(&resource_mgr);
     exit(EXIT_FAILURE);
   }
+
+  FILE *yyin = fopen(cc_options.input_file,"r");
+  yyparse();
+  fclose(yyin);
 
   printf("Input: %s\n", cc_options.input_file);
   printf("Output: %s\n", cc_options.output_file);
