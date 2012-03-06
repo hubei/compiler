@@ -7,6 +7,7 @@
 %}
 
 /* 
+ * TESTTEST
  * Default setting for flex which indicates that yytext, which is one of the main connections
  * between the scanner and parser, is handled as pointer of char instead of an array of char. 
 */
