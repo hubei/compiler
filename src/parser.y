@@ -242,7 +242,7 @@ stmt_loop
 									
 /*
  * The non-terminal 'expression' is one of the core statements containing all arithmetic, logical, comparison and
- * assignment operators.expression
+ * assignment operators.expression 
  */									
 expression
      : expression ASSIGN expression { add(35);}
