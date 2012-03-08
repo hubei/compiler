@@ -7,10 +7,9 @@
 %}
 
 /* 
- * TESTTEST
  * Default setting for flex which indicates that yytext, which is one of the main connections
- * between the scanner and parser, is handled as pointer of char instead of an array of char. 
-*/
+ * between the scanner and parser, is handled as pointer of char instead of an array of char.
+*/ 
 %pointer
 
 /* save the line number of terminals */
@@ -19,13 +18,13 @@
 /* finish after scanning the provided file */
 %option noyywrap
 
-
 /*
 \!						return NOT;
 
 */
 
 /*EOF if (yywrap( ))		return END_OF_FILE;*/
+/*<<EOF>>					return END_OF_FILE;*/
 
 %%
 
@@ -42,9 +41,6 @@ return					return RETURN;
 ,						return COMMA;
 ;						return SEMICOLON;
 =						return ASSIGN;
-
-<<EOF>>					return END_OF_FILE;
-
 
 \|\|					return LOGICAL_OR; 
 !						return LOGICAL_NOT; 
@@ -70,16 +66,17 @@ return					return RETURN;
 \{						return BRACE_OPEN;
 \}						return BRACE_CLOSE;
 
-[A-Za-z_][A-Za-z_0-9]*	return ID;
-0|[1-9][0-9]*			{yylval->i = atoi(yytext); return NUM;}
-
+[A-Za-z_][A-Za-z_0-9]*	{ 	yylval.str = strdup(yytext); 
+							return ID;}
+0|[1-9][0-9]*			{	yylval.num=atoi(yytext); 
+							return NUM;}
 
 %%
 
 /*
 int main() {
 	while(1) {
-		yylex(0,0);
+		yylex();
 	}
 }
 */

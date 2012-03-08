@@ -21,7 +21,7 @@ CFLAGS_GEN = -O2 -g -I$(OBJDIR) -w $(INCLUDES) $(STANDARDS)
 all: bindir compiler 
 
 bindir:
-	mkdir -p bin
+	mkdir -p $(OBJDIR)
 
 ###############################################
 # DHBW Compiler                               #
@@ -61,7 +61,7 @@ $(OBJDIR)/parser.c $(OBJDIR)/parser.h: $(SRCDIR)/parser.y
 	  -o $(OBJDIR)/parser.c -rall --report-file=$(OBJDIR)/bison.out $<
 
 $(OBJDIR)/scanner.c: $(SRCDIR)/scanner.l
-	$(FLEX) -d -o $(OBJDIR)/scanner.c --bison-bridge --bison-locations $<
+	$(FLEX) -d -o $(OBJDIR)/scanner.c $<
 
 .PHONY: clean_compiler
 clean_compiler:

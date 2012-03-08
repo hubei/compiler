@@ -8,7 +8,12 @@
 
 #include "main.h"
 
+// define yyparse function, which is defined by bison, but not included and thus causes a warning
+void yyparse();
+
+// get a reference to the yyin und yyout variables for flex
 extern FILE *yyin;
+extern FILE *yyout;
 
 /* Constants */
 static const char *C_EXT = ".c";
@@ -286,12 +291,15 @@ int main (int argc, char *argv[]) {
   }
 
   yyin = fopen(cc_options.input_file,"r");
-  if (!yyin)
+  yyout = fopen(cc_options.output_file,"w");
+  if (!yyin || !yyout)
       exit (2);
   yyparse();
   fclose(yyin);
+  fclose(yyout);
 
-  printf("Input: %s\n", cc_options.input_file);
+
+  printf("\nInput: %s\n", cc_options.input_file);
   printf("Output: %s\n", cc_options.output_file);
   printf("IR: %s\n", cc_options.ir_file);
 

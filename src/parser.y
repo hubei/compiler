@@ -4,16 +4,29 @@
  
 %{
 	#include <stdio.h>
+	#include <stdarg.h>
+	#include <stdlib.h>
+	int yylex(void);
 	#include "symboltable.h"
 %}
  
 %debug
 %locations
+%error-verbose
 %start program
 
 %union {
-int i;
+	int num;
+	char* str;
 }
+
+//%union {
+//int integer;
+//const char* string;
+//}
+//%type <integer> NUM
+//%type <string> INT
+//%type <string> ID
 
 /*
  * One shift/reduce conflict is expected for the "dangling-else" problem. This
@@ -32,10 +45,9 @@ int i;
 %token BRACE_OPEN BRACE_CLOSE
 %token END_OF_FILE
 
-%token ID
-%token NUM
+%token <str>ID
+%token <num>NUM
 
-/* TODO: add associativity and precedence so that the 256 shift-reduce vanish */
 %token ASSIGN
 %token LOGICAL_OR LOGICAL_NOT LOGICAL_AND 
 %token EQ NE LS LSEQ GTEQ GT
@@ -55,7 +67,6 @@ int i;
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE
 
-%type <i> NUM
 
 %%
 
@@ -67,7 +78,7 @@ int i;
  * of grammar 'program'. 
  */
 program
-     : program_element_list { add(3);}
+     : program_element_list { add(1);}
      ;
 
 /*
@@ -76,8 +87,8 @@ program
  * least of one program element. Though, empty source files will not succeed.
  */									
 program_element_list
-     : program_element_list program_element 
-     | program_element
+     : program_element_list program_element  { add(2);}
+     | program_element { add(3);}
      ;
 
 /*
@@ -85,9 +96,9 @@ program_element_list
  * function prototypes and type definitions for the basic version of the compiler. 
  */									
 program_element
-     : declaration SEMICOLON { add(2);}
-     | function_definition
-     | SEMICOLON
+     : declaration SEMICOLON { add(4);}
+     | function_definition { add(5);}
+     | SEMICOLON { add(6);}
      ;
 									
 /* 
@@ -95,8 +106,8 @@ program_element
  * instruction.
 */
 type
-     : INT { add(1);}
-     | VOID
+     : INT { add(7);}
+     | VOID { add(8);}
      ;
 
 /* 
@@ -107,8 +118,8 @@ type
  * stack-attribute to the 'identifier_declaration'.
 */						
 declaration
-     : declaration COMMA declaration_element
-     | type declaration_element
+     : declaration COMMA declaration_element { add(9);}
+     | type declaration_element { add(10);}
      ;
 
 /*
@@ -117,8 +128,8 @@ declaration
  * prototype or the declaration of an identifier.
  */
 declaration_element
-     : identifier_declaration
-     | function_header
+     : identifier_declaration { add(11);}
+     | function_header { add(12);}
      ;
 
 /*
@@ -126,15 +137,15 @@ declaration_element
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE {printf("blubb");}
-     | ID { add(1); }
+     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { add(13);}
+     | ID { add(14);}
      ;
 
 /*
  * The non-terminal 'function_definition' is the beginning of the function definition.
  */									
 function_definition
-     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE {printf("blubb");}
+     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { add(15);}
      ;
 
 /*
@@ -144,7 +155,7 @@ function_definition
  * during the parsing process.
  */									
 function_header
-     : function_prefix PARA_CLOSE
+     : function_prefix PARA_CLOSE { add(16);}
      ;
 	
 /*
@@ -153,15 +164,15 @@ function_header
  * 'function_signature_parameters' and functions without by the non-terminal 'function_signature'.
  */									
 function_prefix
-     : function_signature
-     | function_signature_parameters
+     : function_signature { add(17);}
+     | function_signature_parameters { add(18);}
      ;
 
 /*
  * The non-terminal 'function_signature' initializes the function signature definition
  */ 									
 function_signature
-     : identifier_declaration PARA_OPEN
+     : identifier_declaration PARA_OPEN { add(19);}
      ;
 
 /*
@@ -169,8 +180,8 @@ function_signature
  * (input) parameters.
  */									
 function_signature_parameters
-     : function_signature_parameters COMMA function_parameter_element
-     | function_signature function_parameter_element
+     : function_signature_parameters COMMA function_parameter_element { add(20);}
+     | function_signature function_parameter_element { add(21);}
      ;
 	
 /*
@@ -178,7 +189,7 @@ function_signature_parameters
  * and contains the declaration for ONE parameter.
  */									
 function_parameter_element
-     : type identifier_declaration
+     : type identifier_declaration { add(22);}
      ;
 									
 /*
@@ -187,7 +198,7 @@ function_parameter_element
  */									
 stmt_list
      : /* empty: epsilon */
-     | stmt_list stmt
+     | stmt_list stmt { add(23);}
      ;
 
 /*
@@ -196,12 +207,12 @@ stmt_list
  */									
 stmt
      : stmt_block
-     | declaration SEMICOLON
-     | expression SEMICOLON
-     | stmt_conditional
-     | stmt_loop
-     | RETURN expression SEMICOLON
-     | RETURN SEMICOLON
+     | declaration SEMICOLON { add(24);}
+     | expression SEMICOLON { add(25);}
+     | stmt_conditional { add(26);}
+     | stmt_loop { add(27);}
+     | RETURN expression SEMICOLON { add(28);}
+     | RETURN SEMICOLON { add(29);}
      | SEMICOLON /* empty statement */
      ;
 
@@ -209,7 +220,7 @@ stmt
  * A statement block is just a statement list within braces.
  */									
 stmt_block
-     : BRACE_OPEN stmt_list BRACE_CLOSE
+     : BRACE_OPEN stmt_list BRACE_CLOSE { add(30);}
      ;
 	
 /*
@@ -217,16 +228,16 @@ stmt_block
  * produces a SHIFT/REDUCE error which is solved by the default behavior of bison (see above).
  */									
 stmt_conditional
-     : IF PARA_OPEN expression PARA_CLOSE stmt
-     | IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt
+     : IF PARA_OPEN expression PARA_CLOSE stmt { add(31);}
+     | IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt { add(32);}
      ;
 									
 /*
  * The non-terminal 'stmt_loop' contains the loop statements of the language.
  */									
 stmt_loop
-     : WHILE PARA_OPEN expression PARA_CLOSE stmt
-     | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON
+     : WHILE PARA_OPEN expression PARA_CLOSE stmt { add(33);}
+     | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON { add(34);}
      ;
 									
 /*
@@ -234,39 +245,39 @@ stmt_loop
  * assignment operators.expression
  */									
 expression
-     : expression ASSIGN expression
-     | expression LOGICAL_OR expression
-     | expression LOGICAL_AND expression
-     | LOGICAL_NOT expression
-     | expression EQ expression
-     | expression NE expression
-     | expression LS expression 
-     | expression LSEQ expression 
-     | expression GTEQ expression 
-     | expression GT expression
-     | expression PLUS expression
-     | expression MINUS expression
-     | expression MUL expression
-     | expression DIV expression 
-     | expression MOD expression 
-     | MINUS expression %prec UNARY_MINUS
-     | ID BRACKET_OPEN primary BRACKET_CLOSE
-     | PARA_OPEN expression PARA_CLOSE
-     | function_call PARA_CLOSE
-     | primary
+     : expression ASSIGN expression { add(35);}
+     | expression LOGICAL_OR expression { add(36);}
+     | expression LOGICAL_AND expression { add(37);}
+     | LOGICAL_NOT expression { add(38);}
+     | expression EQ expression { add(39);}
+     | expression NE expression { add(40);}
+     | expression LS expression  { add(41);}
+     | expression LSEQ expression  { add(42);}
+     | expression GTEQ expression  { add(43);}
+     | expression GT expression { add(44);}
+     | expression PLUS expression { add(45);}
+     | expression MINUS expression { add(46);}
+     | expression MUL expression { add(47);}
+     | expression DIV expression  { add(48);}
+     | expression MOD expression  { add(49);}
+     | MINUS expression %prec UNARY_MINUS { add(50);}
+     | ID BRACKET_OPEN primary BRACKET_CLOSE { add(51);}
+     | PARA_OPEN expression PARA_CLOSE { add(52);}
+     | function_call PARA_CLOSE { add(53);}
+     | primary { add(54);}
      ;
 
 primary
-     : NUM
-     | ID
+     : NUM { add(55); printf("<%d>",$1);}
+     | ID { add(56); printf("<%s>",$1);}
      ;
 
 /*
  * The non-terminal 'function_call' is used by the non-terminal 'expression' for calling functions.
  */									
 function_call
-      : ID PARA_OPEN
-      | function_call_parameters
+      : ID PARA_OPEN { add(57);}
+      | function_call_parameters { add(58);}
       ;
 
 /*
@@ -274,8 +285,8 @@ function_call
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-     : function_call_parameters COMMA expression
-     | ID PARA_OPEN expression
+     : function_call_parameters COMMA expression { add(59);}
+     | ID PARA_OPEN expression { add(60);}
      ;
 
 %%

@@ -11,5 +11,5 @@
 #include <stdlib.h>
 
 void add(int key) {
-	fprintf(stdout,"key: %d", key);
+	//fprintf(stdout,"%d-", key);
 }
