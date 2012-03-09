@@ -78,7 +78,7 @@
  * of grammar 'program'. 
  */
 program
-     : program_element_list { add(1);}
+     : program_element_list { debug(1);}
      ;
 
 /*
@@ -87,8 +87,8 @@ program
  * least of one program element. Though, empty source files will not succeed.
  */									
 program_element_list
-     : program_element_list program_element  { add(2);}
-     | program_element { add(3);}
+     : program_element_list program_element  { debug(2);}
+     | program_element { debug(3);}
      ;
 
 /*
@@ -96,9 +96,9 @@ program_element_list
  * function prototypes and type definitions for the basic version of the compiler. 
  */									
 program_element
-     : declaration SEMICOLON { add(4);}
-     | function_definition { add(5);}
-     | SEMICOLON { add(6);}
+     : declaration SEMICOLON { debug(4);}
+     | function_definition { debug(5);}
+     | SEMICOLON { debug(6);}
      ;
 									
 /* 
@@ -106,8 +106,8 @@ program_element
  * instruction.
 */
 type
-     : INT { add(7);}
-     | VOID { add(8);}
+     : INT { debug(7);}
+     | VOID { debug(8);}
      ;
 
 /* 
@@ -118,8 +118,8 @@ type
  * stack-attribute to the 'identifier_declaration'.
 */						
 declaration
-     : declaration COMMA declaration_element { add(9);}
-     | type declaration_element { add(10);}
+     : declaration COMMA declaration_element { debug(9);}
+     | type declaration_element { debug(10);}
      ;
 
 /*
@@ -128,8 +128,8 @@ declaration
  * prototype or the declaration of an identifier.
  */
 declaration_element
-     : identifier_declaration { add(11);}
-     | function_header { add(12);}
+     : identifier_declaration { debug(11);}
+     | function_header { debug(12);}
      ;
 
 /*
@@ -137,15 +137,15 @@ declaration_element
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { add(13);}
-     | ID { add(14);}
+     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { debug(13);}
+     | ID { debug(14);}
      ;
 
 /*
  * The non-terminal 'function_definition' is the beginning of the function definition.
  */									
 function_definition
-     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { add(15);}
+     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { debug(15);}
      ;
 
 /*
@@ -155,7 +155,7 @@ function_definition
  * during the parsing process.
  */									
 function_header
-     : function_prefix PARA_CLOSE { add(16);}
+     : function_prefix PARA_CLOSE { debug(16);}
      ;
 	
 /*
@@ -164,15 +164,15 @@ function_header
  * 'function_signature_parameters' and functions without by the non-terminal 'function_signature'.
  */									
 function_prefix
-     : function_signature { add(17);}
-     | function_signature_parameters { add(18);}
+     : function_signature { debug(17);}
+     | function_signature_parameters { debug(18);}
      ;
 
 /*
  * The non-terminal 'function_signature' initializes the function signature definition
  */ 									
 function_signature
-     : identifier_declaration PARA_OPEN { add(19);}
+     : identifier_declaration PARA_OPEN { debug(19);}
      ;
 
 /*
@@ -180,8 +180,8 @@ function_signature
  * (input) parameters.
  */									
 function_signature_parameters
-     : function_signature_parameters COMMA function_parameter_element { add(20);}
-     | function_signature function_parameter_element { add(21);}
+     : function_signature_parameters COMMA function_parameter_element { debug(20);}
+     | function_signature function_parameter_element { debug(21);}
      ;
 	
 /*
@@ -189,7 +189,7 @@ function_signature_parameters
  * and contains the declaration for ONE parameter.
  */									
 function_parameter_element
-     : type identifier_declaration { add(22);}
+     : type identifier_declaration { debug(22);}
      ;
 									
 /*
@@ -198,7 +198,7 @@ function_parameter_element
  */									
 stmt_list
      : /* empty: epsilon */
-     | stmt_list stmt { add(23);}
+     | stmt_list stmt { debug(23);}
      ;
 
 /*
@@ -207,12 +207,12 @@ stmt_list
  */									
 stmt
      : stmt_block
-     | declaration SEMICOLON { add(24);}
-     | expression SEMICOLON { add(25);}
-     | stmt_conditional { add(26);}
-     | stmt_loop { add(27);}
-     | RETURN expression SEMICOLON { add(28);}
-     | RETURN SEMICOLON { add(29);}
+     | declaration SEMICOLON { debug(24);}
+     | expression SEMICOLON { debug(25);}
+     | stmt_conditional { debug(26);}
+     | stmt_loop { debug(27);}
+     | RETURN expression SEMICOLON { debug(28);}
+     | RETURN SEMICOLON { debug(29);}
      | SEMICOLON /* empty statement */
      ;
 
@@ -220,7 +220,7 @@ stmt
  * A statement block is just a statement list within braces.
  */									
 stmt_block
-     : BRACE_OPEN stmt_list BRACE_CLOSE { add(30);}
+     : BRACE_OPEN stmt_list BRACE_CLOSE { debug(30);}
      ;
 	
 /*
@@ -228,56 +228,56 @@ stmt_block
  * produces a SHIFT/REDUCE error which is solved by the default behavior of bison (see above).
  */									
 stmt_conditional
-     : IF PARA_OPEN expression PARA_CLOSE stmt { add(31);}
-     | IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt { add(32);}
+     : IF PARA_OPEN expression PARA_CLOSE stmt { debug(31);}
+     | IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt { debug(32);}
      ;
 									
 /*
  * The non-terminal 'stmt_loop' contains the loop statements of the language.
  */									
 stmt_loop
-     : WHILE PARA_OPEN expression PARA_CLOSE stmt { add(33);}
-     | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON { add(34);}
+     : WHILE PARA_OPEN expression PARA_CLOSE stmt { debug(33);}
+     | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON { debug(34);}
      ;
 									
 /*
  * The non-terminal 'expression' is one of the core statements containing all arithmetic, logical, comparison and
  * assignment operators.expression 
- */									
+ */
 expression
-     : expression ASSIGN expression { add(35);}
-     | expression LOGICAL_OR expression { add(36);}
-     | expression LOGICAL_AND expression { add(37);}
-     | LOGICAL_NOT expression { add(38);}
-     | expression EQ expression { add(39);}
-     | expression NE expression { add(40);}
-     | expression LS expression  { add(41);}
-     | expression LSEQ expression  { add(42);}
-     | expression GTEQ expression  { add(43);}
-     | expression GT expression { add(44);}
-     | expression PLUS expression { add(45);}
-     | expression MINUS expression { add(46);}
-     | expression MUL expression { add(47);}
-     | expression DIV expression  { add(48);}
-     | expression MOD expression  { add(49);}
-     | MINUS expression %prec UNARY_MINUS { add(50);}
-     | ID BRACKET_OPEN primary BRACKET_CLOSE { add(51);}
-     | PARA_OPEN expression PARA_CLOSE { add(52);}
-     | function_call PARA_CLOSE { add(53);}
-     | primary { add(54);}
+     : expression ASSIGN expression { debug(35);}
+     | expression LOGICAL_OR expression { debug(36);}
+     | expression LOGICAL_AND expression { debug(37);}
+     | LOGICAL_NOT expression { debug(38);}
+     | expression EQ expression { debug(39);}
+     | expression NE expression { debug(40);}
+     | expression LS expression  { debug(41);}
+     | expression LSEQ expression  { debug(42);}
+     | expression GTEQ expression  { debug(43);}
+     | expression GT expression { debug(44);}
+     | expression PLUS expression { debug(45);}
+     | expression MINUS expression { debug(46);}
+     | expression MUL expression { debug(47);}
+     | expression DIV expression  { debug(48);}
+     | expression MOD expression  { debug(49);}
+     | MINUS expression %prec UNARY_MINUS { debug(50);}
+     | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51);}
+     | PARA_OPEN expression PARA_CLOSE { debug(52);}
+     | function_call PARA_CLOSE { debug(53);}
+     | primary { debug(54);}
      ;
 
 primary
-     : NUM { add(55); printf("<%d>",$1);}
-     | ID { add(56); printf("<%s>",$1);}
+     : NUM { debug(55); printf("<%d>",$1);}
+     | ID { debug(56); printf("<%s>",$1);}
      ;
 
 /*
  * The non-terminal 'function_call' is used by the non-terminal 'expression' for calling functions.
  */									
 function_call
-      : ID PARA_OPEN { add(57);}
-      | function_call_parameters { add(58);}
+      : ID PARA_OPEN { debug(57);}
+      | function_call_parameters { debug(58);}
       ;
 
 /*
@@ -285,8 +285,8 @@ function_call
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-     : function_call_parameters COMMA expression { add(59);}
-     | ID PARA_OPEN expression { add(60);}
+     : function_call_parameters COMMA expression { debug(59);}
+     | ID PARA_OPEN expression { debug(60);}
      ;
 
 %%
