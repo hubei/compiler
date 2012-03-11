@@ -1,5 +1,3 @@
-
-
 void print (int i);
 int global, a[10];
 int scan ();

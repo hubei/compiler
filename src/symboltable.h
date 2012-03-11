@@ -39,5 +39,6 @@ symTabEntry_t* addToSymTab(string);
 symTabEntry_t* addToSymTabEntry(symTabEntry_t*, int, string);
 symTab_t* findInSymTab(string);
 symTabEntry_t* findInSymTabEntry(symTabEntry_t*, int);
+string getKeyAsString(int);
 
 #endif

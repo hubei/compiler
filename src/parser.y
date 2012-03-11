@@ -9,24 +9,31 @@
 	int yylex(void);
 	#include "symboltable.h"
 %}
- 
+
+/**
+ * TODO
+ */
 %debug
+/**
+ * TODO
+ */
 %locations
+/**
+ * TODO
+ */
 %error-verbose
+/**
+ * Set start point
+ */
 %start program
 
+/**
+ * Define types for numericals and strings
+ */
 %union {
 	int num;
 	char* str;
 }
-
-//%union {
-//int integer;
-//const char* string;
-//}
-//%type <integer> NUM
-//%type <string> INT
-//%type <string> ID
 
 /*
  * One shift/reduce conflict is expected for the "dangling-else" problem. This
@@ -138,7 +145,9 @@ declaration_element
  */									
 identifier_declaration
      : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { debug(13);}
-     | ID { debug(14);}
+     | ID {	 debug(14);
+     	 	 symTabEntry_t* entry = addToSymTab($1);
+     	 	 addToSymTabEntry(entry, TYPE, "func");}
      ;
 
 /*
@@ -269,7 +278,7 @@ expression
 
 primary
      : NUM { debug(55); /*printf("<%d>",$1);*/}
-     | ID { debug(56); addToSymTab($1);/*printf("<%s>",$1);*/}
+     | ID { debug(56); /*printf("<%s>",$1);*/}
      ;
 
 /*

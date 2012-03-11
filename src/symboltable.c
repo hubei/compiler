@@ -105,11 +105,15 @@ void test_symTab() {
  * @brief Only for debug: Print all identifiers in the symbol table
  */
 void printSymTabKeys() {
-	symTab_t* current, *tmp;
+	symTab_t *current_symTab, *tmp;
+	symTabEntry_t *current_Entry, *tmp2;
 
 	printf("\n");
-	HASH_ITER(hh, symTab, current, tmp) {
-		printf("%s\n", current->id);
+	HASH_ITER(hh, symTab, current_symTab, tmp) {
+		printf("%s\n", current_symTab->id);
+		HASH_ITER(hh,current_symTab->entry, current_Entry, tmp2) {
+			printf("  %10s -> %s\n", getKeyAsString(current_Entry->key), current_Entry->value);
+		}
 	}
 	printf("Total: %d", HASH_COUNT(symTab));
 }
@@ -120,5 +124,13 @@ void printSymTabKeys() {
  */
 void debug(int number) {
 	fprintf(stdout, "%d-", number);
+}
+
+string getKeyAsString(int key) {
+	switch(key) {
+	case TYPE: return "TYPE";
+	case IDENTIFIER: return "IDENTIFIER";
+	default: return "unknown";
+	}
 }
 
