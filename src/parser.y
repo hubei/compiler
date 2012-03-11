@@ -78,7 +78,7 @@
  * of grammar 'program'. 
  */
 program
-     : program_element_list { debug(1);}
+     : program_element_list { debug(1); printSymTabKeys(); }
      ;
 
 /*
@@ -268,8 +268,8 @@ expression
      ;
 
 primary
-     : NUM { debug(55); printf("<%d>",$1);}
-     | ID { debug(56); printf("<%s>",$1);}
+     : NUM { debug(55); /*printf("<%d>",$1);*/}
+     | ID { debug(56); addToSymTab($1);/*printf("<%s>",$1);*/}
      ;
 
 /*

@@ -291,7 +291,7 @@ int main (int argc, char *argv[]) {
   }
 
   yyin = fopen(cc_options.input_file,"r");
-  yyout = fopen(cc_options.output_file,"w");
+  yyout = fopen(cc_options.output_file,"w+");
   if (!yyin || !yyout)
       exit (2);
   yyparse();

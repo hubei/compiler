@@ -16,8 +16,9 @@ STANDARDS = -std=c99 -D_POSIX_C_SOURCE=200809L
 INCLUDES = -I$(SRCDIR) -I$(OBJDIR) -I$(SRCDIR)/include
 CFLAGS = -O0 -Wall -Wextra -pedantic -g $(INCLUDES) $(STANDARDS) -Wno-unused-parameter
 CFLAGS_GEN = -O2 -g -I$(OBJDIR) -w $(INCLUDES) $(STANDARDS)
+FLEXFLAGS = 
 
-.PHONY: all check test
+.PHONY: all check test debug
 all: bindir compiler 
 
 bindir:
@@ -61,7 +62,7 @@ $(OBJDIR)/parser.c $(OBJDIR)/parser.h: $(SRCDIR)/parser.y
 	  -o $(OBJDIR)/parser.c -rall --report-file=$(OBJDIR)/bison.out $<
 
 $(OBJDIR)/scanner.c: $(SRCDIR)/scanner.l
-	$(FLEX) -d -o $(OBJDIR)/scanner.c $<
+	$(FLEX) $(FLEXFLAGS) -o $(OBJDIR)/scanner.c $<
 
 .PHONY: clean_compiler
 clean_compiler:
