@@ -127,10 +127,24 @@ void debug(int number) {
 }
 
 string getKeyAsString(int key) {
+	char* str;
 	switch(key) {
 	case TYPE: return "TYPE";
 	case IDENTIFIER: return "IDENTIFIER";
-	default: return "unknown";
+	case RETURNTYPE: return "RETURNTYPE";
+	default:
+		str = malloc(3);
+		sprintf(str,"%d",key);
+		return str;
 	}
 }
-
+char* setString(const char* source) {
+	char* target;
+	if(source) {
+		target = malloc(sizeof(source));
+		strcpy(target,source);
+	} else {
+		fprintf(stderr,"setString: Source is not initialized!");
+	}
+	return target;
+}

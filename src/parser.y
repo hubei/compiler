@@ -8,6 +8,9 @@
 	#include <stdlib.h>
 	int yylex(void);
 	#include "symboltable.h"
+	const char* returntype;
+	const char* type;
+	symTabEntry_t* currentEntry;
 %}
 
 /**
@@ -74,6 +77,7 @@
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE
 
+%type <str>identifier_declaration
 
 %%
 
@@ -113,8 +117,8 @@ program_element
  * instruction.
 */
 type
-     : INT { debug(7);}
-     | VOID { debug(8);}
+     : INT { debug(7); returntype = setString("int"); }
+     | VOID { debug(8); returntype = setString("void"); }
      ;
 
 /* 
@@ -135,8 +139,11 @@ declaration
  * prototype or the declaration of an identifier.
  */
 declaration_element
-     : identifier_declaration { debug(11);}
-     | function_header { debug(12);}
+     : identifier_declaration { debug(11); 
+	 							currentEntry = addToSymTab($1);
+	 							if(returntype) addToSymTabEntry(currentEntry, RETURNTYPE, returntype);
+	 							addToSymTabEntry(currentEntry, TYPE, type); }
+     | function_header { debug(12); }
      ;
 
 /*
@@ -144,17 +151,15 @@ declaration_element
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { debug(13);}
-     | ID {	 debug(14);
-     	 	 symTabEntry_t* entry = addToSymTab($1);
-     	 	 addToSymTabEntry(entry, TYPE, "func");}
+     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { debug(13); $$ = $1; type = setString("a"); /* type = array */} /* BRACKET = [] */
+     | ID {	debug(14); $$ = $1; type = setString("v"); }
      ;
 
 /*
  * The non-terminal 'function_definition' is the beginning of the function definition.
  */									
 function_definition
-     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { debug(15);}
+     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { debug(15); addToSymTabEntry(currentEntry, TYPE, "f"); }
      ;
 
 /*
@@ -181,7 +186,10 @@ function_prefix
  * The non-terminal 'function_signature' initializes the function signature definition
  */ 									
 function_signature
-     : identifier_declaration PARA_OPEN { debug(19);}
+     : identifier_declaration PARA_OPEN {	debug(19);
+     	 	 	 	 	 	 	 	 	 	 currentEntry = addToSymTab($1);
+     	 	 	 	 	 	 	 	 	 	 if(returntype) addToSymTabEntry(currentEntry, RETURNTYPE, returntype);
+     	 	 	 	 	 	 	 	 	 	 addToSymTabEntry(currentEntry, TYPE, "f"); }
      ;
 
 /*

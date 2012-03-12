@@ -9,8 +9,15 @@
 
 #include "include/uthash.h"
 typedef const char* string;
-#define IDENTIFIER 1
-#define TYPE 2
+
+/*
+ * constants for identifying properties in the symbol table
+ */
+#define IDENTIFIER 1 // function, variable or array identifier
+#define TYPE 2 // f: function, a: array, v: variable
+#define RETURNTYPE 3 // return type of function or type of variable/array
+#define ASIZE 4 // size of an array
+#define SCOPE 5 //
 
 /**
  * @brief entry in the symbol table, that can store any property
@@ -40,5 +47,6 @@ symTabEntry_t* addToSymTabEntry(symTabEntry_t*, int, string);
 symTab_t* findInSymTab(string);
 symTabEntry_t* findInSymTabEntry(symTabEntry_t*, int);
 string getKeyAsString(int);
+char* setString(const char*);
 
 #endif

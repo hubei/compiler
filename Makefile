@@ -19,9 +19,9 @@ CFLAGS_GEN = -O2 -g -I$(OBJDIR) -w $(INCLUDES) $(STANDARDS)
 FLEXFLAGS = 
 
 .PHONY: all check test debug
-all: bindir compiler 
+all: $(OBJDIR) compiler 
 
-bindir:
+$(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 ###############################################
