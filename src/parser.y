@@ -8,7 +8,7 @@
 	#include <stdlib.h>
 	int yylex(void);
 	#include "symboltable.h"
-	const char* returntype;
+	const char* IDtype;
 	const char* type;
 	symTabEntry_t* currentEntry;
 %}
@@ -36,6 +36,15 @@
 %union {
 	int num;
 	char* str;
+	struct {
+		char* id;
+		char* type;
+		int arraySize; // only set this, if it is an array
+	} var;
+	struct {
+		char* id;
+		int intValue;
+	} expr;
 }
 
 /*
@@ -77,7 +86,9 @@
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE
 
-%type <str>identifier_declaration
+%type <var>identifier_declaration
+%type <str>type
+%type <expr>expression primary
 
 %%
 
@@ -117,8 +128,8 @@ program_element
  * instruction.
 */
 type
-     : INT { debug(7); returntype = setString("int"); }
-     | VOID { debug(8); returntype = setString("void"); }
+     : INT { debug(7); $$ = setString("int"); }
+     | VOID { debug(8); $$ = setString("void"); }
      ;
 
 /* 
@@ -139,10 +150,11 @@ declaration
  * prototype or the declaration of an identifier.
  */
 declaration_element
-     : identifier_declaration { debug(11); 
-	 							currentEntry = addToSymTab($1);
-	 							if(returntype) addToSymTabEntry(currentEntry, RETURNTYPE, returntype);
-	 							addToSymTabEntry(currentEntry, TYPE, type); }
+     : identifier_declaration { debug(11);
+     	 	 	 	 	 	 	 printf("<%s,%s,%d>",$1.id,$1.type,$1.arraySize);
+	 							/*currentEntry = addToSymTab($1);
+	 							if(type) addToSymTabEntry(currentEntry, RETURNTYPE, type);
+	 							addToSymTabEntry(currentEntry, TYPE, type);*/ }
      | function_header { debug(12); }
      ;
 
@@ -151,8 +163,8 @@ declaration_element
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { debug(13); $$ = $1; type = setString("a"); /* type = array */} /* BRACKET = [] */
-     | ID {	debug(14); $$ = $1; type = setString("v"); }
+     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { debug(13); $$ = $1; $$.type = setString("a"); if($3.intValue) $$.arraySize *= $3.intValue; } /* BRACKET = [] */
+     | ID {	debug(14); $$.id = $1; $$.type = setString("v"); $$.arraySize=1; }
      ;
 
 /*
@@ -187,9 +199,9 @@ function_prefix
  */ 									
 function_signature
      : identifier_declaration PARA_OPEN {	debug(19);
-     	 	 	 	 	 	 	 	 	 	 currentEntry = addToSymTab($1);
-     	 	 	 	 	 	 	 	 	 	 if(returntype) addToSymTabEntry(currentEntry, RETURNTYPE, returntype);
-     	 	 	 	 	 	 	 	 	 	 addToSymTabEntry(currentEntry, TYPE, "f"); }
+     	 	 	 	 	 	 	 	 	 	 /*currentEntry = addToSymTab($1);
+     	 	 	 	 	 	 	 	 	 	 if("") addToSymTabEntry(currentEntry, RETURNTYPE, "");
+     	 	 	 	 	 	 	 	 	 	 addToSymTabEntry(currentEntry, TYPE, "f");*/ }
      ;
 
 /*
@@ -262,9 +274,19 @@ stmt_loop
  * assignment operators.expression 
  */
 expression
-     : expression ASSIGN expression { debug(35);}
-     | expression LOGICAL_OR expression { debug(36);}
-     | expression LOGICAL_AND expression { debug(37);}
+     : expression ASSIGN expression { debug(35); }
+     | expression LOGICAL_OR expression { 
+    	 debug(36); 
+    	 if($1.intValue && $3.intValue) {
+    		 $$.intValue = $1.intValue || $3.intValue;
+    	 }
+     }
+     | expression LOGICAL_AND expression { 
+    	 debug(37);
+		 if($1.intValue && $3.intValue) {
+			 $$.intValue = $1.intValue || $3.intValue;
+		 }
+	 }
      | LOGICAL_NOT expression { debug(38);}
      | expression EQ expression { debug(39);}
      | expression NE expression { debug(40);}
@@ -281,12 +303,12 @@ expression
      | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51);}
      | PARA_OPEN expression PARA_CLOSE { debug(52);}
      | function_call PARA_CLOSE { debug(53);}
-     | primary { debug(54);}
+     | primary { debug(54); $$ = $1; }
      ;
 
 primary
-     : NUM { debug(55); /*printf("<%d>",$1);*/}
-     | ID { debug(56); /*printf("<%s>",$1);*/}
+     : NUM { debug(55); $$.intValue = $1; }
+     | ID { debug(56); $$.id = $1; }
      ;
 
 /*

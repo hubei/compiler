@@ -1,5 +1,5 @@
 void print (int i);
-int global, a[42];
+int global, a[42], b[13][37];
 int scan ();
 void exit (int i);
 
