@@ -148,3 +148,7 @@ char* setString(const char* source) {
 	}
 	return target;
 }
+
+void insertVar(string id, int type, int arraysize, int scope) {
+
+}

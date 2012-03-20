@@ -8,9 +8,7 @@
 	#include <stdlib.h>
 	int yylex(void);
 	#include "symboltable.h"
-	const char* IDtype;
-	const char* type;
-	symTabEntry_t* currentEntry;
+	int scope; // ???
 %}
 
 /**
@@ -152,7 +150,7 @@ declaration
 declaration_element
      : identifier_declaration { debug(11);
      	 	 	 	 	 	 	 printf("<%s,%s,%d>",$1.id,$1.type,$1.arraySize);
-     	 	 	 	 	 	 	 //insertVar($1.id,$1.type,$1.arraySize);
+     	 	 	 	 	 	 	 insertVar( $1.id , $1.type , $1.arraySize , -1);
 	 							/*currentEntry = addToSymTab($1);
 	 							if(type) addToSymTabEntry(currentEntry, RETURNTYPE, type);
 	 							addToSymTabEntry(currentEntry, TYPE, type);*/ }
@@ -172,7 +170,7 @@ identifier_declaration
  * The non-terminal 'function_definition' is the beginning of the function definition.
  */									
 function_definition
-     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { debug(15); addToSymTabEntry(currentEntry, TYPE, "f"); }
+     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { debug(15); /*addToSymTabEntry(currentEntry, TYPE, "f");*/ }
      ;
 
 /*

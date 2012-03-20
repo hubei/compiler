@@ -22,9 +22,10 @@ typedef const char* string;
 // types
 #define T_INT 6 // int and void are used by bison ;)
 #define T_VOID 7
+#define T_INT_A 9
 
 // var
-#define VAR 8
+// #define VAR 8 // maybe only distinct with type (see above)
 
 /**
  * @brief entry in the symbol table, that can store any property
@@ -56,9 +57,9 @@ symTabEntry_t* findInSymTabEntry(symTabEntry_t*, int);
 string getKeyAsString(int);
 char* setString(const char*);
 
-void insertVar(string, int, int); //ID, type(0 int, 1 void), scopeID
-void insertFunc(string, int); //ID, type ( INT, VOID )
-void addParam(string, string, int); // function ID, var ID, type
+void insertVar(string, int, int, int); //ID, type (constants!), arraysize (ignored, if not array), scopeID
+void insertFunc(string, int, int); //ID, type, arraysize
+void addParam(string, string, int, int); // function ID, var ID, type, arraysize
 int exist(string, int); //ID, scopeID
 int getType(string, int); // ID, scope
 
