@@ -19,6 +19,13 @@ typedef const char* string;
 #define ASIZE 4 // size of an array
 #define SCOPE 5 //
 
+// types
+#define INT 6
+#define VOID 7
+
+// var
+#define VAR 8
+
 /**
  * @brief entry in the symbol table, that can store any property
  * the id should be accessed by constants, like TYPE
@@ -49,10 +56,10 @@ symTabEntry_t* findInSymTabEntry(symTabEntry_t*, int);
 string getKeyAsString(int);
 char* setString(const char*);
 
-void insertVar(string, int, string); //ID, type(0 int, 1 void), scopeID
-void insertArray(string, int, string, int); //ID, type(0 int, 1 void), scopeID, size
-void insertFunc(string, int, int[]); //ID, type(0 int, 1 void), parameter typen
-
-bool exist(string, string); //ID, scopeID
+void insertVar(string, int, int); //ID, type(0 int, 1 void), scopeID
+void insertFunc(string, int); //ID, type ( INT, VOID )
+void addParam(string, string, int); // function ID, var ID, type
+int exist(string, int); //ID, scopeID
+int getType(string, int); // ID, scope
 
 #endif

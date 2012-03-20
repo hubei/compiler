@@ -152,6 +152,7 @@ declaration
 declaration_element
      : identifier_declaration { debug(11);
      	 	 	 	 	 	 	 printf("<%s,%s,%d>",$1.id,$1.type,$1.arraySize);
+     	 	 	 	 	 	 	 //insertVar($1.id,$1.type,$1.arraySize);
 	 							/*currentEntry = addToSymTab($1);
 	 							if(type) addToSymTabEntry(currentEntry, RETURNTYPE, type);
 	 							addToSymTabEntry(currentEntry, TYPE, type);*/ }
