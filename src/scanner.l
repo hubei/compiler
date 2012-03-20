@@ -18,6 +18,8 @@
 /* finish after scanning the provided file */
 %option noyywrap
 
+%x COMMENT
+
 /*
 \!						return NOT;
 
@@ -28,7 +30,14 @@
 
 %%
 
-\/\/.*\n				;
+\/\*					{BEGIN(COMMENT);}
+<COMMENT>{ 
+\*\/					%{BEGIN(INITIAL); %}
+\n						%{ /* yylineno++;*/ %}
+.						%{ /* multi line comment. Do nothing. */ %}
+}
+
+\/\/.*\n				{ /* one line comment. Do nothing. */ }
 
 do						return DO;
 while					return WHILE;

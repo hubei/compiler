@@ -1,8 +1,15 @@
 void print (int i);
-int global, a[42];
+int global, a[42], b[13][37];
 int scan ();
 void exit (int i);
 
+/**
+ *
+ * @param arr
+ * @param len
+ * @param threshold
+ * @return
+ */
 int func (int arr[10], int len, int threshold) {
   int i, sum;
   i = 0;
