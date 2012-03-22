@@ -50,17 +50,23 @@ typedef struct {
 
 void debug(int);
 void test_symTab();
+
+// Depreciated
 symTabEntry_t* addToSymTab(string);
 symTabEntry_t* addToSymTabEntry(symTabEntry_t*, int, string);
 symTab_t* findInSymTab(string);
 symTabEntry_t* findInSymTabEntry(symTabEntry_t*, int);
-string getKeyAsString(int);
-char* setString(const char*);
 
+// new
 void insertVar(string, int, int, int); //ID, type (constants!), arraysize (ignored, if not array), scopeID
-void insertFunc(string, int, int); //ID, type, arraysize
+void insertFunc(string, int); //ID, type
 void addParam(string, string, int, int); // function ID, var ID, type, arraysize
 int exist(string, int); //ID, scopeID
 int getType(string, int); // ID, scope
+int getScope(string); // ID; should return scope of function and create new scope, if it does not exists
+
+// other
+char* setString(const char*);
+string getKeyAsString(int);
 
 #endif

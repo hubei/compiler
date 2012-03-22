@@ -3,12 +3,15 @@
  */
  
 %{
-	#include <stdio.h>
-	#include <stdarg.h>
-	#include <stdlib.h>
-	int yylex(void);
-	#include "symboltable.h"
-	int scope; // ???
+//#include <stdio.h>
+//#include <stdarg.h>
+#include <stdlib.h>
+#include "symboltable.h"
+
+#define K_VAR 1
+#define K_FUNC 2
+	
+int scope = 0;
 %}
 
 /**
@@ -43,6 +46,17 @@
 		char* id;
 		int intValue;
 	} expr;
+	struct {
+		char* id;
+	} func;
+	struct {
+		char* id;
+		int kind; // function or variable
+		int arraySize;
+	} dec_el;
+	struct {
+		int type;
+	} dec;
 }
 
 /*
@@ -85,8 +99,11 @@
 %left BRACKET_OPEN BRACKET_CLOSE
 
 %type <var>identifier_declaration
-%type <str>type
+%type <num>type
 %type <expr>expression primary
+%type <dec_el>declaration_element
+%type <func>function_signature function_prefix function_header function_signature_parameters
+%type <dec>declaration
 
 %%
 
@@ -126,8 +143,8 @@ program_element
  * instruction.
 */
 type
-     : INT { debug(7); $$ = setString("int"); }
-     | VOID { debug(8); $$ = setString("void"); }
+     : INT { debug(7); $$ = T_INT; }
+     | VOID { debug(8); $$ = T_VOID; }
      ;
 
 /* 
@@ -138,8 +155,24 @@ type
  * stack-attribute to the 'identifier_declaration'.
 */						
 declaration
-     : declaration COMMA declaration_element { debug(9);}
-     | type declaration_element { debug(10);}
+     : declaration COMMA declaration_element { 
+    	 debug(9);
+	 	 $$.type = $1.type;
+ 	 	 if($3.kind == K_VAR) {
+ 	 		insertVar( $3.id , $1.type , $3.arraySize , scope);
+ 	 	 } else if($3.kind == K_FUNC) {
+ 	 		insertFunc($3.id, $1.type);
+ 	 	 }
+     }
+     | type declaration_element { 
+    	 	 debug(10);
+    	 	 $$.type = $1;
+     	 	 if($2.kind == K_VAR) {
+     	 		insertVar( $2.id , $1 , $2.arraySize , scope);
+     	 	 } else if($2.kind == K_FUNC) {
+     	 		insertFunc($2.id, $1);
+     	 	 }
+     	 }
      ;
 
 /*
@@ -148,13 +181,17 @@ declaration
  * prototype or the declaration of an identifier.
  */
 declaration_element
-     : identifier_declaration { debug(11);
-     	 	 	 	 	 	 	 printf("<%s,%s,%d>",$1.id,$1.type,$1.arraySize);
-     	 	 	 	 	 	 	 insertVar( $1.id , $1.type , $1.arraySize , -1);
-	 							/*currentEntry = addToSymTab($1);
-	 							if(type) addToSymTabEntry(currentEntry, RETURNTYPE, type);
-	 							addToSymTabEntry(currentEntry, TYPE, type);*/ }
-     | function_header { debug(12); }
+     : identifier_declaration { 
+    	 // variables
+    	 debug(11);
+     	 $$.id = $1.id;
+     	 $$.arraySize = $1.arraySize; 
+     }
+     | function_header {
+    	 // function prototypes
+    	 debug(12); 
+     	 $$.id = $1.id;
+     } 
      ;
 
 /*
@@ -162,15 +199,28 @@ declaration_element
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { debug(13); $$ = $1; $$.type = setString("a"); if($3.intValue) $$.arraySize *= $3.intValue; } /* BRACKET = [] */
-     | ID {	debug(14); $$.id = $1; $$.type = setString("v"); $$.arraySize=1; }
+     : identifier_declaration BRACKET_OPEN /* BRACKET = [] !!! */ expression BRACKET_CLOSE { 
+    	 debug(13); 
+    	 $$ = $1;
+    	 if($1.arraySize == -1) { // if not marked as array
+    		 $$.arraySize = 1; // mark as array
+    	 }
+    	 if($3.intValue) {
+    		 $$.arraySize *= $3.intValue;
+    	 }
+     } 
+     | ID {	
+    	 debug(14); 
+    	 $$.id = $1;
+    	 $$.arraySize=-1; // not an array 
+     }
      ;
 
 /*
  * The non-terminal 'function_definition' is the beginning of the function definition.
  */									
 function_definition
-     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { debug(15); /*addToSymTabEntry(currentEntry, TYPE, "f");*/ }
+     : type function_header BRACE_OPEN { scope = getScope($2.id); } stmt_list BRACE_CLOSE { debug(15); }
      ;
 
 /*
@@ -180,7 +230,7 @@ function_definition
  * during the parsing process.
  */									
 function_header
-     : function_prefix PARA_CLOSE { debug(16);}
+     : function_prefix PARA_CLOSE { debug(16); $$.id = $1.id;}
      ;
 	
 /*
@@ -189,18 +239,18 @@ function_header
  * 'function_signature_parameters' and functions without by the non-terminal 'function_signature'.
  */									
 function_prefix
-     : function_signature { debug(17);}
-     | function_signature_parameters { debug(18);}
+     : function_signature { debug(17); $$.id = $1.id;}
+     | function_signature_parameters { debug(18); $$.id = $1.id;}
      ;
 
 /*
  * The non-terminal 'function_signature' initializes the function signature definition
  */ 									
 function_signature
-     : identifier_declaration PARA_OPEN {	debug(19);
-     	 	 	 	 	 	 	 	 	 	 /*currentEntry = addToSymTab($1);
-     	 	 	 	 	 	 	 	 	 	 if("") addToSymTabEntry(currentEntry, RETURNTYPE, "");
-     	 	 	 	 	 	 	 	 	 	 addToSymTabEntry(currentEntry, TYPE, "f");*/ }
+     : ID PARA_OPEN {	// ID was before: identifier_declaration
+    	 debug(19);
+    	 $$.id = $1;
+     }
      ;
 
 /*
@@ -208,8 +258,8 @@ function_signature
  * (input) parameters.
  */									
 function_signature_parameters
-     : function_signature_parameters COMMA function_parameter_element { debug(20);}
-     | function_signature function_parameter_element { debug(21);}
+     : function_signature_parameters COMMA function_parameter_element { debug(20); $$.id = $1.id;}
+     | function_signature function_parameter_element { debug(21); $$.id = $1.id;}
      ;
 	
 /*

@@ -138,6 +138,13 @@ string getKeyAsString(int key) {
 		return str;
 	}
 }
+
+/**
+ * @brief Take a string (like "this is a string"), allocate memory for it and return the address.
+ *
+ * @param source A string that should be stored in memory
+ * @return A reference to the stored string
+ */
 char* setString(const char* source) {
 	char* target;
 	if(source) {
@@ -151,4 +158,13 @@ char* setString(const char* source) {
 
 void insertVar(string id, int type, int arraysize, int scope) {
 
+}
+
+void insertFunc(string id, int type) {
+
+}
+
+int getScope(string id) {
+
+	return 0;
 }
