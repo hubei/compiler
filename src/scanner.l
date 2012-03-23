@@ -74,6 +74,8 @@ return					return RETURN;
 \)						return PARA_CLOSE;
 \{						return BRACE_OPEN;
 \}						return BRACE_CLOSE;
+"<<"					return(SHIFT_LEFT);
+">>"					return(SHIFT_RIGHT);
 
 [A-Za-z_][A-Za-z_0-9]*	{ 	yylval.str = strdup(yytext); 
 							return ID;}

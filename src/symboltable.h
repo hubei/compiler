@@ -20,9 +20,9 @@ typedef const char* string;
 #define SCOPE 5 //
 
 // types
-#define T_INT 6 // int and void are used by bison ;)
-#define T_VOID 7
-#define T_INT_A 9
+//#define T_INT 6 // int and void are used by bison ;)
+//#define T_VOID 7
+//#define T_INT_A 9
 
 // var
 // #define VAR 8 // maybe only distinct with type (see above)
