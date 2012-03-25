@@ -149,6 +149,7 @@ char* setString(const char* source) {
 	char* target;
 	if(source) {
 		target = malloc(sizeof(source));
+		// TODO check if malloc worked
 		strcpy(target,source);
 	} else {
 		fprintf(stderr,"setString: Source is not initialized!");

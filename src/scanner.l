@@ -3,6 +3,7 @@
  */
 
 %{
+	#include "symboltable.h"
 	#include "parser.h"
 %}
 
@@ -24,9 +25,6 @@
 \!						return NOT;
 
 */
-
-/*EOF if (yywrap( ))		return END_OF_FILE;*/
-/*<<EOF>>					return END_OF_FILE;*/
 
 %%
 
@@ -83,6 +81,7 @@ return					return RETURN;
 							return NUM;}
 \n						{ printf("\n"); /* nothing to do */}
 [ ]						{/* nothing to do */}
+<<EOF>>					return 0; // we don't need to handle this
 							
 %%
 

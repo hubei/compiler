@@ -37,28 +37,13 @@ int scope = 0;
 %union {
 	int num;
 	char* str;
-	enum {
-		T_INT,
-		T_VOID,
-		T_INT_A
-	} type;
+	type type;
+	var var;
+	func func;
 	struct {
 		char* id;
-		char* type;
-		int arraySize; // only set this, if it is an array
-	} var;
-	struct {
-		char* id;
-		int intValue;
+		type type;
 	} expr;
-	struct {
-		char* id;
-	} func;
-	struct {
-		char* id;
-		int kind; // function or variable
-		int arraySize;
-	} dec_el;
 }
 
 /*
@@ -101,9 +86,8 @@ int scope = 0;
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <var>identifier_declaration
-%type <num>type
-%type <expr>expression primary
+%type <var>identifier_declaration expression primary
+%type <type>type
 
 %%
 
@@ -209,25 +193,6 @@ function_parameter
 //     ;
 
 /*
- * The non-terminal 'declaration_element' contains the different possible elements for 
- * an elementary declaration which could be either a 'function_header' acting as the definition of a function
- * prototype or the declaration of an identifier.
- */
-//declaration_element
-//     : identifier_declaration { 
-//    	 // variables
-//    	 debug(11);
-//     	 $$.id = $1.id;
-//     	 $$.arraySize = $1.arraySize; 
-//     }
-//     | function_header {
-//    	 // function prototypes
-//    	 debug(12); 
-//     	 $$.id = $1.id;
-//     } 
-//     ;
-
-/*
  * The non-terminal 'identifier_declaration' contains the specifics of the variable beside
  * the type definition like arrays, pointers and initial (default) values.
  */									
@@ -235,15 +200,12 @@ identifier_declaration
      : identifier_declaration BRACKET_OPEN /* BRACKET = [] !!! */ NUM BRACKET_CLOSE { 
     	 debug(13); 
     	 $$ = $1;
-    	 if($1.arraySize == -1) { // if not marked as array
-    		 $$.arraySize = 1; // mark as array
-    	 }
-		 $$.arraySize *= $3;
+		 $$.size *= $3;
      } 
      | ID {	
     	 debug(14); 
     	 $$.id = $1;
-    	 $$.arraySize=-1; // not an array 
+    	 $$.size=1; 
      }
      ;
 
@@ -254,53 +216,6 @@ function_definition
 	: type ID PARA_OPEN PARA_CLOSE BRACE_OPEN { scope = getScope($2); } stmt_list BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN { scope = getScope($2); } stmt_list BRACE_CLOSE
 	;
-
-/*
- * The non-terminal 'function_header' is used within the non-terminals 'function' and
- * 'function_prototype'. The grammar for the function definition and the function prototype
- * is split up this way to facilitate the parsing process and to use synthesized attributes
- * during the parsing process.
- */									
-//function_header
-//     : function_prefix PARA_CLOSE { debug(16); $$.id = $1.id;}
-//     ;
-	
-/*
- * The non-terminal 'function_prefix' is used within the non-terminal 'function_header'. The
- * 'function_prefix' distinguishes between functions with parameters by the non-terminal 
- * 'function_signature_parameters' and functions without by the non-terminal 'function_signature'.
- */									
-//function_prefix
-//     : function_signature { debug(17); $$.id = $1.id;}
-//     | function_signature_parameters { debug(18); $$.id = $1.id;}
-//     ;
-
-/*
- * The non-terminal 'function_signature' initializes the function signature definition
- */ 									
-//function_signature
-//     : ID PARA_OPEN {	// ID was before: identifier_declaration
-//    	 debug(19);
-//    	 $$.id = $1;
-//     }
-//     ;
-
-/*
- * The non-terminal 'function_signature_parameters' declares the function of the function prototype with
- * (input) parameters.
- */									
-//function_signature_parameters
-//     : function_signature_parameters COMMA function_parameter_element { debug(20); $$.id = $1.id;}
-//     | function_signature function_parameter_element { debug(21); $$.id = $1.id;}
-//     ;
-	
-/*
- * The non-terminal 'function_parameter_element' is used within the non-terminal 'function_definition_parameters'
- * and contains the declaration for ONE parameter.
- */									
-//function_parameter_element
-//     : type identifier_declaration { debug(22);}
-//     ;
 									
 /*
  * The non-terminal 'stmt_list' is list of statements containing any number (including zero) of statements represented 
@@ -358,15 +273,15 @@ expression
      : expression ASSIGN expression { debug(35); }
      | expression LOGICAL_OR expression { 
     	 debug(36); 
-    	 if($1.intValue && $3.intValue) {
-    		 $$.intValue = $1.intValue || $3.intValue;
-    	 }
+//    	 if($1.intValue && $3.intValue) {
+//    		 $$.intValue = $1.intValue || $3.intValue;
+//    	 }
      }
      | expression LOGICAL_AND expression { 
     	 debug(37);
-		 if($1.intValue && $3.intValue) {
-			 $$.intValue = $1.intValue || $3.intValue;
-		 }
+//		 if($1.intValue && $3.intValue) {
+//			 $$.intValue = $1.intValue || $3.intValue;
+//		 }
 	 }
      | LOGICAL_NOT expression { debug(38);}
      | expression EQ expression { debug(39);}
@@ -388,7 +303,7 @@ expression
      ;
 
 primary
-     : NUM { debug(55); $$.intValue = $1; }
+     : NUM { debug(55); }
      | ID { debug(56); $$.id = $1; }
      ;
 

@@ -10,22 +10,40 @@
 #include "include/uthash.h"
 typedef const char* string;
 
+typedef enum {
+	T_INT,
+	T_VOID,
+	T_INT_A
+} type;
+
+typedef struct var {
+	char* id;
+	type type;
+	int size;
+	struct var* next;
+} var;
+
+typedef struct func {
+	char* id;
+	type returnType;
+	var* param;
+	struct func* next;
+} func;
+
+typedef struct symbol {
+	var var;
+	func func;
+	struct symbol* superior;
+} symbol;
+
 /*
  * constants for identifying properties in the symbol table
  */
-#define IDENTIFIER 1 // function, variable or array identifier
-#define TYPE 2 // f: function, a: array, v: variable
-#define RETURNTYPE 3 // return type of function or type of variable/array
-#define ASIZE 4 // size of an array
-#define SCOPE 5 //
-
-// types
-//#define T_INT 6 // int and void are used by bison ;)
-//#define T_VOID 7
-//#define T_INT_A 9
-
-// var
-// #define VAR 8 // maybe only distinct with type (see above)
+//#define IDENTIFIER 1 // function, variable or array identifier
+//#define TYPE 2 // f: function, a: array, v: variable
+//#define RETURNTYPE 3 // return type of function or type of variable/array
+//#define ASIZE 4 // size of an array
+//#define SCOPE 5 //
 
 /**
  * @brief entry in the symbol table, that can store any property
