@@ -1,17 +1,17 @@
-/* 
- * parser.y - Parser utility for the DHBW compiler!
+/** 
+ * @file parser.y 
+ * @brief Parser utility for the DHBW compiler!
  */
  
 %{
-//#include <stdio.h>
+#include <stdio.h>
 //#include <stdarg.h>
 #include <stdlib.h>
 #include "symboltable.h"
 
-#define K_VAR 1
-#define K_FUNC 2
+#define YYERROR_VERBOSE
 	
-int scope = 0;
+symbol* curSymbol;
 %}
 
 /**
@@ -41,9 +41,13 @@ int scope = 0;
 	var var;
 	func func;
 	struct {
-		char* id;
 		type type;
 	} expr;
+	struct exprList {
+		struct expr* expr;
+		struct exprList* prev;
+		struct exprList* next;
+	} exprList;
 }
 
 /*
@@ -86,8 +90,10 @@ int scope = 0;
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <var>identifier_declaration expression primary
+%type <var>identifier_declaration primary function_parameter_list function_parameter
 %type <type>type
+%type <expr>expression
+%type <exprList>function_call_parameters
 
 %%
 
@@ -99,7 +105,7 @@ int scope = 0;
  * of grammar 'program'. 
  */
 program
-     : program_element_list { debug(1); printSymTabKeys(); }
+     : {curSymbol = createSymbol()} program_element_list { debug(1); /*printSymTabKeys();*/ }
      ;
 
 /*
@@ -137,67 +143,19 @@ type
  */
 variable_declaration
 	: variable_declaration COMMA identifier_declaration	 {debug(48); }
-	| type identifier_declaration {debug(42); }
+	| type identifier_declaration {
+		debug(42);
+		$2.type = $1;
+		insertVar(curSymbol, &$2);
+	}
 	;
-	
-/*
- * 
- */
-function_declaration
-	 : type ID PARA_OPEN PARA_CLOSE	 {debug(47); }
-	 | type ID PARA_OPEN function_parameter_list PARA_CLOSE	 {debug(44); }
-	 ;
-	 
-/*
- * 
- */
-function_parameter_list
-	 : function_parameter	 {debug(45); }
-	 | function_parameter_list COMMA function_parameter	 {debug(46); }
-	 ;
-
-/*
- * 
- */
-function_parameter
-	: type identifier_declaration{debug(43); }
-	;
-	
-
-/* 
- * The non-terminal 'declaration' is used for declarations like
- * 'int a, b, *c[]' as well as function prototypes. 									
-/* Each 'declaration' consists of at least one 'declaration_element'. The
- * left-recursion of this rule is positive for the synthesizing the type as 
- * stack-attribute to the 'identifier_declaration'.
-*/						
-//declaration
-//     : declaration COMMA declaration_element { 
-//    	 debug(9);
-//	 	 $$.type = $1.type;
-// 	 	 if($3.kind == K_VAR) {
-// 	 		insertVar( $3.id , $1.type , $3.arraySize , scope);
-// 	 	 } else if($3.kind == K_FUNC) {
-// 	 		insertFunc($3.id, $1.type);
-// 	 	 }
-//     }
-//     | type declaration_element { 
-//    	 	 debug(10);
-//    	 	 $$.type = $1;
-//     	 	 if($2.kind == K_VAR) {
-//     	 		insertVar( $2.id , $1 , $2.arraySize , scope);
-//     	 	 } else if($2.kind == K_FUNC) {
-//     	 		insertFunc($2.id, $1);
-//     	 	 }
-//     	 }
-//     ;
 
 /*
  * The non-terminal 'identifier_declaration' contains the specifics of the variable beside
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN /* BRACKET = [] !!! */ NUM BRACKET_CLOSE { 
+     : identifier_declaration BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
     	 debug(13); 
     	 $$ = $1;
 		 $$.size *= $3;
@@ -208,13 +166,66 @@ identifier_declaration
     	 $$.size=1; 
      }
      ;
+ 	
+ /*
+ * 
+ */
+function_declaration
+	: type ID PARA_OPEN PARA_CLOSE {
+		debug(47); 
+		func* func = createFunc();
+		func->id = $2;
+		func->returnType = $1;
+		func->param = NULL;
+		insertFunc(curSymbol, func);
+	}
+	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
+		debug(44);
+		func* func = createFunc();
+		func->id = $2;
+		func->returnType = $1;
+		func->param = &$4;
+		insertFunc(curSymbol, func);
+	}
+	;
 
+/*
+ * 
+ */
+function_parameter_list
+	: function_parameter {
+		debug(45); 
+		$$ = $1;
+	}
+	| function_parameter_list COMMA function_parameter {
+		debug(46);
+		addToVar(&$$, &$3);
+	}
+	;
+
+/*
+ * 
+ */
+function_parameter
+	: type identifier_declaration {
+		debug(43);
+		$2.type = $1;
+		$$ = $2;
+	}
+	;
+	
 /*
  * The non-terminal 'function_definition' is the beginning of the function definition.
  */
 function_definition
-	: type ID PARA_OPEN PARA_CLOSE BRACE_OPEN { scope = getScope($2); } stmt_list BRACE_CLOSE
-	| type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN { scope = getScope($2); } stmt_list BRACE_CLOSE
+	: type ID PARA_OPEN PARA_CLOSE {
+		/* typechecking */
+	  }
+	  BRACE_OPEN {curSymbol = push(curSymbol);} stmt_list {curSymbol = pop(curSymbol);} BRACE_CLOSE
+	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
+			/* typechecking (returntype, parameters) */
+		}	
+	  BRACE_OPEN {curSymbol = push(curSymbol);} stmt_list {curSymbol = pop(curSymbol);} BRACE_CLOSE
 	;
 									
 /*
@@ -245,7 +256,7 @@ stmt
  * A statement block is just a statement list within braces.
  */									
 stmt_block
-     : BRACE_OPEN stmt_list BRACE_CLOSE { debug(30);}
+     : BRACE_OPEN stmt_list BRACE_CLOSE { debug(30); /* we could extend additional scopes here :o */}
      ;
 	
 /*
@@ -267,21 +278,15 @@ stmt_loop
 									
 /*
  * The non-terminal 'expression' is one of the core statements containing all arithmetic, logical, comparison and
- * assignment operators.expression 
+ * assignment operators. 
  */
 expression
      : expression ASSIGN expression { debug(35); }
      | expression LOGICAL_OR expression { 
-    	 debug(36); 
-//    	 if($1.intValue && $3.intValue) {
-//    		 $$.intValue = $1.intValue || $3.intValue;
-//    	 }
+    	 debug(36);
      }
      | expression LOGICAL_AND expression { 
     	 debug(37);
-//		 if($1.intValue && $3.intValue) {
-//			 $$.intValue = $1.intValue || $3.intValue;
-//		 }
 	 }
      | LOGICAL_NOT expression { debug(38);}
      | expression EQ expression { debug(39);}
@@ -299,20 +304,20 @@ expression
      | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51);}
      | PARA_OPEN expression PARA_CLOSE { debug(52);}
      | function_call { debug(53);}
-     | primary { debug(54); $$ = $1; }
+     | primary { debug(54); }
      ;
 
 primary
-     : NUM { debug(55); }
-     | ID { debug(56); $$.id = $1; }
+     : NUM { debug(55); $$.type = T_INT; }
+     | ID { debug(56); $$ = *findVar(curSymbol, $1); }
      ;
 
 /*
  * The non-terminal 'function_call' is used by the non-terminal 'expression' for calling functions.
  */
 function_call
-	: ID PARA_OPEN PARA_CLOSE { debug(57);}
-	| ID PARA_OPEN function_call_parameters PARA_CLOSE { debug(58);}
+	: ID PARA_OPEN PARA_CLOSE { debug(57); /* typechecking */}
+	| ID PARA_OPEN function_call_parameters PARA_CLOSE { debug(58); /* typechecking */}
 	;
 
 /*
@@ -320,8 +325,8 @@ function_call
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-     : function_call_parameters COMMA expression { debug(59);}
-     | expression { debug(60);}
+     : function_call_parameters COMMA expression { debug(59); $$.expr = &$3; $$.prev = &$1; $$.prev->next = &$$; /*FIXME maybe check for nullpointers? :P*/}
+     | expression { debug(60); $$.expr = &$1; }
      ;
 
 %%
