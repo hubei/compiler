@@ -39,7 +39,7 @@ scanner: $(OBJDIR)/scanner.c
 $(OBJDIR)/dhbwcc: $(DHBWCC_OBJECTS) 
 	$(CC) $(CFLAGS) -o $@ $+
 	
-$(OBJDIR)/symboltable.o: $(SRCDIR)/symboltable.c
+$(OBJDIR)/symboltable.o: $(SRCDIR)/symboltable.c $(SRCDIR)/symboltable.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)/diag.o: $(SRCDIR)/diag.c
