@@ -53,6 +53,6 @@ void insertVar(string, int, string); //ID, type(0 int, 1 void), scopeID
 void insertArray(string, int, string, int); //ID, type(0 int, 1 void), scopeID, size
 void insertFunc(string, int, int[]); //ID, type(0 int, 1 void), parameter typen
 
-bool exist(string, string); //ID, scopeID
+//bool exist(string, string); //ID, scopeID
 
 #endif
