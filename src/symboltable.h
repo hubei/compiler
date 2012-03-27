@@ -68,7 +68,6 @@ var* findVar(symbol*, string); // find in current scope or scopes above
 func* findFunc(symbol*, string);
 int exists(symbol*, string); // only in current scope
 //##################################################################################################
-
 //void insertVar(symbol*, string, type, int); // symTab (for scope), ID, type , size (1 for vars)
 //void insertFunc(symbol*, string, type); //ID, returntype
 //void addParam(string, string, int, int); // function ID, var ID, type, arraysize
