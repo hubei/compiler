@@ -27,6 +27,7 @@ typedef struct var {
 	char* id; // key
 	type type;
 	int size; // size that is needed (datatype and arraysize)
+	int offset; // TODO
 	UT_hash_handle hh; /* makes this structure hashable */
 } var;
 
@@ -81,6 +82,12 @@ int exists(symbol*, string); // only in current scope
  * @return pointer to new string
  */
 char* setString(const char*);
+
+/**
+ * @brief Output given message and exit program
+ * @param message
+ */
+void error(string);
 
 /**
  * debug functions, only for testing

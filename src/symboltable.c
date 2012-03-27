@@ -149,17 +149,29 @@ char* setString(const char* source) {
 	char* target;
 	if(source) {
 		target = malloc(sizeof(source));
-		// TODO check if malloc worked
+		if(target == NULL) error("setString: Could not allocate new String target.");
 		strcpy(target,source);
 	} else {
-		fprintf(stderr,"setString: Source is not initialized!");
+		error("setString: Source is not initialized!");
 	}
 	return target;
 }
 
 
-symbol* push(symbol* symbol){return NULL;}
-symbol* pop(symbol* symbol){return NULL;}
+symbol* push(symbol* symbol) {
+	struct symbol* newSymbol = NULL;
+	newSymbol = malloc(sizeof(symbol));
+	if(newSymbol == NULL) error("push: Could not allocate new Symbol.");
+	newSymbol->next = symbol;
+	return newSymbol;
+}
+
+symbol* pop(symbol* symbol) {
+	if(symbol->next == NULL) {
+		error("pop: failed to return next symbol: it is NULL");
+	}
+	return symbol->next;
+}
 
 symbol* createSymbol(){return NULL;}
 var* createVar(){return NULL;}
@@ -171,3 +183,8 @@ void insertFunc(symbol* symbol, func* func){}
 var* findVar(symbol* symbol, string id){return NULL;} // find in current scope or scopes above
 func* findFunc(symbol* symbol, string id){return NULL;}
 int exists(symbol* symbol, string id){return 0;} // only in current scope
+
+void error(string msg) {
+	fprintf(stderr, "%s\n", msg);
+	exit(1);
+}
