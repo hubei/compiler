@@ -135,7 +135,7 @@ program_element
 */
 type
      : INT { debug(7); $$ = T_INT; }
-     | VOID { debug(8); $$ = T_VOID; }
+     | VOID { debug(8); $$ = T_VOID;  }
      ;
 
 /*
@@ -159,6 +159,10 @@ identifier_declaration
     	 debug(13); 
     	 $$ = $1;
 		 $$.size *= $3;
+// example of how to get line numbers
+		fprintf (stderr, "l%d,c%d-l%d,c%d\n",
+                            @1.first_line, @1.first_column,
+                            @1.last_line, @1.last_column);
      } 
      | ID {	
     	 debug(14); 
@@ -298,7 +302,9 @@ expression
      | expression PLUS expression { debug(45);}
      | expression MINUS expression { debug(46);}
      | expression MUL expression { debug(47);}
-     | expression DIV expression  { debug(48);}
+     | expression DIV expression  { 
+		debug(48);
+		}
      | expression MOD expression  { debug(49);}
      | MINUS expression %prec UNARY_MINUS { debug(50);}
      | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51);}

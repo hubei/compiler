@@ -5,6 +5,8 @@
 %{
 	#include "symboltable.h"
 	#include "parser.h"
+	int colnum = 0;
+	#define YY_USER_ACTION {yylloc.first_line = yylineno; yylloc.first_column = colnum; colnum=colnum+yyleng; yylloc.last_column=colnum; yylloc.last_line = yylineno;}
 %}
 
 /* 
