@@ -147,7 +147,7 @@ type
  * 
  */
 variable_declaration
-	: variable_declaration COMMA identifier_declaration	 {debug(48); }
+	: variable_declaration COMMA identifier_declaration	 {debug(100); }
 	| type identifier_declaration {
 		debug(42);
 		$2.type = $1;
@@ -183,18 +183,22 @@ function_declaration
 	: type ID PARA_OPEN PARA_CLOSE {
 		debug(47); 
 		func* func = createFunc();
-		func->id = $2;
-		func->returnType = $1;
-		func->param = NULL;
-		insertFunc(curSymbol, func);
+		if(func!=NULL) {
+			func->id = $2;
+			func->returnType = $1;
+			func->param = NULL;
+			insertFunc(curSymbol, func);
+		}
 	}
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		debug(44);
 		func* func = createFunc();
-		func->id = $2;
-		func->returnType = $1;
-		func->param = &$4;
-		insertFunc(curSymbol, func);
+		if(func!=NULL) {
+			func->id = $2;
+			func->returnType = $1;
+			func->param = &$4;
+			insertFunc(curSymbol, func);
+		}
 	}
 	;
 
@@ -230,11 +234,11 @@ function_definition
 	: type ID PARA_OPEN PARA_CLOSE {
 		/* typechecking */
 	  }
-	  BRACE_OPEN {curSymbol = push(curSymbol);} stmt_list {curSymbol = pop(curSymbol);} BRACE_CLOSE
+	  BRACE_OPEN {debug(104); curSymbol = push(curSymbol); debug(101);} stmt_list {debug(102); curSymbol = pop(curSymbol); debug(103);} BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 			/* typechecking (returntype, parameters) */
 		}	
-	  BRACE_OPEN {curSymbol = push(curSymbol);} stmt_list {curSymbol = pop(curSymbol);} BRACE_CLOSE
+	  BRACE_OPEN {debug(105); curSymbol = push(curSymbol); debug(106);} stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
 	;
 									
 /*
@@ -242,8 +246,8 @@ function_definition
  * by the non-terminal 'stmt'.
  */									
 stmt_list
-     : /* empty: epsilon */
-     | stmt_list stmt { debug(23);}
+     : /* empty: epsilon */ { debug(120);}
+     | stmt_list { debug(121);} stmt { debug(23);}
      ;
 
 /*
@@ -265,7 +269,7 @@ stmt
  * A statement block is just a statement list within braces.
  */									
 stmt_block
-     : BRACE_OPEN stmt_list BRACE_CLOSE { debug(30); /* we could extend additional scopes here :o */}
+     : BRACE_OPEN {debug(110);} stmt_list BRACE_CLOSE { debug(30); /* we could extend additional scopes here :o */}
      ;
 	
 /*
@@ -320,7 +324,13 @@ expression
 
 primary
      : NUM { debug(55); $$.type = T_INT; }
-     | ID { debug(56); $$ = *findVar(curSymbol, $1); }
+     | ID { 
+    	 debug(56); 
+    	 var *found = findVar(curSymbol, $1);
+    	 if(found!=NULL) {
+    		 $$ = *found;
+    	 }
+      }
      ;
 
 /*

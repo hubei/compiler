@@ -159,17 +159,22 @@ char* setString(const char* source) {
 
 symbol* push(symbol* symbol) {
 	struct symbol* newSymbol = NULL;
-	newSymbol = malloc(sizeof(symbol));
+	newSymbol = malloc(sizeof(struct symbol));
 	if(newSymbol == NULL) error("push: Could not allocate new Symbol.");
 	newSymbol->next = symbol;
 	return newSymbol;
 }
 
 symbol* pop(symbol* symbol) {
-	if(symbol->next == NULL) {
-		error("pop: failed to return next symbol: it is NULL");
+	if(symbol == NULL) {
+		error("pop: input is NULL");
+	} else {
+		if(symbol->next == NULL) {
+			error("pop: failed to return next symbol: it is NULL");
+		}
+		return symbol->next;
 	}
-	return symbol->next;
+	return NULL;
 }
 
 symbol* createSymbol(){return NULL;}

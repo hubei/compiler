@@ -329,6 +329,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	fprintf(stdout, "Finished.");
+
 	rm_cleanup_resources(&resource_mgr);
 	return 0;
 }
