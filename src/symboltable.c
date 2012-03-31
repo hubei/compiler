@@ -44,7 +44,6 @@
 //	}
 //	return s->entry;
 //}
-
 /**
  * @brief Add a new property (key/value pair) to the given entry table
  * If key already exists, the existing nothing will be saved
