@@ -307,7 +307,7 @@ int main(int argc, char *argv[]) {
 		yyparse();
 		fclose(yyin);
 		// TODO If necessary, call any functions for IR code generation
-		irCode ircode = getIRCode();
+		irCode* ircode = getIRCode();
 		if(cc_options.ir_file!=NULL) {
 			FILE *irFile;
 			irFile = fopen(cc_options.ir_file, "w+");

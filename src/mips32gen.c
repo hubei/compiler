@@ -7,7 +7,15 @@
 
 #include "mips32gen.h"
 
-int mips32gen(FILE *file,irCode ircode) {
+int mips32gen(FILE *file,irCode *ircode) {
+	if(file == NULL) {
+		return 1;
+	}
+	if(ircode == NULL) {
+		return 2;
+	}
+
+
 	return 42;
 }
 

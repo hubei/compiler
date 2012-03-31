@@ -7,7 +7,7 @@ string IRtoString() {
 	return result;
 }
 
-irCode getIRCode() {
-	irCode result;
+irCode* getIRCode() {
+	irCode* result;
 	return result;
 }
