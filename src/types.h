@@ -50,8 +50,8 @@ typedef struct func {
  * @brief Symbol structure of the symboltable, implemented as a doubly linked list
  */
 typedef struct symbol {
-	var symVar;
-	func symFunc;
+	var* symVar;
+	func* symFunc;
 	/*struct symbol* prev;*/ // this is actually not really needed, because we only have two different scope levels
 	struct symbol* next; // with var names prev and next, this struct can be used with utlist
 } symbol;
