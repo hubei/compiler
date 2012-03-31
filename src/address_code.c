@@ -8,6 +8,6 @@ string IRtoString() {
 }
 
 irCode* getIRCode() {
-	irCode* result;
+	irCode* result = NULL;
 	return result;
 }

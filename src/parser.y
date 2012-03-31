@@ -110,7 +110,7 @@ symbol* curSymbol;
  * of grammar 'program'. 
  */
 program
-     : {curSymbol = createSymbol()} program_element_list { debug(1); /*printSymTabKeys();*/ }
+     : {curSymbol = createSymbol();} program_element_list { debug(1); test_symTab(curSymbol); }
      ;
 
 /*
@@ -151,7 +151,7 @@ variable_declaration
 	| type identifier_declaration {
 		debug(42);
 		$2.type = $1;
-		insertVar(curSymbol, &$2);
+		insertVar(curSymbol, $2);
 	}
 	;
 
@@ -182,22 +182,20 @@ identifier_declaration
 function_declaration
 	: type ID PARA_OPEN PARA_CLOSE {
 		debug(47); 
-		func* func = createFunc();
+		func* func = createFunc($2);
 		if(func!=NULL) {
-			func->id = $2;
 			func->returnType = $1;
 			func->param = NULL;
-			insertFunc(curSymbol, func);
+			insertFunc(curSymbol, *func);
 		}
 	}
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		debug(44);
-		func* func = createFunc();
+		func* func = createFunc($2);
 		if(func!=NULL) {
-			func->id = $2;
 			func->returnType = $1;
-			func->param = &$4;
-			insertFunc(curSymbol, func);
+			func->param = &$4;// FIXME do not use pointer
+			insertFunc(curSymbol, *func);
 		}
 	}
 	;
