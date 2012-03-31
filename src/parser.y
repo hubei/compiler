@@ -7,7 +7,7 @@
 #include <stdio.h>
 //#include <stdarg.h>
 #include <stdlib.h>
-#include "symboltable.h"
+#include "symboltable.h" 
 
 #define YYERROR_VERBOSE
 	
@@ -31,23 +31,27 @@ symbol* curSymbol;
  */
 %start program
 
+%code {
+#include "symboltable.h" 
+}
+
 /**
  * Define types for numericals and strings
  */
 %union {
-	int num;
 	char* str;
-	type type;
+	int num;
 	var var;
 	func func;
-	struct {
-		type type;
-	} expr;
+	type type;
 	struct exprList {
 		struct expr* expr;
 		struct exprList* prev;
 		struct exprList* next;
-	} exprList;
+	} exprList; 
+	struct {
+		type type;
+	} expr;
 }
 
 /*
