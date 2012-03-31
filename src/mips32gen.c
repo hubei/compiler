@@ -5,7 +5,9 @@
  *      Author: NicolaiO
  */
 
+#include "mips32gen.h"
 
-int mips32gen(FILE*,irCode) {
+int mips32gen(FILE *file,irCode ircode) {
 	return 42;
 }
+

@@ -8,7 +8,8 @@
 #ifndef MIPS32GEN_H_
 #define MIPS32GEN_H_
 
-#include "address_code.h"
+#include "types.h"
+#include <stdio.h>
 
 int mips32gen(FILE*,irCode);
 

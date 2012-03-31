@@ -12,6 +12,7 @@
 #define YYERROR_VERBOSE
 	
 symbol* curSymbol;
+	
 %}
 
 /**
@@ -31,8 +32,8 @@ symbol* curSymbol;
  */
 %start program
 
-%code {
-#include "symboltable.h" 
+%code requires {
+	#include "types.h" 
 }
 
 /**

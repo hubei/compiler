@@ -1,11 +1,13 @@
- #include "address_code.h"
+#include "address_code.h"
+#include "types.h"
 
 string IRtoString() {
-	string result = malloc(2);
-	strcpy(result, "a");
+	char* result = malloc(sizeof("Test"));
+	strcpy(result, "Test");
 	return result;
 }
 
 irCode getIRCode() {
-	return NULL;
+	irCode result;
+	return result;
 }

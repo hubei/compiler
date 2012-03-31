@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+//#include "symboltable.h"
 #include "parser.h"
 #include "address_code.h"
 #include "mips32gen.h"
@@ -16,7 +17,7 @@ void yyparse();
 // get a reference to the yyin und yyout variables for flex
 extern FILE *yyin;
 extern FILE *yyout;
-extern FILE *irFile;
+
 
 /* Constants */
 static const char *C_EXT = ".c";
@@ -308,6 +309,7 @@ int main(int argc, char *argv[]) {
 		// TODO If necessary, call any functions for IR code generation
 		irCode ircode = getIRCode();
 		if(cc_options.ir_file!=NULL) {
+			FILE *irFile;
 			irFile = fopen(cc_options.ir_file, "w+");
 			fprintf(irFile,"%s",IRtoString());
 			fclose(irFile);

@@ -193,55 +193,57 @@ struct func *functiones = NULL;
 //
 void insertVar(symbol* symbol, var* var){
 
-	target = malloc(sizeof(symbol));
-	if(target == NULL) error("setString: Could not allocate new String target.");
-	target = malloc(sizeof(var));
-	if(target == NULL) error("setString: Could not allocate new String target.");
-
-	//muss ich den pointermüberhaupt anlegen oder kann ich auch den der funktion übergebenen nehmen?
-	struct var *a;
-	a = malloc(sizeof(struct var));
-	a->id = symbol;
-
-	//Darf ich Hash_ADD_Int nehmen? oder nur das allgemeine? darf ich symbol und var so als ganzes übergeben?
-	strcpy(a->symbol, symbol);
-	HASH_ADD_INT( a, id, symbol );
-	strcpy(a->var, var);
-	HASH_ADD_INT( a, id, var );
+//	target = malloc(sizeof(symbol));
+//	if(target == NULL) error("setString: Could not allocate new String target.");
+//	target = malloc(sizeof(var));
+//	if(target == NULL) error("setString: Could not allocate new String target.");
+//
+//	//muss ich den pointermüberhaupt anlegen oder kann ich auch den der funktion übergebenen nehmen?
+//	struct var *a;
+//	a = malloc(sizeof(struct var));
+//	a->id = symbol;
+//
+//	//Darf ich Hash_ADD_Int nehmen? oder nur das allgemeine? darf ich symbol und var so als ganzes übergeben?
+//	strcpy(a->symbol, symbol);
+//	HASH_ADD_INT( a, id, symbol );
+//	strcpy(a->var, var);
+//	HASH_ADD_INT( a, id, var );
 }
 
 // Test function var
 void print_var() {
 
 //type sicher falsch, was gibt man da an? also in printf vorn
-    for(k=variables k != NULL; k=k->hh.next) {
-        printf("var id %d: type %s: size %d: offset %d\n", k->id, k->type, k->size, offset);
-    }
+//    for(k=variables k != NULL; k=k->hh.next) {
+//        printf("var id %d: type %s: size %d: offset %d\n", k->id, k->type, k->size, offset);
+//    }
+}
 
 void insertFunc(symbol* symbol, func* func){
 
-	target = malloc(sizeof(symbol));
-	if(target == NULL) error("setString: Could not allocate new String target.");
-	target = malloc(sizeof(func));
-	if(target == NULL) error("setString: Could not allocate new String target.");
-
-	struct var *b;
-	b = malloc(sizeof(struct var));
-	b->id = symbol;
-
-	strcpy(s->symbol, symbol);
-	HASH_ADD_INT( b, id, symbol );
-	strcpy(s->func, func);
-	HASH_ADD_INT( b, id, func );
+//	target = malloc(sizeof(symbol));
+//	if(target == NULL) error("setString: Could not allocate new String target.");
+//	target = malloc(sizeof(func));
+//	if(target == NULL) error("setString: Could not allocate new String target.");
+//
+//	struct var *b;
+//	b = malloc(sizeof(struct var));
+//	b->id = symbol;
+//
+//	strcpy(s->symbol, symbol);
+//	HASH_ADD_INT( b, id, symbol );
+//	strcpy(s->func, func);
+//	HASH_ADD_INT( b, id, func );
 }
 
 // Test function insertFunc
 void print_func() {
 
 	//type sicher falsch, was gibt man da an? in printf vorn
-    for(z=variables z != NULL; z=z->hh.next) {
-        printf("func id %d: type %s: size %d: offset %d\n", k->id, k->type, k->size, offset);
-    }
+//    for(z=variables z != NULL; z=z->hh.next) {
+//        printf("func id %d: type %s: size %d: offset %d\n", k->id, k->type, k->size, offset);
+//    }
+}
 
 var* findVar(symbol* symbol, string id){return NULL;} // find in current scope or scopes above
 func* findFunc(symbol* symbol, string id){return NULL;}
@@ -252,4 +254,3 @@ void error(string msg) {
 	exit(1);
 }
 
-}
