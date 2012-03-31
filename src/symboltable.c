@@ -16,26 +16,15 @@
 /**
  * @brief symbol table object that stores the actual symbol table
  */
-symTab_t *symTab = NULL; /* NULL is important according to documentation */
+//symTab_t *symTab = NULL; /* NULL is important according to documentation */
 
-
-void insertVar(string, int, int) //ID, type(0 int, 1 void), scopeID
-{
-
-}
-void insertFunc(string, int); //ID, type ( INT, VOID )
-void addParam(string, string, int); // function ID, var ID, type
-int exist(string, int); //ID, scopeID
-int getType(string, int); // ID, scope
-
-//
-///**
-// * @brief Add a new entry to symTab, by giving the identifier (of function or variable)
-// * The function will allocate the new entry and add it to the hash table.
-// *
-// * @param id Identifier of the function or variable
-// * @return pointer to the symTabEntry, so that it can be filled
-// */
+/**
+ * @brief Add a new entry to symTab, by giving the identifier (of function or variable)
+ * The function will allocate the new entry and add it to the hash table.
+ *
+ * @param id Identifier of the function or variable
+ * @return pointer to the symTabEntry, so that it can be filled
+ */
 //symTabEntry_t* addToSymTab(string id) {
 //	symTab_t* s; /* must be of type symTab to be added to symTab */
 //
@@ -43,7 +32,7 @@ int getType(string, int); // ID, scope
 //	if (!s) {
 //		symTabEntry_t* entry = NULL; /* entry to be added to symTab */
 //
-//		entry = addToSymTabEntry(entry, IDENTIFIER, id);
+////		entry = addToSymTabEntry(entry, IDENTIFIER, id);
 //
 //		s = malloc(sizeof(symTab_t));
 //		s->id = malloc(sizeof(id));
@@ -55,16 +44,15 @@ int getType(string, int); // ID, scope
 //	}
 //	return s->entry;
 //}
-//
-///**
-// * @brief Add a new property (key/value pair) to the given entry table
-// * If key already exists, the existing nothing will be saved
-// * and the key/value pair will be returned
-// *
-// * @param entry An existing entry table where the new property should be stored
-// * @param key A key, describing the property (use constants!)
-// * @param value The value of the property
-// */
+/**
+ * @brief Add a new property (key/value pair) to the given entry table
+ * If key already exists, the existing nothing will be saved
+ * and the key/value pair will be returned
+ *
+ * @param entry An existing entry table where the new property should be stored
+ * @param key A key, describing the property (use constants!)
+ * @param value The value of the property
+ */
 //symTabEntry_t* addToSymTabEntry(symTabEntry_t* entry, int key, string value) {
 //	symTabEntry_t *s; /* new property */
 //
@@ -81,40 +69,40 @@ int getType(string, int); // ID, scope
 //	}
 //	return s;
 //}
-//
-///**
-// * @brief Find given identifier in symbol table
-// * @param id identifier to be found
-// * @return symTab with id->entry pair
-// */
+
+/**
+ * @brief Find given identifier in symbol table
+ * @param id identifier to be found
+ * @return symTab with id->entry pair
+ */
 //symTab_t* findInSymTab(string id) {
 //	symTab_t* entry = NULL;
 //	HASH_FIND_STR( symTab, id, entry);
 //	return entry;
 //}
-//
-///**
-// * @brief Find given key in symbol table entry
-// * @param s symbol table entry
-// * @param key key to be found
-// * @return symTabEntry with key->value pair
-// */
+
+/**
+ * @brief Find given key in symbol table entry
+ * @param s symbol table entry
+ * @param key key to be found
+ * @return symTabEntry with key->value pair
+ */
 //symTabEntry_t* findInSymTabEntry(symTabEntry_t* s, int key) {
 //	symTabEntry_t* entry = NULL;
 //	HASH_FIND_INT( s, &key, entry);
 //	return entry;
 //}
-//
+
 //void test_symTab() {
 //	addToSymTab("test");
 //	symTab_t* entry = findInSymTab("test");
 //	symTabEntry_t* property = findInSymTabEntry(entry->entry, IDENTIFIER);
 //	printf("\n%d -> %s\n", property->key, property->value);
 //}
-//
-///**
-// * @brief Only for debug: Print all identifiers in the symbol table
-// */
+
+/**
+ * @brief Only for debug: Print all identifiers in the symbol table
+ */
 //void printSymTabKeys() {
 //	symTab_t *current_symTab, *tmp;
 //	symTabEntry_t *current_Entry, *tmp2;
@@ -128,34 +116,74 @@ int getType(string, int); // ID, scope
 //	}
 //	printf("Total: %d", HASH_COUNT(symTab));
 //}
-//
-///**
-// * @brief Simple debug function that prints the given number followed by a '-'
-// * @param number The number to be printed
-// */
-//void debug(int number) {
-//	fprintf(stdout, "%d-", number);
-//}
-//
+
+/**
+ * @brief Simple debug function that prints the given number followed by a '-'
+ * @param number The number to be printed
+ */
+void debug(int number) {
+	fprintf(stdout, "%d-", number);
+}
+
 //string getKeyAsString(int key) {
 //	char* str;
 //	switch(key) {
-//	case TYPE: return "TYPE";
-//	case IDENTIFIER: return "IDENTIFIER";
-//	case RETURNTYPE: return "RETURNTYPE";
+////	case TYPE: return "TYPE";
+////	case IDENTIFIER: return "IDENTIFIER";
+////	case RETURNTYPE: return "RETURNTYPE";
 //	default:
 //		str = malloc(3);
 //		sprintf(str,"%d",key);
 //		return str;
 //	}
 //}
-//char* setString(const char* source) {
-//	char* target;
-//	if(source) {
-//		target = malloc(sizeof(source));
-//		strcpy(target,source);
-//	} else {
-//		fprintf(stderr,"setString: Source is not initialized!");
-//	}
-//	return target;
-//}
+
+/**
+ * @brief Take a string (like "this is a string"), allocate memory for it and return the address.
+ *
+ * @param source A string that should be stored in memory
+ * @return A reference to the stored string
+ */
+char* setString(const char* source) {
+	char* target;
+	if(source) {
+		target = malloc(sizeof(source));
+		if(target == NULL) error("setString: Could not allocate new String target.");
+		strcpy(target,source);
+	} else {
+		error("setString: Source is not initialized!");
+	}
+	return target;
+}
+
+
+symbol* push(symbol* symbol) {
+	struct symbol* newSymbol = NULL;
+	newSymbol = malloc(sizeof(symbol));
+	if(newSymbol == NULL) error("push: Could not allocate new Symbol.");
+	newSymbol->next = symbol;
+	return newSymbol;
+}
+
+symbol* pop(symbol* symbol) {
+	if(symbol->next == NULL) {
+		error("pop: failed to return next symbol: it is NULL");
+	}
+	return symbol->next;
+}
+
+symbol* createSymbol(){return NULL;}
+var* createVar(){return NULL;}
+func* createFunc(){return NULL;}
+void addToVar(var* target, var* source){}
+
+void insertVar(symbol* symbol, var* var){}
+void insertFunc(symbol* symbol, func* func){}
+var* findVar(symbol* symbol, string id){return NULL;} // find in current scope or scopes above
+func* findFunc(symbol* symbol, string id){return NULL;}
+int exists(symbol* symbol, string id){return 0;} // only in current scope
+
+void error(string msg) {
+	fprintf(stderr, "%s\n", msg);
+	exit(1);
+}

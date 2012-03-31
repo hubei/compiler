@@ -1,16 +1,17 @@
-/* 
- * parser.y - Parser utility for the DHBW compiler!
+/** 
+ * @file parser.y 
+ * @brief Parser utility for the DHBW compiler!
  */
  
 %{
-	#include <stdio.h>
-	#include <stdarg.h>
-	#include <stdlib.h>
-	int yylex(void);
-	#include "symboltable.h"
-	const char* IDtype;
-	const char* type;
-	symTabEntry_t* currentEntry;
+#include <stdio.h>
+//#include <stdarg.h>
+#include <stdlib.h>
+#include "symboltable.h"
+
+#define YYERROR_VERBOSE
+	
+symbol* curSymbol;
 %}
 
 /**
@@ -36,15 +37,17 @@
 %union {
 	int num;
 	char* str;
+	type type;
+	var var;
+	func func;
 	struct {
-		char* id;
-		char* type;
-		int arraySize; // only set this, if it is an array
-	} var;
-	struct {
-		char* id;
-		int intValue;
+		type type;
 	} expr;
+	struct exprList {
+		struct expr* expr;
+		struct exprList* prev;
+		struct exprList* next;
+	} exprList;
 }
 
 /*
@@ -81,14 +84,16 @@
 %left LOGICAL_AND
 %left EQ NE 
 %left LS LSEQ GTEQ GT
+%left SHIFT_LEFT SHIFT_RIGHT
 %left PLUS MINUS
 %left MUL DIV MOD 
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
-%left BRACKET_OPEN BRACKET_CLOSE
+%left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <var>identifier_declaration
-%type <str>type
-%type <expr>expression primary
+%type <var>identifier_declaration primary function_parameter_list function_parameter
+%type <type>type
+%type <expr>expression
+%type <exprList>function_call_parameters
 
 %%
 
@@ -100,7 +105,7 @@
  * of grammar 'program'. 
  */
 program
-     : program_element_list { debug(1); printSymTabKeys(); }
+     : {curSymbol = createSymbol()} program_element_list { debug(1); /*printSymTabKeys();*/ }
      ;
 
 /*
@@ -118,7 +123,8 @@ program_element_list
  * function prototypes and type definitions for the basic version of the compiler. 
  */									
 program_element
-     : declaration SEMICOLON { debug(4);}
+     : variable_declaration SEMICOLON { debug(4);}
+     | function_declaration SEMICOLON { debug(49);}
      | function_definition { debug(5);}
      | SEMICOLON { debug(6);}
      ;
@@ -128,99 +134,103 @@ program_element
  * instruction.
 */
 type
-     : INT { debug(7); $$ = setString("int"); }
-     | VOID { debug(8); $$ = setString("void"); }
-     ;
-
-/* 
- * The non-terminal 'declaration' is used for declarations like
- * 'int a, b, *c[]' as well as function prototypes. 									
-/* Each 'declaration' consists of at least one 'declaration_element'. The
- * left-recursion of this rule is positive for the synthesizing the type as 
- * stack-attribute to the 'identifier_declaration'.
-*/						
-declaration
-     : declaration COMMA declaration_element { debug(9);}
-     | type declaration_element { debug(10);}
+     : INT { debug(7); $$ = T_INT; }
+     | VOID { debug(8); $$ = T_VOID;  }
      ;
 
 /*
- * The non-terminal 'declaration_element' contains the different possible elements for 
- * an elementary declaration which could be either a 'function_header' acting as the definition of a function
- * prototype or the declaration of an identifier.
+ * 
  */
-declaration_element
-     : identifier_declaration { debug(11);
-     	 	 	 	 	 	 	 printf("<%s,%s,%d>",$1.id,$1.type,$1.arraySize);
-     	 	 	 	 	 	 	 //insertVar($1.id,$1.type,$1.arraySize);
-	 							/*currentEntry = addToSymTab($1);
-	 							if(type) addToSymTabEntry(currentEntry, RETURNTYPE, type);
-	 							addToSymTabEntry(currentEntry, TYPE, type);*/ }
-     | function_header { debug(12); }
-     ;
+variable_declaration
+	: variable_declaration COMMA identifier_declaration	 {debug(48); }
+	| type identifier_declaration {
+		debug(42);
+		$2.type = $1;
+		insertVar(curSymbol, &$2);
+	}
+	;
 
 /*
  * The non-terminal 'identifier_declaration' contains the specifics of the variable beside
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN expression BRACKET_CLOSE { debug(13); $$ = $1; $$.type = setString("a"); if($3.intValue) $$.arraySize *= $3.intValue; } /* BRACKET = [] */
-     | ID {	debug(14); $$.id = $1; $$.type = setString("v"); $$.arraySize=1; }
+     : identifier_declaration BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
+    	 debug(13); 
+    	 $$ = $1;
+		 $$.size *= $3;
+// example of how to get line numbers
+		fprintf (stderr, "l%d,c%d-l%d,c%d\n",
+                            @1.first_line, @1.first_column,
+                            @1.last_line, @1.last_column);
+     } 
+     | ID {	
+    	 debug(14); 
+    	 $$.id = $1;
+    	 $$.size=1; 
+     }
      ;
+ 	
+ /*
+ * 
+ */
+function_declaration
+	: type ID PARA_OPEN PARA_CLOSE {
+		debug(47); 
+		func* func = createFunc();
+		func->id = $2;
+		func->returnType = $1;
+		func->param = NULL;
+		insertFunc(curSymbol, func);
+	}
+	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
+		debug(44);
+		func* func = createFunc();
+		func->id = $2;
+		func->returnType = $1;
+		func->param = &$4;
+		insertFunc(curSymbol, func);
+	}
+	;
 
+/*
+ * 
+ */
+function_parameter_list
+	: function_parameter {
+		debug(45); 
+		$$ = $1;
+	}
+	| function_parameter_list COMMA function_parameter {
+		debug(46);
+		addToVar(&$$, &$3);
+	}
+	;
+
+/*
+ * 
+ */
+function_parameter
+	: type identifier_declaration {
+		debug(43);
+		$2.type = $1;
+		$$ = $2;
+	}
+	;
+	
 /*
  * The non-terminal 'function_definition' is the beginning of the function definition.
- */									
+ */
 function_definition
-     : type function_header BRACE_OPEN stmt_list BRACE_CLOSE { debug(15); addToSymTabEntry(currentEntry, TYPE, "f"); }
-     ;
-
-/*
- * The non-terminal 'function_header' is used within the non-terminals 'function' and
- * 'function_prototype'. The grammar for the function definition and the function prototype
- * is split up this way to facilitate the parsing process and to use synthesized attributes
- * during the parsing process.
- */									
-function_header
-     : function_prefix PARA_CLOSE { debug(16);}
-     ;
-	
-/*
- * The non-terminal 'function_prefix' is used within the non-terminal 'function_header'. The
- * 'function_prefix' distinguishes between functions with parameters by the non-terminal 
- * 'function_signature_parameters' and functions without by the non-terminal 'function_signature'.
- */									
-function_prefix
-     : function_signature { debug(17);}
-     | function_signature_parameters { debug(18);}
-     ;
-
-/*
- * The non-terminal 'function_signature' initializes the function signature definition
- */ 									
-function_signature
-     : identifier_declaration PARA_OPEN {	debug(19);
-     	 	 	 	 	 	 	 	 	 	 /*currentEntry = addToSymTab($1);
-     	 	 	 	 	 	 	 	 	 	 if("") addToSymTabEntry(currentEntry, RETURNTYPE, "");
-     	 	 	 	 	 	 	 	 	 	 addToSymTabEntry(currentEntry, TYPE, "f");*/ }
-     ;
-
-/*
- * The non-terminal 'function_signature_parameters' declares the function of the function prototype with
- * (input) parameters.
- */									
-function_signature_parameters
-     : function_signature_parameters COMMA function_parameter_element { debug(20);}
-     | function_signature function_parameter_element { debug(21);}
-     ;
-	
-/*
- * The non-terminal 'function_parameter_element' is used within the non-terminal 'function_definition_parameters'
- * and contains the declaration for ONE parameter.
- */									
-function_parameter_element
-     : type identifier_declaration { debug(22);}
-     ;
+	: type ID PARA_OPEN PARA_CLOSE {
+		/* typechecking */
+	  }
+	  BRACE_OPEN {curSymbol = push(curSymbol);} stmt_list {curSymbol = pop(curSymbol);} BRACE_CLOSE
+	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
+			/* typechecking (returntype, parameters) */
+		}	
+	  BRACE_OPEN {curSymbol = push(curSymbol);} stmt_list {curSymbol = pop(curSymbol);} BRACE_CLOSE
+	;
 									
 /*
  * The non-terminal 'stmt_list' is list of statements containing any number (including zero) of statements represented 
@@ -237,7 +247,7 @@ stmt_list
  */									
 stmt
      : stmt_block
-     | declaration SEMICOLON { debug(24);}
+     | variable_declaration SEMICOLON { debug(24);}
      | expression SEMICOLON { debug(25);}
      | stmt_conditional { debug(26);}
      | stmt_loop { debug(27);}
@@ -250,7 +260,7 @@ stmt
  * A statement block is just a statement list within braces.
  */									
 stmt_block
-     : BRACE_OPEN stmt_list BRACE_CLOSE { debug(30);}
+     : BRACE_OPEN stmt_list BRACE_CLOSE { debug(30); /* we could extend additional scopes here :o */}
      ;
 	
 /*
@@ -272,21 +282,15 @@ stmt_loop
 									
 /*
  * The non-terminal 'expression' is one of the core statements containing all arithmetic, logical, comparison and
- * assignment operators.expression 
+ * assignment operators. 
  */
 expression
      : expression ASSIGN expression { debug(35); }
      | expression LOGICAL_OR expression { 
-    	 debug(36); 
-    	 if($1.intValue && $3.intValue) {
-    		 $$.intValue = $1.intValue || $3.intValue;
-    	 }
+    	 debug(36);
      }
      | expression LOGICAL_AND expression { 
     	 debug(37);
-		 if($1.intValue && $3.intValue) {
-			 $$.intValue = $1.intValue || $3.intValue;
-		 }
 	 }
      | LOGICAL_NOT expression { debug(38);}
      | expression EQ expression { debug(39);}
@@ -298,35 +302,37 @@ expression
      | expression PLUS expression { debug(45);}
      | expression MINUS expression { debug(46);}
      | expression MUL expression { debug(47);}
-     | expression DIV expression  { debug(48);}
+     | expression DIV expression  { 
+		debug(48);
+		}
      | expression MOD expression  { debug(49);}
      | MINUS expression %prec UNARY_MINUS { debug(50);}
      | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51);}
      | PARA_OPEN expression PARA_CLOSE { debug(52);}
-     | function_call PARA_CLOSE { debug(53);}
-     | primary { debug(54); $$ = $1; }
+     | function_call { debug(53);}
+     | primary { debug(54); }
      ;
 
 primary
-     : NUM { debug(55); $$.intValue = $1; }
-     | ID { debug(56); $$.id = $1; }
+     : NUM { debug(55); $$.type = T_INT; }
+     | ID { debug(56); $$ = *findVar(curSymbol, $1); }
      ;
 
 /*
  * The non-terminal 'function_call' is used by the non-terminal 'expression' for calling functions.
- */									
+ */
 function_call
-      : ID PARA_OPEN { debug(57);}
-      | function_call_parameters { debug(58);}
-      ;
+	: ID PARA_OPEN PARA_CLOSE { debug(57); /* typechecking */}
+	| ID PARA_OPEN function_call_parameters PARA_CLOSE { debug(58); /* typechecking */}
+	;
 
 /*
  * The non-terminal 'function_call_parameters' is used for the parameters of a function call 
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-     : function_call_parameters COMMA expression { debug(59);}
-     | ID PARA_OPEN expression { debug(60);}
+     : function_call_parameters COMMA expression { debug(59); $$.expr = &$3; $$.prev = &$1; $$.prev->next = &$$; /*FIXME maybe check for nullpointers? :P*/}
+     | expression { debug(60); $$.expr = &$1; }
      ;
 
 %%

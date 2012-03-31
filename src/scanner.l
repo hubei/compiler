@@ -3,7 +3,10 @@
  */
 
 %{
+	#include "symboltable.h"
 	#include "parser.h"
+	int colnum = 0;
+	#define YY_USER_ACTION {yylloc.first_line = yylineno; yylloc.first_column = colnum; colnum=colnum+yyleng; yylloc.last_column=colnum; yylloc.last_line = yylineno;}
 %}
 
 /* 
@@ -24,9 +27,6 @@
 \!						return NOT;
 
 */
-
-/*EOF if (yywrap( ))		return END_OF_FILE;*/
-/*<<EOF>>					return END_OF_FILE;*/
 
 %%
 
@@ -74,6 +74,8 @@ return					return RETURN;
 \)						return PARA_CLOSE;
 \{						return BRACE_OPEN;
 \}						return BRACE_CLOSE;
+"<<"					return(SHIFT_LEFT);
+">>"					return(SHIFT_RIGHT);
 
 [A-Za-z_][A-Za-z_0-9]*	{ 	yylval.str = strdup(yytext); 
 							return ID;}
@@ -81,6 +83,7 @@ return					return RETURN;
 							return NUM;}
 \n						{ printf("\n"); /* nothing to do */}
 [ ]						{/* nothing to do */}
+<<EOF>>					return 0; // we don't need to handle this
 							
 %%
 
