@@ -20,8 +20,8 @@ var* createVar();
 func* createFunc();
 void addToVar(var* target, var* source);
 
-void insertVar(symbol*, var*);
-void insertFunc(symbol*, func*);
+void insertVar(symbol*, var);
+void insertFunc(symbol*, func);
 var* findVar(symbol*, string); // find in current scope or scopes above
 func* findFunc(symbol*, string);
 int exists(symbol*, string); // only in current scope
