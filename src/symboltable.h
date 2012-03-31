@@ -8,15 +8,14 @@
 #define SYMBOLTABLE_H_
 
 #include "include/uthash.h"
+#include "include/utlist.h"
 typedef const char* string;
 
 /**
  * @brief set of possible types
  */
 typedef enum type {
-	T_INT,
-	T_VOID,
-	T_INT_A
+	T_INT, T_VOID, T_INT_A
 } type;
 
 /**
@@ -51,7 +50,6 @@ typedef struct symbol {
 	/*struct symbol* prev;*/ // this is actually not really needed, because we only have two different scope levels
 	struct symbol* next; // with var names prev and next, this struct can be used with utlist
 } symbol;
-
 
 //##################################################################################################
 symbol* push(symbol*); // save given symbol on stack and return new symbol with link to old
