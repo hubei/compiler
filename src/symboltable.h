@@ -8,6 +8,7 @@
 #define SYMBOLTABLE_H_
 
 #include "include/uthash.h"
+#include "include/utlist.h"
 typedef const char* string;
 
 /*
@@ -30,11 +31,18 @@ typedef const char* string;
  * @brief entry in the symbol table, that can store any property
  * the id should be accessed by constants, like TYPE
  */
+//typedef struct {
+//    int key; /* use constants to access properties */
+//	char* value;
+//    UT_hash_handle hh; /* makes this structure hashable */
+//} symTabEntry_t;
 typedef struct {
-    int key; /* use constants to access properties */
-	char* value;
-    UT_hash_handle hh; /* makes this structure hashable */
-} symTabEntry_t;
+	char* id;
+	int type; // INTEGER, VOID
+	int arraysize; //
+	int scope;
+} object;
+
 
 /**
  * @brief struct for storing the symbol table as a hash table
@@ -42,19 +50,35 @@ typedef struct {
  * The identifier should be the name if function or variable
  */
 typedef struct {
-	char* id; /* name of function or variable */
-    symTabEntry_t* entry;
+	int id; /* name of variable */
+	object* entry;
     UT_hash_handle hh; /* makes this structure hashable */
-} symTab_t;
+} varTab;
 
-void debug(int);
-void test_symTab();
-symTabEntry_t* addToSymTab(string);
-symTabEntry_t* addToSymTabEntry(symTabEntry_t*, int, string);
-symTab_t* findInSymTab(string);
-symTabEntry_t* findInSymTabEntry(symTabEntry_t*, int);
-string getKeyAsString(int);
-char* setString(const char*);
+
+
+typedef struct {
+	varTab* p;
+	funcTab* f;
+}symTab;
+
+
+typedef struct {
+	//list variablen
+	//list funktionen
+	int id; /* name of function or variable */
+    symTab_t* entry;
+    UT_list_handle hh; /* makes this structure hashable */
+} symTabgfdgfd_t;
+
+//void debug(int);
+//void test_symTab();
+//symTabEntry_t* addToSymTab(string);
+//symTabEntry_t* addToSymTabEntry(symTabEntry_t*, int, string);
+//symTab_t* findInSymTab(string);
+//symTabEntry_t* findInSymTabEntry(symTabEntry_t*, int);
+//string getKeyAsString(int);
+//char* setString(const char*);
 
 void insertVar(string, int, int); //ID, type(0 int, 1 void), scopeID
 void insertFunc(string, int); //ID, type ( INT, VOID )
