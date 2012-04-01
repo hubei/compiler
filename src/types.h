@@ -59,8 +59,32 @@ typedef struct symbol {
 /**
  * @brief TODO
  */
+
+typedef enum operations {
+	OP_ASSIGN,
+	OP_LOGICAL_OR,
+	OP_LOGICAL_AND,
+	OP_LOGICAL_NOT,
+	OP_EQ,
+	OP_NE,
+	OP_LSEQ,
+	OP_GTEQ,
+	OP_GT,
+	OP_PLUS,
+	OP_MINUS,
+	OP_MUL,
+	OP_DIV,
+	OP_MOD,
+	OP_UNARY_MINUS
+};
+
 typedef struct irCode {
-	int dummy;
+	int row;
+	enum operations ops;
+	var arg1;
+	var arg2;
+	var arg3;
+	struct irCode *next; //Might be necessary.
 } irCode;
 
 #endif /* TYPES_H_ */

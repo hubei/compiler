@@ -7,7 +7,8 @@
 #include <stdio.h>
 //#include <stdarg.h>
 #include <stdlib.h>
-#include "symboltable.h" 
+#include "symboltable.h"
+#include "address_code.h" 
 
 #define YYERROR_VERBOSE
 	
@@ -33,7 +34,7 @@ symbol* curSymbol;
 %start program
 
 %code requires {
-	#include "types.h" 
+	#include "types.h"
 }
 
 /**
