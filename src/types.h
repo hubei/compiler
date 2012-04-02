@@ -56,12 +56,10 @@ typedef struct symbol {
 	struct symbol* next; // with var names prev and next, this struct can be used with utlist
 } symbol;
 
-/**
- * @brief TODO
- */
 
 /*
  *	Based on the expression-rules from the parser.y
+ *	TODO Basti hier die richtigen code aus der aufg beschr
  */
 typedef enum operations {
 	OP_ASSIGN,     //!< OP_ASSIGN
@@ -81,8 +79,8 @@ typedef enum operations {
 	OP_UNARY_MINUS //!< OP_UNARY_MINUS
 };
 
-/*
- * 	Enables the determinition whether a type is a Variable, Function or constant
+/**
+ * 	@brief Enables the determination whether a type is a Variable, Function or constant
  */
 typedef enum irType {
 	ARG_VAR,
@@ -114,7 +112,7 @@ typedef struct irCode {
 	irCode_arg arg0;
 	irCode_arg arg1;
 	irCode_arg arg2;
-	struct irCode *next; //Next operation until "="
+	struct irCode *next; //Next operation until NULL
 } irCode;
 
 #endif /* TYPES_H_ */
