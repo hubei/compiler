@@ -42,6 +42,11 @@ char* setString(const char* source) {
 	return target;
 }
 
+/**
+ *
+ * @param symbol
+ * @return
+ */
 symbol* push(symbol* symbol) {
 	struct symbol* newSymbol = NULL;
 	newSymbol = malloc(sizeof(struct symbol));
@@ -63,8 +68,10 @@ symbol* pop(symbol* symbol) {
 	return NULL;
 }
 
-//sicher so nich korrekt weil symbol nich die selbe struktur besitzt wie Var oder Func?
-// -> sieht gut aus
+/**
+ * @br
+ * @return
+ */
 symbol* createSymbol() {
 	symbol *newSymbol = NULL;
 	newSymbol = malloc(sizeof(symbol));
@@ -128,6 +135,19 @@ func* createFunc(string id) {
  * @param source einzelne Variable
  */
 void addToVar(var* target, var* source) {
+	//zu param sour hinzufügen
+	if (target == NULL)
+			error("---");
+	if(source==NULL){
+		error("---");
+	}
+	if(source->id==NULL){
+			error("---");
+		}
+
+	//
+	HASH_ADD_KEYPTR( hh, target, source->id, strlen(source->id), source);
+
 
 }
 
@@ -142,9 +162,6 @@ void insertVar(symbol* symbol, var var) {
 		error("---");
 	if(var.id == NULL)
 		error("insertVar: id of var is NULL!");
-	//korrekt? -> nein, das ist nicht möglich ;) nur ein übergebener Pointer kann null sein
-//	if (&var == NULL)
-//		error("---");
 
 //	if (symbol->symVar == NULL) {
 //		symbol->symVar = createVar();
@@ -226,23 +243,41 @@ var* findVar(symbol* symbol, string id) {
 }
 
 /**
- *
+ * @brief searches for functions in all scopes
  * @param symbol
  * @param id
- * @return
+ * @return the function
  */
 func* findFunc(symbol* symbol, string id) {
-	struct func *k;
-	HASH_FIND(hh, symbol->symFunc, id, strlen(id), k);
+	struct func *k=NULL;
+	while(symbol->next!=NULL){
+		HASH_FIND(hh, symbol->symFunc, id, strlen(id), k);
+		if(k!=NULL){
+			return k;
+		}
+	}
+	k=NULL;
 	return k;
-	return NULL;
 }
 
 // etwas unsicher was zu tun. bzw wie man auf den scope beschränkt
 // -> du hast in den find Funktionen oben nur auf den aktuellen Scope beschränkt.
 // D.h.: exists wie oben, aber einmal in symFunc und einmal in symVar suchen
+/**
+ * @brief a function which proves, whether an function or variable
+ * exist in a scope or not
+ * @param symbol
+ * @param id
+ * @return 1 if id exists, 0 if not
+ */
 int exists(symbol* symbol, string id) {
+	struct func *k;
+	HASH_FIND(hh, symbol->symFunc, id, strlen(id), k);
+	if(k!=NULL){return 1;};
+	HASH_FIND(hh, symbol->symVar, id, strlen(id), k);
+	if(k!=NULL){return 1;};
 	return 0;
+	// nich durch next
 } // only in current scope
 
 /**
