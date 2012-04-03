@@ -16,7 +16,7 @@ void backpatch(int,int); //Zeile,
  * @brief Converts an IRCode into a string
  */
 string IRtoString();
-string OpToString(int op);
+char* OpToString( char*,irCode*,int);
 
 
 irCode* getIRCode();

@@ -96,6 +96,7 @@ typedef enum irType {
  * 	In order to determine which one is stored, a type will be assigned, based on the
  * 	previous enum.
  */
+
 typedef struct irCode_arg {
 	union {
 		var* _var;
@@ -112,9 +113,9 @@ typedef struct irCode_arg {
 typedef struct irCode {
 	int row;
 	int ops;
-	irCode_arg res;
-	irCode_arg arg0;
-	irCode_arg arg1;
+	irCode_arg* res;
+	irCode_arg* arg0;
+	irCode_arg* arg1;
 	struct irCode *next; //Next operation until NULL
 } irCode;
 
