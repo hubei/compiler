@@ -8,6 +8,7 @@
 //#include <stdarg.h>
 #include <stdlib.h>
 #include "symboltable.h"
+#include "typechecking.h"
 
 #define YYERROR_VERBOSE
 	
@@ -323,7 +324,7 @@ primary
  */
 function_call
 	: ID PARA_OPEN PARA_CLOSE { debug(57); /* typechecking */}
-	| ID PARA_OPEN function_call_parameters PARA_CLOSE { debug(58); /* typechecking */}
+	| ID PARA_OPEN function_call_parameters PARA_CLOSE { debug(58); if (!correctFuncTypes($1,$3)) {yyerror("Wrong parameter in function call");}}
 	;
 
 /*
