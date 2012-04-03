@@ -43,6 +43,7 @@ typedef struct func {
 	char* id; // key
 	type returnType;
 	var* param; // hash table of variables, that are parameters
+	int num_params;
 	UT_hash_handle hh; /* makes this structure hashable */
 } func;
 
@@ -83,7 +84,7 @@ typedef enum operations {
 } operations;
 
 /**
- *  @brief	Enables the determinition whether a type is a Variable, Function or constant
+ *  @brief	Enables the determination whether a type is a Variable, Function or constant
  */
 typedef enum irType {
 	ARG_VAR,

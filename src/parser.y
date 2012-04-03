@@ -97,7 +97,7 @@ symbol* curSymbol;
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 %type <var>identifier_declaration primary function_parameter_list function_parameter
-%type <type>type
+%type <type>type variable_declaration
 %type <expr>expression
 %type <exprList>function_call_parameters
 
@@ -111,7 +111,7 @@ symbol* curSymbol;
  * of grammar 'program'. 
  */
 program
-     : {curSymbol = createSymbol();} program_element_list { debug(1); test_symTab(); }
+     : {curSymbol = createSymbol();} program_element_list { debug(1); }
      ;
 
 /*
@@ -148,11 +148,22 @@ type
  * 
  */
 variable_declaration
-	: variable_declaration COMMA identifier_declaration	 {debug(100); }
+	: variable_declaration COMMA identifier_declaration	 {
+		debug(100);
+		$3->type = $1;
+		if($3->size != 0)
+			$3->type = T_INT_A;
+		insertVar(curSymbol, $3);
+	}
 	| type identifier_declaration {
 		debug(42);
+		if($2 == NULL)
+			error("variable_declaration: $2 is NULL");
 		$2->type = $1;
+		if($2->size != 0)
+			$2->type = T_INT_A;
 		insertVar(curSymbol, $2);
+		$$ = $1;
 	}
 	;
 
@@ -161,14 +172,18 @@ variable_declaration
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
     	 debug(13); 
-    	 $$ = $1;
-		 $$->size *= $3;
+    	 var* newVar = createVar($1);
+    	 if(newVar == NULL) {
+    		 error("identifier_declaration: newVar is NULL");
+    	 }
+    	 $$ = newVar;
+		 $$->size = $3;
 // example of how to get line numbers
-		fprintf (stderr, "l%d,c%d-l%d,c%d\n",
-                            @1.first_line, @1.first_column,
-                            @1.last_line, @1.last_column);
+//		fprintf (stderr, "l%d,c%d-l%d,c%d\n",
+//                            @1.first_line, @1.first_column,
+//                            @1.last_line, @1.last_column);
      } 
      | ID {	
     	 debug(14);
@@ -177,7 +192,7 @@ identifier_declaration
     		 error("identifier_declaration: newVar is NULL");
     	 }
     	 $$ = newVar;
-    	 $$->size=1; 
+    	 $$->size=0; 
      }
      ;
  	
@@ -202,7 +217,7 @@ function_declaration
 			error("function_declaration: newFunc is NULL");
 		}
 		newFunc->returnType = $1;
-		newFunc->param = $4;
+		insertParams(newFunc,$4);
 		insertFunc(curSymbol, newFunc);
 	}
 	;
@@ -212,12 +227,12 @@ function_declaration
  */
 function_parameter_list
 	: function_parameter {
-		debug(45); 
-		$$ = $1;
+		debug(45);
+		$$ = addParamToParamhash(NULL, $1);
 	}
 	| function_parameter_list COMMA function_parameter {
 		debug(46);
-		//addToVar(&$$, &$3);
+		$$ = addParamToParamhash($1, $3);
 	}
 	;
 
@@ -231,6 +246,8 @@ function_parameter
 			error("function_parameter: $2 is NULL");
 		}
 		$2->type = $1;
+		if($2->size != 0)
+			$2->type = T_INT_A;
 		$$ = $2;
 	}
 	;
@@ -240,13 +257,25 @@ function_parameter
  */
 function_definition
 	: type ID PARA_OPEN PARA_CLOSE {
-		/* typechecking */
+		func* newFunc = createFunc($2);
+		if(newFunc==NULL) {
+			error("function_definition: newFunc is NULL");
+		}
+		newFunc->returnType = $1;
+		newFunc->param = NULL;
+		insertFunc(curSymbol, newFunc);
 	  }
 	  BRACE_OPEN {debug(104); curSymbol = push(curSymbol); debug(101);} stmt_list {debug(102); curSymbol = pop(curSymbol); debug(103);} BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
-			/* typechecking (returntype, parameters) */
+			func* newFunc = createFunc($2);
+			if(newFunc==NULL) {
+				error("function_definition: newFunc is NULL");
+			}
+			newFunc->returnType = $1;
+			insertParams(newFunc,$4);
+			insertFunc(curSymbol, newFunc);
 		}	
-	  BRACE_OPEN {debug(105); curSymbol = push(curSymbol); debug(106);} stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
+	  BRACE_OPEN {debug(105); curSymbol = push(curSymbol); debug(106); addParamsToSymbol(curSymbol, $4); } stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
 	;
 									
 /*

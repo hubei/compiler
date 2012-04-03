@@ -133,29 +133,28 @@ func* createFunc(string id) {
 		error("createFunc: Could not allocate id");
 	}
 	strcpy(newFunc->id,id);
+	newFunc->num_params = 0;
 	return newFunc;
 }
 
 /**
  *
- * @param target vorhandene hashtable
- * @param source einzelne Variable
+ * @param hash vorhandene hashtable
+ * @param newVar einzelne Variable
  */
-void addParamToFunc(string id, var* source) {
-//	//zu param sour hinzufügen
-//	if (target == NULL)
-//		error("---");
-//	if(source==NULL){
-//		error("---");
-//	}
-//	if(source->id==NULL){
-//			error("---");
-//		}
-//
-//	//
-//	//HASH_ADD_KEYPTR( hh, target, source->id, strlen(source->id), source);
+var* addParamToParamhash(var* hash, var* newVar) {
+	if(newVar==NULL)
+		error("---");
 
+	if(newVar->id==NULL)
+		error("---");
 
+	// does not work, no idea of how to check that hash is a hash table and not only a var
+//	if(hash != NULL && hash->hh == NULL)
+//		error("addParamToParamhash: non empty hash table has no hash handler");
+
+	HASH_ADD_KEYPTR( hh, hash, newVar->id, strlen(newVar->id), newVar);
+	return hash;
 }
 
 /**
@@ -171,6 +170,8 @@ void insertVar(symbol* symbol, var* var) {
 		error("---");
 	if(var->id == NULL)
 		error("insertVar: id of var is NULL!");
+
+	// TODO Dirk check for existing
 
 	//einfügen in die hashmap
 	// symbol->symVar darf durchaus NULL sein.
@@ -190,8 +191,27 @@ void insertFunc(symbol* symbol, func* func) {
 	if(func->id == NULL)
 		error("insertFunc: id of func is NULL!");
 
+	// TODO Dirk check for existing
+
 	//einfügen in die hashmap
 	HASH_ADD_KEYPTR( hh, symbol->symFunc, func->id, strlen(func->id), func);
+}
+
+/**
+ * @brief insert the full hash map of params for the given function
+ * @param func
+ * @param params
+ */
+void insertParams(func* func, var* params) {
+	func->param = params;
+	func->num_params = HASH_COUNT(params);
+}
+
+void addParamsToSymbol(symbol* symbol, var* params) {
+	var *var, *tmp2;
+	HASH_ITER(hh, params, var, tmp2) {
+		insertVar(symbol, var);
+	}
 }
 
 // find in current scope or scopes above
@@ -257,7 +277,7 @@ void error(string msg) {
  * @brief Test function var
  * @param symbol
  */
-void print_var(symbol* symbol) {
+void print_var(FILE* file, symbol* symbol) {
 	if (symbol == NULL)
 		error("---");
 
@@ -265,7 +285,7 @@ void print_var(symbol* symbol) {
 	HASH_ITER(hh, symbol->symVar, k, tmp) {
 		if(k->id == NULL)
 			error("print_var: id is NULL!");
-		printf("var %s\n\ttype: %d - size %d - offset %d\n", k->id, k->type,
+		fprintf(file, "var %s\n\ttype: %s - size %d - offset %d\n", k->id, typeToString(k->type),
 				k->size, k->offset);
 	}
 }
@@ -274,30 +294,53 @@ void print_var(symbol* symbol) {
  * @brief Test function insertFunc
  * @param symbol
  */
-void print_func(symbol* symbol) {
+void print_func(FILE* file, symbol* symbol) {
 	if (symbol == NULL)
 		error("---");
 
-	struct func *k, *tmp;
-	HASH_ITER(hh, symbol->symFunc, k, tmp) {
-		if(k->id == NULL)
+	struct func *func, *tmp;
+	struct var *var, *tmp2;
+	HASH_ITER(hh, symbol->symFunc, func, tmp) {
+		if(func->id == NULL)
 			error("print_func: id is NULL!");
-		printf("func %s\n\ttype: %d\n", k->id, k->returnType);
+		fprintf(file, "func %s\n\treturntype: %s - num_params: %d\n", func->id, typeToString(func->returnType),func->num_params);
+
+		// print params, if there are any
+		if(func->param != NULL) {
+			HASH_ITER(hh, func->param, var, tmp2) {
+				if(var->id == NULL)
+					error("print_func: param id is NULL!");
+				fprintf(file, "\tparam %s\n\t\ttype: %s - size %d - offset %d\n", var->id, typeToString(var->type),
+						var->size, var->offset);
+			}
+		}
 	}
 }
 
 /**
- *
- * @param symbol
+ * @brief print symTab into given file or to stdout, if file == NULL
+ * @param file link to open file or NULL
  */
-void test_symTab() {
-	printf("\n\n");
-	struct symbolTable* elt = NULL;
-	DL_FOREACH(symbolTable,elt) {
-		printf("##########################\n");
-		print_var(elt->symbol);
-		print_func(elt->symbol);
+void test_symTab(FILE* file) {
+	if(file == NULL) {
+		file = stdout;
 	}
-	printf("\n");
+	struct symbolTable* elt = NULL;
+	int i = 0;
+	DL_FOREACH(symbolTable,elt) {
+		fprintf(file,"################### Scope %d ###################\n",i);
+		print_var(file,elt->symbol);
+		print_func(file,elt->symbol);
+		i++;
+	}
+}
+
+string typeToString(type type) {
+	switch(type) {
+	case T_INT: return setString("INT"); break;
+	case T_INT_A: return setString("INT array"); break;
+	case T_VOID: return setString("VOID"); break;
+	}
+	return setString("unknown");
 }
 
