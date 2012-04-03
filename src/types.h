@@ -58,7 +58,7 @@ typedef struct symbol {
 
 
 /**
- *	brief Based on the expression-rules from the parser.y
+ *	Based on the expression-rules from the parser.y
  */
 typedef enum operations {
 	OP_ASSIGN,
@@ -115,7 +115,7 @@ typedef struct irCode {
 	irCode_arg res;
 	irCode_arg arg0;
 	irCode_arg arg1;
-	struct irCode *next; //Next operation until "="
+	struct irCode *next; //Next operation until NULL
 } irCode;
 
 #endif /* TYPES_H_ */
