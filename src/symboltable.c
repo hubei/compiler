@@ -13,13 +13,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct symbolTable* symbolTable = NULL;
+
 
 /**
  * @brief Simple debug function that prints the given number followed by a '-'
  * @param number The number to be printed
  */
 void debug(int number) {
-	fprintf(stdout, "%d-", number);
+//	fprintf(stdout, "%d-", number);
 }
 
 
@@ -48,10 +50,7 @@ char* setString(const char* source) {
  * @return
  */
 symbol* push(symbol* symbol) {
-	struct symbol* newSymbol = NULL;
-	newSymbol = malloc(sizeof(struct symbol));
-	if (newSymbol == NULL)
-		error("push: Could not allocate new Symbol.");
+	struct symbol* newSymbol = createSymbol();
 	newSymbol->next = symbol;
 	return newSymbol;
 }
@@ -69,7 +68,7 @@ symbol* pop(symbol* symbol) {
 }
 
 /**
- * @br
+ * @brief
  * @return
  */
 symbol* createSymbol() {
@@ -78,6 +77,14 @@ symbol* createSymbol() {
 	if (newSymbol == NULL) {
 		error("Symbol could not be created");
 	}
+
+	// insert new symbol to symbolTable (only to have a reference to it, when printing
+	struct symbolTable* symTabEntry = NULL;
+	symTabEntry = malloc(sizeof(struct symbolTable));
+	if(symTabEntry == NULL)
+		error("createSymbol: unable to allocate symTabEntry");
+	symTabEntry->symbol = newSymbol;
+	LL_APPEND(symbolTable,symTabEntry);
 
 	/* initialize all pointers to NULL
 	 * This is very important, because C does not set a new pointer to NULL automatically
@@ -134,19 +141,19 @@ func* createFunc(string id) {
  * @param target vorhandene hashtable
  * @param source einzelne Variable
  */
-void addToVar(var* target, var* source) {
-	//zu param sour hinzufügen
-	if (target == NULL)
-			error("---");
-	if(source==NULL){
-		error("---");
-	}
-	if(source->id==NULL){
-			error("---");
-		}
-
-	//
-	HASH_ADD_KEYPTR( hh, target, source->id, strlen(source->id), source);
+void addParamToFunc(string id, var* source) {
+//	//zu param sour hinzufügen
+//	if (target == NULL)
+//		error("---");
+//	if(source==NULL){
+//		error("---");
+//	}
+//	if(source->id==NULL){
+//			error("---");
+//		}
+//
+//	//
+//	//HASH_ADD_KEYPTR( hh, target, source->id, strlen(source->id), source);
 
 
 }
@@ -156,20 +163,18 @@ void addToVar(var* target, var* source) {
  * @param symbol
  * @param var
  */
-void insertVar(symbol* symbol, var var) {
+void insertVar(symbol* symbol, var* var) {
 	//prüfen ob übergebenen parameter nicht null sind
 	if (symbol == NULL)
 		error("---");
-	if(var.id == NULL)
+	if(var == NULL)
+		error("---");
+	if(var->id == NULL)
 		error("insertVar: id of var is NULL!");
 
-//	if (symbol->symVar == NULL) {
-//		symbol->symVar = createVar();
-//	} -> siehe createsymbol
 	//einfügen in die hashmap
 	// symbol->symVar darf durchaus NULL sein.
-	HASH_ADD_KEYPTR( hh, symbol->symVar, var.id, strlen(var.id), &var);
-
+	HASH_ADD_KEYPTR( hh, symbol->symVar, var->id, strlen(var->id), var);
 }
 
 /**
@@ -177,59 +182,18 @@ void insertVar(symbol* symbol, var var) {
  * @param symbol
  * @param func
  */
-void insertFunc(symbol* symbol, func func) {
+void insertFunc(symbol* symbol, func* func) {
 	if (symbol == NULL)
 		error("---");
-	if(func.id == NULL)
+	if (func == NULL)
+		error("---");
+	if(func->id == NULL)
 		error("insertFunc: id of func is NULL!");
-	//korrekt? -> siehe oben
-//	if (&func == NULL)
-//		error("---");
 
-//	if (symbol->symVar == NULL) {
-//		symbol->symVar = createVar();
-//	} -> siehe createsymbol
 	//einfügen in die hashmap
-	//bei schreiben von func.id wird keine automische auswahl angegeben. besorgniserregend?
-	// -> sieht doch gut aus
-	struct func* test = malloc(sizeof(struct func));
-	memcpy(test,&func,sizeof(struct func)); // irgendwas ist hier komisch... so gehts jedenfalls... bei var oben ging es mit &var
-	HASH_ADD_KEYPTR( hh, symbol->symFunc, func.id, strlen(func.id), test);
+	HASH_ADD_KEYPTR( hh, symbol->symFunc, func->id, strlen(func->id), func);
 }
 
-/**
- * @brief Test function var
- * @param symbol
- */
-void print_var(symbol* symbol) {
-	if (symbol == NULL)
-		error("---");
-
-	struct var *k, *tmp;
-	HASH_ITER(hh, symbol->symVar, k, tmp) {
-		if(k->id == NULL)
-			error("print_var: id is NULL!");
-		printf("var id %s: type %d: size %d: offset %d\n", k->id, k->type,
-				k->size, k->offset);
-	}
-}
-
-/**
- * @brief Test function insertFunc
- * @param symbol
- */
-void print_func(symbol* symbol) {
-	if (symbol == NULL)
-		error("---");
-
-	struct func *k, *tmp;
-	HASH_ITER(hh, symbol->symFunc, k, tmp) {
-		if(k->id == NULL)
-			error("print_func: id is NULL!");
-		printf("func id %s: type %d: ", k->id, k->returnType); //für param Hash map eigene function?
-	}
-
-}
 // find in current scope or scopes above
 //gibt das kein Return aus?
 // -> du suchst nur in symbol. Symbol hat den next-pointer, der auf das nächste Symbol zeigt.
@@ -278,7 +242,7 @@ int exists(symbol* symbol, string id) {
 	if(k!=NULL){return 1;};
 	return 0;
 	// nich durch next
-} // only in current scope
+}
 
 /**
  * @brief Output given message and exit program
@@ -289,7 +253,51 @@ void error(string msg) {
 	exit(1);
 }
 
-void test_symTab(symbol* symbol) {
-	print_var(symbol);
+/**
+ * @brief Test function var
+ * @param symbol
+ */
+void print_var(symbol* symbol) {
+	if (symbol == NULL)
+		error("---");
+
+	struct var *k, *tmp;
+	HASH_ITER(hh, symbol->symVar, k, tmp) {
+		if(k->id == NULL)
+			error("print_var: id is NULL!");
+		printf("var %s\n\ttype: %d - size %d - offset %d\n", k->id, k->type,
+				k->size, k->offset);
+	}
+}
+
+/**
+ * @brief Test function insertFunc
+ * @param symbol
+ */
+void print_func(symbol* symbol) {
+	if (symbol == NULL)
+		error("---");
+
+	struct func *k, *tmp;
+	HASH_ITER(hh, symbol->symFunc, k, tmp) {
+		if(k->id == NULL)
+			error("print_func: id is NULL!");
+		printf("func %s\n\ttype: %d\n", k->id, k->returnType);
+	}
+}
+
+/**
+ *
+ * @param symbol
+ */
+void test_symTab() {
+	printf("\n\n");
+	struct symbolTable* elt = NULL;
+	DL_FOREACH(symbolTable,elt) {
+		printf("##########################\n");
+		print_var(elt->symbol);
+		print_func(elt->symbol);
+	}
+	printf("\n");
 }
 
