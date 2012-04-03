@@ -13,109 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/**
- * @brief symbol table object that stores the actual symbol table
- */
-//symTab_t *symTab = NULL; /* NULL is important according to documentation */
-
-/**
- * @brief Add a new entry to symTab, by giving the identifier (of function or variable)
- * The function will allocate the new entry and add it to the hash table.
- *
- * @param id Identifier of the function or variable
- * @return pointer to the symTabEntry, so that it can be filled
- */
-//symTabEntry_t* addToSymTab(string id) {
-//	symTab_t* s; /* must be of type symTab to be added to symTab */
-//
-//	s = findInSymTab(id); /* check if entry already exists */
-//	if (!s) {
-//		symTabEntry_t* entry = NULL; /* entry to be added to symTab */
-//
-////		entry = addToSymTabEntry(entry, IDENTIFIER, id);
-//
-//		s = malloc(sizeof(symTab_t));
-//		s->id = malloc(sizeof(id));
-//		strcpy(s->id, id);
-//		s->entry = entry;
-//
-//		HASH_ADD_KEYPTR( hh, symTab, s->id, strlen(s->id), s);
-//		return entry;
-//	}
-//	return s->entry;
-//}
-/**
- * @brief Add a new property (key/value pair) to the given entry table
- * If key already exists, the existing nothing will be saved
- * and the key/value pair will be returned
- *
- * @param entry An existing entry table where the new property should be stored
- * @param key A key, describing the property (use constants!)
- * @param value The value of the property
- */
-//symTabEntry_t* addToSymTabEntry(symTabEntry_t* entry, int key, string value) {
-//	symTabEntry_t *s; /* new property */
-//
-//	s = findInSymTabEntry(entry, key); /* check if entry already exists */
-//	if (!s) {
-//		s = malloc(sizeof(symTabEntry_t)); /* allocate space for new property */
-//		s->key = key;
-//		s->value = malloc(sizeof(value));
-//		strcpy(s->value, value);
-//
-//		HASH_ADD_INT(entry, key, s);
-//		/* add new property into the entry table */
-//		return entry;
-//	}
-//	return s;
-//}
-
-/**
- * @brief Find given identifier in symbol table
- * @param id identifier to be found
- * @return symTab with id->entry pair
- */
-//symTab_t* findInSymTab(string id) {
-//	symTab_t* entry = NULL;
-//	HASH_FIND_STR( symTab, id, entry);
-//	return entry;
-//}
-
-/**
- * @brief Find given key in symbol table entry
- * @param s symbol table entry
- * @param key key to be found
- * @return symTabEntry with key->value pair
- */
-//symTabEntry_t* findInSymTabEntry(symTabEntry_t* s, int key) {
-//	symTabEntry_t* entry = NULL;
-//	HASH_FIND_INT( s, &key, entry);
-//	return entry;
-//}
-
-//void test_symTab() {
-//	addToSymTab("test");
-//	symTab_t* entry = findInSymTab("test");
-//	symTabEntry_t* property = findInSymTabEntry(entry->entry, IDENTIFIER);
-//	printf("\n%d -> %s\n", property->key, property->value);
-//}
-
-/**
- * @brief Only for debug: Print all identifiers in the symbol table
- */
-//void printSymTabKeys() {
-//	symTab_t *current_symTab, *tmp;
-//	symTabEntry_t *current_Entry, *tmp2;
-//
-//	printf("\n");
-//	HASH_ITER(hh, symTab, current_symTab, tmp) {
-//		printf("%s\n", current_symTab->id);
-//		HASH_ITER(hh,current_symTab->entry, current_Entry, tmp2) {
-//			printf("  %10s -> %s\n", getKeyAsString(current_Entry->key), current_Entry->value);
-//		}
-//	}
-//	printf("Total: %d", HASH_COUNT(symTab));
-//}
 
 /**
  * @brief Simple debug function that prints the given number followed by a '-'
@@ -125,18 +22,6 @@ void debug(int number) {
 	fprintf(stdout, "%d-", number);
 }
 
-//string getKeyAsString(int key) {
-//	char* str;
-//	switch(key) {
-////	case TYPE: return "TYPE";
-////	case IDENTIFIER: return "IDENTIFIER";
-////	case RETURNTYPE: return "RETURNTYPE";
-//	default:
-//		str = malloc(3);
-//		sprintf(str,"%d",key);
-//		return str;
-//	}
-//}
 
 /**
  * @brief Take a string (like "this is a string"), allocate memory for it and return the address.
@@ -146,44 +31,230 @@ void debug(int number) {
  */
 char* setString(const char* source) {
 	char* target;
-	if(source) {
+	if (source != NULL) {
 		target = malloc(sizeof(source));
-		if(target == NULL) error("setString: Could not allocate new String target.");
-		strcpy(target,source);
+		if (target == NULL)
+			error("setString: Could not allocate new String target.");
+		strcpy(target, source);
 	} else {
 		error("setString: Source is not initialized!");
 	}
 	return target;
 }
 
-
 symbol* push(symbol* symbol) {
 	struct symbol* newSymbol = NULL;
-	newSymbol = malloc(sizeof(symbol));
-	if(newSymbol == NULL) error("push: Could not allocate new Symbol.");
+	newSymbol = malloc(sizeof(struct symbol));
+	if (newSymbol == NULL)
+		error("push: Could not allocate new Symbol.");
 	newSymbol->next = symbol;
 	return newSymbol;
 }
 
 symbol* pop(symbol* symbol) {
-	if(symbol->next == NULL) {
-		error("pop: failed to return next symbol: it is NULL");
+	if (symbol == NULL) {
+		error("pop: input is NULL");
+	} else {
+		if (symbol->next == NULL) {
+			error("pop: failed to return next symbol: it is NULL");
+		}
+		return symbol->next;
 	}
-	return symbol->next;
+	return NULL;
 }
 
-symbol* createSymbol(){return NULL;}
-var* createVar(){return NULL;}
-func* createFunc(){return NULL;}
-void addToVar(var* target, var* source){}
+//sicher so nich korrekt weil symbol nich die selbe struktur besitzt wie Var oder Func?
+// -> sieht gut aus
+symbol* createSymbol() {
+	symbol *newSymbol = NULL;
+	newSymbol = malloc(sizeof(symbol));
+	if (newSymbol == NULL) {
+		error("Symbol could not be created");
+	}
 
-void insertVar(symbol* symbol, var* var){}
-void insertFunc(symbol* symbol, func* func){}
-var* findVar(symbol* symbol, string id){return NULL;} // find in current scope or scopes above
-func* findFunc(symbol* symbol, string id){return NULL;}
-int exists(symbol* symbol, string id){return 0;} // only in current scope
+	/* initialize all pointers to NULL
+	 * This is very important, because C does not set a new pointer to NULL automatically
+	 * This means, after declaration without initialization, the pointer can point anywhere!
+	 *
+	 * Also consider: To add e.g. a var to the hash table, the hash table can be NULL.
+	 * It will be initialized correctly!
+	 */
+	newSymbol->symVar = NULL;
+	newSymbol->symFunc = NULL;
+	newSymbol->next = NULL;
+	return newSymbol;
+}
 
+/**
+ * @brief
+ *
+ * @return
+ */
+var* createVar(string id) {
+	var *newVar = NULL;
+	newVar = malloc(sizeof(var));
+	if (newVar == NULL) {
+		error("Variable could not be created");
+	}
+	newVar->id = malloc(sizeof(id));
+	if(newVar->id == NULL) {
+		error("createVar: Could not allocate id");
+	}
+	strcpy(newVar->id,id);
+	return newVar;
+}
+
+/**
+ *
+ * @return
+ */
+func* createFunc(string id) {
+	func *newFunc = NULL;
+	newFunc = malloc(sizeof(func));
+	if (newFunc == NULL) {
+		error("Function could not be created");
+	}
+	newFunc->id = malloc(sizeof(id));
+	if(newFunc->id == NULL) {
+		error("createFunc: Could not allocate id");
+	}
+	strcpy(newFunc->id,id);
+	return newFunc;
+}
+
+/**
+ *
+ * @param target vorhandene hashtable
+ * @param source einzelne Variable
+ */
+void addToVar(var* target, var* source) {
+
+}
+
+/**
+ *
+ * @param symbol
+ * @param var
+ */
+void insertVar(symbol* symbol, var var) {
+	//prüfen ob übergebenen parameter nicht null sind
+	if (symbol == NULL)
+		error("---");
+	if(var.id == NULL)
+		error("insertVar: id of var is NULL!");
+	//korrekt? -> nein, das ist nicht möglich ;) nur ein übergebener Pointer kann null sein
+//	if (&var == NULL)
+//		error("---");
+
+//	if (symbol->symVar == NULL) {
+//		symbol->symVar = createVar();
+//	} -> siehe createsymbol
+	//einfügen in die hashmap
+	// symbol->symVar darf durchaus NULL sein.
+	HASH_ADD_KEYPTR( hh, symbol->symVar, var.id, strlen(var.id), &var);
+
+}
+
+/**
+ *
+ * @param symbol
+ * @param func
+ */
+void insertFunc(symbol* symbol, func func) {
+	if (symbol == NULL)
+		error("---");
+	if(func.id == NULL)
+		error("insertFunc: id of func is NULL!");
+	//korrekt? -> siehe oben
+//	if (&func == NULL)
+//		error("---");
+
+//	if (symbol->symVar == NULL) {
+//		symbol->symVar = createVar();
+//	} -> siehe createsymbol
+	//einfügen in die hashmap
+	//bei schreiben von func.id wird keine automische auswahl angegeben. besorgniserregend?
+	// -> sieht doch gut aus
+	struct func* test = malloc(sizeof(struct func));
+	memcpy(test,&func,sizeof(struct func)); // irgendwas ist hier komisch... so gehts jedenfalls... bei var oben ging es mit &var
+	HASH_ADD_KEYPTR( hh, symbol->symFunc, func.id, strlen(func.id), test);
+}
+
+/**
+ * @brief Test function var
+ * @param symbol
+ */
+void print_var(symbol* symbol) {
+	if (symbol == NULL)
+		error("---");
+
+	struct var *k, *tmp;
+	HASH_ITER(hh, symbol->symVar, k, tmp) {
+		if(k->id == NULL)
+			error("print_var: id is NULL!");
+		printf("var id %s: type %d: size %d: offset %d\n", k->id, k->type,
+				k->size, k->offset);
+	}
+}
+
+/**
+ * @brief Test function insertFunc
+ * @param symbol
+ */
+void print_func(symbol* symbol) {
+	if (symbol == NULL)
+		error("---");
+
+	struct func *k, *tmp;
+	HASH_ITER(hh, symbol->symFunc, k, tmp) {
+		if(k->id == NULL)
+			error("print_func: id is NULL!");
+		printf("func id %s: type %d: ", k->id, k->returnType); //für param Hash map eigene function?
+	}
+
+}
+// find in current scope or scopes above
+//gibt das kein Return aus?
+// -> du suchst nur in symbol. Symbol hat den next-pointer, der auf das nächste Symbol zeigt.
+// du musst diesem next Pointer folgende, bis dieser NULL ist. -> Schleife ;)
+// gilt natürlich auch für findFunc
+var* findVar(symbol* symbol, string id) {
+	struct var *k;
+	//HASH_FIND(hh, symbol->symVar, id, strlen(id), k);
+	HASH_FIND_STR( symbol->symVar, id, k); // geht auch so, ist nicht so komplex
+	return k; //sicher falsch, aber warum? -> ist korrekt, nur return muss komplett klein geschrieben werden ;)
+}
+
+/**
+ *
+ * @param symbol
+ * @param id
+ * @return
+ */
+func* findFunc(symbol* symbol, string id) {
+	struct func *k;
+	HASH_FIND(hh, symbol->symFunc, id, strlen(id), k);
+	return k;
+	return NULL;
+}
+
+// etwas unsicher was zu tun. bzw wie man auf den scope beschränkt
+// -> du hast in den find Funktionen oben nur auf den aktuellen Scope beschränkt.
+// D.h.: exists wie oben, aber einmal in symFunc und einmal in symVar suchen
+int exists(symbol* symbol, string id) {
+	return 0;
+} // only in current scope
+
+/**
+ * @brief Output given message and exit program
+ * @param message
+ */
 void error(string msg) {
 	fprintf(stderr, "%s\n", msg);
 	exit(1);
 }
+
+void test_symTab(symbol* symbol) {
+	print_var(symbol);
+}
+

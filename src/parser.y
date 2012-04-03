@@ -9,10 +9,12 @@
 #include <stdlib.h>
 #include "symboltable.h"
 #include "typechecking.h"
+#include "address_code.h" 
 
 #define YYERROR_VERBOSE
 	
 symbol* curSymbol;
+	
 %}
 
 /**
@@ -32,23 +34,27 @@ symbol* curSymbol;
  */
 %start program
 
+%code requires {
+	#include "types.h"
+}
+
 /**
  * Define types for numericals and strings
  */
 %union {
-	int num;
 	char* str;
-	type type;
+	int num;
 	var var;
 	func func;
-	struct {
-		type type;
-	} expr;
+	type type;
 	struct exprList {
 		struct expr* expr;
 		struct exprList* prev;
 		struct exprList* next;
-	} exprList;
+	} exprList; 
+	struct {
+		type type;
+	} expr;
 }
 
 /*
@@ -106,7 +112,7 @@ symbol* curSymbol;
  * of grammar 'program'. 
  */
 program
-     : {curSymbol = createSymbol()} program_element_list { debug(1); /*printSymTabKeys();*/ }
+     : {curSymbol = createSymbol();} program_element_list { debug(1); test_symTab(curSymbol); }
      ;
 
 /*
@@ -143,11 +149,11 @@ type
  * 
  */
 variable_declaration
-	: variable_declaration COMMA identifier_declaration	 {debug(48); }
+	: variable_declaration COMMA identifier_declaration	 {debug(100); }
 	| type identifier_declaration {
 		debug(42);
 		$2.type = $1;
-		insertVar(curSymbol, &$2);
+		insertVar(curSymbol, $2);
 	}
 	;
 
@@ -178,19 +184,21 @@ identifier_declaration
 function_declaration
 	: type ID PARA_OPEN PARA_CLOSE {
 		debug(47); 
-		func* func = createFunc();
-		func->id = $2;
-		func->returnType = $1;
-		func->param = NULL;
-		insertFunc(curSymbol, func);
+		func* func = createFunc($2);
+		if(func!=NULL) {
+			func->returnType = $1;
+			func->param = NULL;
+			insertFunc(curSymbol, *func);
+		}
 	}
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		debug(44);
-		func* func = createFunc();
-		func->id = $2;
-		func->returnType = $1;
-		func->param = &$4;
-		insertFunc(curSymbol, func);
+		func* func = createFunc($2);
+		if(func!=NULL) {
+			func->returnType = $1;
+			func->param = &$4;// FIXME do not use pointer
+			insertFunc(curSymbol, *func);
+		}
 	}
 	;
 
@@ -226,11 +234,11 @@ function_definition
 	: type ID PARA_OPEN PARA_CLOSE {
 		/* typechecking */
 	  }
-	  BRACE_OPEN {curSymbol = push(curSymbol);} stmt_list {curSymbol = pop(curSymbol);} BRACE_CLOSE
+	  BRACE_OPEN {debug(104); curSymbol = push(curSymbol); debug(101);} stmt_list {debug(102); curSymbol = pop(curSymbol); debug(103);} BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 			/* typechecking (returntype, parameters) */
 		}	
-	  BRACE_OPEN {curSymbol = push(curSymbol);} stmt_list {curSymbol = pop(curSymbol);} BRACE_CLOSE
+	  BRACE_OPEN {debug(105); curSymbol = push(curSymbol); debug(106);} stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
 	;
 									
 /*
@@ -238,8 +246,8 @@ function_definition
  * by the non-terminal 'stmt'.
  */									
 stmt_list
-     : /* empty: epsilon */
-     | stmt_list stmt { debug(23);}
+     : /* empty: epsilon */ { debug(120);}
+     | stmt_list { debug(121);} stmt { debug(23);}
      ;
 
 /*
@@ -261,7 +269,7 @@ stmt
  * A statement block is just a statement list within braces.
  */									
 stmt_block
-     : BRACE_OPEN stmt_list BRACE_CLOSE { debug(30); /* we could extend additional scopes here :o */}
+     : BRACE_OPEN {debug(110);} stmt_list BRACE_CLOSE { debug(30); /* we could extend additional scopes here :o */}
      ;
 	
 /*
@@ -316,7 +324,13 @@ expression
 
 primary
      : NUM { debug(55); $$.type = T_INT; }
-     | ID { debug(56); $$ = *findVar(curSymbol, $1); }
+     | ID { 
+    	 debug(56); 
+    	 var *found = findVar(curSymbol, $1);
+    	 if(found!=NULL) {
+    		 $$ = *found;
+    	 }
+      }
      ;
 
 /*

@@ -1,0 +1,94 @@
+Hi,
+
+ich hatte am Mittwoch ganz leicht das Gefühl in so manches ratloses Gesicht geblickt zu haben, nachdem ich die Details von Symboltabelle, Typsystem und Zwischencode-Erzeugung vorgestellt habe. :-) Das mag sicherlich auch mit der Geschwindigkeit und meinem z.T. verwirrten Tafelbild zusammengehangenen  haben - ich werde versuchen, bei den nächsten Themen (vorrangig Assembler-Erzeugung) strukturierter und noch langsamer vorzugehen. 
+
+Da diese Themen aber wirklich essentiell wichtig für Compiler (und z.T. auch für die anstehenden Prüfung) sind, möchte ich nochmal versuchen  in schriftlicher Form die wichtigsten Punkte zusammenzufassen und euch bitten bis Dienstag alle Fragen zu formulieren/vorzubereiten, die ihr zu diesen und natürlich auch anderen Themen habt. Die Logik sollte wirklich jedes Gruppenmitglied verstanden haben, auch wenn er/sie das Thema nicht direkt bearbeitet:
+
+1) Symboltabelle
+Wie schon in den Einführungsveranstaltungen erwähnt, dient die Symboltabelle dazu kontext-sensitive Informationen über deklarierte Variablen und Funktionen zu speichern. Grob formuliert kann man sagen: die Symboltabelle erspart uns eine kontext-sensitive Sprache zum Parsen der Eingabesprache zu verwenden; stattdessen können wir auf die deutlich einfacheren kontext-freien Sprachen zurückgreifen - die kontext-sensitiven Informationen werden dann eben in der Symboltabelle abgelegt.
+
+Von den in ANSI C(99) vorgeschriebenen vier Gültigkeitsbereichen (file, prototype, function, block) haben wir uns für das Praktikum auf den globalen (file) und lokalen (function) Gülitgkeitsbereich verständigt. Um Variablen mit gleichem Variablennamen in unterschiedlichen Gültigkeitsbereichen korrekt bearbeiten zu können, ist es empfehlenswert, eine globale Symboltabelle und eine lokale Symboltabelle pro Funktion zu implementieren. Die globale Symboltabelle enthält Einträge für skalare Variablen und Felder, sowie Einträge für Funktionen. Mögliche Attribute die für Variablen und Funktionen verwendet werden könnten, stehen in der Aufgabenbeschreibung. Jedoch eine Anmerkung nochmal zu Funktionen: hierbei müsst ihr euch einen Mechanismus überlegen, wie ihr die Parametertypen (inkl. korrekter Reihenfolge) implementiert/repräsentiert. 
+
+Und zum Abschluß nochmal das Interface:
+[a] Hinzufügen von einem neuen Eintrag
+[b] Suche nach einem Eintrag: die Suche sollte beide Gültigkeitsbereiche berücksichtigen, d.h. erst im aktuellen Gültigkeitsbereich, z.B. lokal, und dann im darüberliegenden Gültigkeitsbereich suchen, sofern dieser existiert
+[c] Überprüfung ob ein Eintrag bereits existiert: hier sollte nur der aktuelle Gültigkeitsbereich, z.B. lokal, in Betrachtung gezogen werden
+
+2) Typsystem
+Das Typsystem hat u.a. die Aufgaben zu überprüfen, ob die Typen der Sprache (bei uns int und int[]) korrekt gemäß Sprachspezifikation verwendet werden oder z.B. welchen den Typ das Ergebnis einer Addtion aus int und float hat (triff bei unserem Compiler nicht zu). Folgendes Interface könnte das Typsystem anbieten:
+[a] Überprüfung ob a) Funktionsdefinition mit vorheriger Funktionsdekalaration (sofern vorhanden) übereinstimmt und b) ob ein Funktionsaufruf im Code zur Funktionsdefinition passt, d.h. Anzahl Paramter und Typen der Parameter stimmen überein
+[b] Überprüfung ob ein Typ (z.B. int[]) auf der linken bzw. rechten Seite der Zuweisung verwendet werden darf
+[c] Ermittlung des Resultattyps von einer Operation, z.B. Addition
+
+3) Zwischencode-Erzeugung
+Ich denke bei diesem Abschnitt dürfte es die größte Verwirrung gegeben haben. Erstmal vorab, intern kann der Zwischencode als eine Sequenz (dynamisches Array oder verkettete Liste) von Zwischencode-Operationen, d.h. 3-Adress-Code Instruktionen, repräsentiert werden, wobei jede Instruktion mit einem Index ausgestattet werden sollte um Sprungziele, d.h. GOTO #, einfach implementieren zu können. 
+
+Das vorgestellte Schema, entnommen aus dem Drachenbuch, stellt _eine_ Möglichkeit dar um Zwischencode für die unterschiedlichen Statements der Sprache zu erzeugen, wobei besonderer Augenmerk auf die Implementierung von boolschen Operationen und Statements mit Sprüngen, d.h. IF, WHILE, etc., gelegt wird. Das allgemeine Problem bei diesen Sprung-Statements ist folgendes am Beispiel eines IF-THEN-Statements:
+
+Wenn die Zwischencode-Instruktionen für das IF-THEN-Statement erzeugt werden, dann kann der Parser das Sprungziel für den FALSE-Fall, d.h. wenn die Bedingung zu FALSCH auswertet wird, noch nicht wissen, da die Anzahl der Instruktionen im THEN-Block nicht bekannt ist. Diese Anzahl ist erst bekannt, wenn der THEN-Block auch abgearbeitet wurde, wobei aber dann die Zwischencode-Instruktionen für die beiden Sprünge (TRUE/FALSE-Fall) bereits erzeugt wurden. Eine alternative Möglichkeit wäre natürlich auch, die Zwischencode-Instruktionen für die beiden Sprünge nachträglich einzufügen, was aber stark erschwert werden dürfte durch rekursiv verschachtelte IF-Statements und sich verändernde Indizes für Zwischencode-Instruktionen. Das im Drachenbuch vorgestellte Schema verwendet deshalb Attribute die während des Parsings mit den Nicht-Terminalen verknüpft werden - in diesem Fall handelt es sich S-Attribute, d.h. Attribute, die von unten nach oben gereicht werden. 
+
+Die verwendeten Attribute sind letztendlich drei Listen: truelist, falselist und nextlist. Jede dieser Listen enthält eine beliebige Anzahl von Zwischencode-Indizes. Jeder dieser in den Listen verwaltete Zwischencode-Index zeigt dabei auf eine Zwischencode-Instruktion, die einen Sprung enthält. Der Sinn und Zweck dieser Listen mit Zwischencode-Indizes ist, NACHTRÄGLICH die Sprungziele für die Sprung-Statements, z.B. IF-THEN, einzufügen. Da meine Schrift in der Vorlesung sehr klein war - zumindest hatte sogar die erste Reihe Probleme meine Schrift zu lesen :-), hier nochmal das Beispiel aus der Vorlesung. Die Grammatik mit semantischen Aktionen sah folgendermaßen aus:
+
+E -> IDENTIFIER              { ... }
+M -> epsilon                 { M.instr = nextinstr }
+E -> E1 == E2                { E.truelist = makelist(nextinstr); E.falselist = makelist(nextinstr+1);
+                               emit("IF (E1 == E2) GOTO <UNKNOWN_TARGET>);
+                               emit(GOTO <UNKNOWN_TARET>); } 
+E -> E1 || M E2              { backpatch(E1.falselist, M.instr); E.truelist = mergelists(E1.truelist, E2.truelist);
+                               E1.falselist = E2.falselist; }
+S -> IF ( E ) THEN M S1      { backpatch(E.truelist, M.instr); S.nextlist = mergelists(S1.nextlist, E.falselist); }
+L -> S                       { L.nextlist = S.nextlist; }
+L -> L1 M S                  { backpatch(L1.nextlist, M.instr); L.nextlist = S.nextlist; }
+
+Zur Erklärung:
+[a] E1, E2 stehen für Expressions (E) und L1 für eine Liste von Statements (L)
+[b] nextinstr ist eine globale Variable, die die Position (Index) enthält an der die nächste Zwischencode-Instruktion erzeugt wird. Ihr könnt euch einfach vorstellen, dass die emit()-Funktion diese globale Variable um 1 inkrementiert. 
+[c] emit() ist eine Funktion die Zwischencode-Instruktionen erzeugt
+[d] <UNKOWN_TARGET> ist ein Platzhalter für ein noch nicht feststehendes Sprungziel
+[e] .instr, .nextlist, .truelist, .falselist sind Attribute der jeweiligen Nicht-Terminale
+[f] backpatch() ist eine Funktion die den Index (2. Parameter) in alle Zwischencode-Instruktionen einträgt, deren Index in der Liste (1. Parameter) übergeben wird. 
+[*] bei dem Nicht-Terminal M handelt es sich um eine sogenannte Epsilon-Produktion, die es erlaubt semantische Aktionen auszuführen. In diesem Beispiel fungiert M als Merker für Sprungziele. Der Grund warum M verwendet wird ist, dass die semantischen Aktionen in geschweiften Klammern erst ausgeführt werden, wenn die komplette rechte Seite der Produktion auf dem Stack liegt. Dies bedeutet aber auch für das IF-THEN-Statement, dass die Zwischencode-Instruktionen - "enthalten" in S1 - für den THEN-BLOCK bereits erzeugt wurden und der Anfang (Index) vom THEN-Block verloren ist bzw. nur "aufwendig" nachträglich berechnet werden kann. Deshalb wird durch M eine semantische Aktion eingefügt, die sich den Beginn des THEN-Block merkt um später in der semantischen Aktion (wenn die komplette rechte Seite auf dem Stack liegt) darauf zuzugreifen. 
+
+Und abschließend nochmal das Beispiel. Listen werden dabei als n-Tupel dargestellt. Das Beispiel ist:
+
+if ((a==b) || M1 (c==d)) then M2 
+  f = 1;
+M3
+g = 3; 
+
+(00) nextinstr = 0
+(01) E1 -> a == b              :: E1.truelist = (0), E1.falselist = (1), emit("<0>: IF (a == b) GOTO <UNKNOWN_TARGET>")
+                                  emit("<1>: GOTO <UNKNOWN_TARGET>")
+(02) nextinstr = 2
+(03) M1.instr = 2
+(04) E2 -> c == d              :: E2.truelist = (2), E2.falselist = (3), emit("<2>: IF (c == d) GOTO <UNKNOWN_TARGET>")
+                                  emit("<3>: GOTO <UNKNOWN_TARGET>")
+(05) nextinstr = 4
+(06) E -> E1 || M1 E2          :: backpatch(E1.falselist, M1.instr), d.h. "<1>: GOTO <UNKNOWN_TARGET>" wird zu "<1>: GOTO 2"
+                                  E.truelist = (0,2), E.falselist = (3)
+(07) in S1                     :: emit("<4>: f = 1")
+(08) nextinstr = 5
+(09) S -> IF ( E ) THEN M2 S1  :: backpatch(E.truelist, M2.instr), d.h. 
+                                  "<0>: IF (a == b) GOTO <UNKNOWN_TARGET>" wird zu "<0>: IF (a == b) GOTO 4" und
+                                  "<2>: IF (c == d) GOTO <UNKNOWN_TARGET>" wird zu "<2>: IF (c == d) GOTO 4"
+                                  S.nextlist = (3)
+(10) L1 -> S                   :: L.nextlist = (3)
+(11) M3.instr = 5
+(12) in S                      :: emit("<5>: g = 3")
+(13) nextinstr = 6
+(14) L -> L1 M3 S              :: backpatch(L1.nextlist, M3.instr), d.h. "<3>: GOTO <UNKNOWN_TARGET>" wird zu "<3>: GOTO 5"
+                                  L.nextlist = ()
+
+Der finale Zwischencode für das Beispiel sind dann wie folgt aus:
+
+<0>: IF (a == b) GOTO 4
+<1>: GOTO 2
+<2>: IF (c == d) GOTO 4
+<3>: GOTO 5
+<4>: f = 1
+<5>: g = 3
+
+Ich hoffe, an diesem ausführlichen Beispiel wird nochmal deutlich wie der Mechanismus funktioniert. 
+
+Dann noch viel Spaß beim Lesen und einen erfolgreichen Start in die Woche. Bis Dienstag,
+Andi
