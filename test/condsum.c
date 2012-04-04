@@ -1,7 +1,8 @@
-int global, a[42], b[13][37];
+int global, c[42], b[13];
+int test;
 int scan ();
 void print (int i);
-void exit (int i);
+void exit (int i, int y[2]);
 
 /**
  *

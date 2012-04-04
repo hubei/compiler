@@ -44,8 +44,8 @@ symbol* curSymbol;
 %union {
 	char* str;
 	int num;
-	var var;
-	func func;
+	var* var;
+	func* func;
 	type type;
 	exprList exprList;
 	expr expr;
@@ -92,8 +92,8 @@ symbol* curSymbol;
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 %type <var>identifier_declaration primary function_parameter_list function_parameter
-%type <type>type
 %type <expr>expression function_call
+%type <type>type variable_declaration
 %type <exprList>function_call_parameters
 
 %%
@@ -106,7 +106,7 @@ symbol* curSymbol;
  * of grammar 'program'. 
  */
 program
-     : {curSymbol = createSymbol();} program_element_list { debug(1); test_symTab(curSymbol); }
+     : {curSymbol = createSymbol();} program_element_list { debug(1); }
      ;
 
 /*
@@ -143,11 +143,22 @@ type
  * 
  */
 variable_declaration
-	: variable_declaration COMMA identifier_declaration	 {debug(100); }
+	: variable_declaration COMMA identifier_declaration	 {
+		debug(100);
+		$3->type = $1;
+		if($3->size != 0)
+			$3->type = T_INT_A;
+		insertVar(curSymbol, $3);
+	}
 	| type identifier_declaration {
 		debug(42);
-		$2.type = $1;
+		if($2 == NULL)
+			error("variable_declaration: $2 is NULL");
+		$2->type = $1;
+		if($2->size != 0)
+			$2->type = T_INT_A;
 		insertVar(curSymbol, $2);
+		$$ = $1;
 	}
 	;
 
@@ -156,19 +167,27 @@ variable_declaration
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : identifier_declaration BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
     	 debug(13); 
-    	 $$ = $1;
-		 $$.size *= $3;
+    	 var* newVar = createVar($1);
+    	 if(newVar == NULL) {
+    		 error("identifier_declaration: newVar is NULL");
+    	 }
+    	 $$ = newVar;
+		 $$->size = $3;
 // example of how to get line numbers
-		fprintf (stderr, "l%d,c%d-l%d,c%d\n",
-                            @1.first_line, @1.first_column,
-                            @1.last_line, @1.last_column);
+//		fprintf (stderr, "l%d,c%d-l%d,c%d\n",
+//                            @1.first_line, @1.first_column,
+//                            @1.last_line, @1.last_column);
      } 
      | ID {	
-    	 debug(14); 
-    	 $$.id = $1;
-    	 $$.size=1; 
+    	 debug(14);
+    	 var* newVar = createVar($1);
+    	 if(newVar == NULL) {
+    		 error("identifier_declaration: newVar is NULL");
+    	 }
+    	 $$ = newVar;
+    	 $$->size=0; 
      }
      ;
  	
@@ -178,21 +197,23 @@ identifier_declaration
 function_declaration
 	: type ID PARA_OPEN PARA_CLOSE {
 		debug(47); 
-		func* func = createFunc($2);
-		if(func!=NULL) {
-			func->returnType = $1;
-			func->param = NULL;
-			insertFunc(curSymbol, *func);
+		func* newFunc = createFunc($2);
+		if(newFunc==NULL) {
+			error("function_declaration: newFunc is NULL");
 		}
+		newFunc->returnType = $1;
+		newFunc->param = NULL;
+		insertFunc(curSymbol, newFunc);
 	}
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		debug(44);
-		func* func = createFunc($2);
-		if(func!=NULL) {
-			func->returnType = $1;
-			func->param = &$4;// FIXME do not use pointer
-			insertFunc(curSymbol, *func);
+		func* newFunc = createFunc($2);
+		if(newFunc==NULL) {
+			error("function_declaration: newFunc is NULL");
 		}
+		newFunc->returnType = $1;
+		insertParams(newFunc,$4);
+		insertFunc(curSymbol, newFunc);
 	}
 	;
 
@@ -201,12 +222,12 @@ function_declaration
  */
 function_parameter_list
 	: function_parameter {
-		debug(45); 
-		$$ = $1;
+		debug(45);
+		$$ = addParamToParamhash(NULL, $1);
 	}
 	| function_parameter_list COMMA function_parameter {
 		debug(46);
-		addToVar(&$$, &$3);
+		$$ = addParamToParamhash($1, $3);
 	}
 	;
 
@@ -216,7 +237,12 @@ function_parameter_list
 function_parameter
 	: type identifier_declaration {
 		debug(43);
-		$2.type = $1;
+		if($2==NULL) {
+			error("function_parameter: $2 is NULL");
+		}
+		$2->type = $1;
+		if($2->size != 0)
+			$2->type = T_INT_A;
 		$$ = $2;
 	}
 	;
@@ -226,13 +252,25 @@ function_parameter
  */
 function_definition
 	: type ID PARA_OPEN PARA_CLOSE {
-		/* typechecking */
+		func* newFunc = createFunc($2);
+		if(newFunc==NULL) {
+			error("function_definition: newFunc is NULL");
+		}
+		newFunc->returnType = $1;
+		newFunc->param = NULL;
+		insertFunc(curSymbol, newFunc);
 	  }
 	  BRACE_OPEN {debug(104); curSymbol = push(curSymbol); debug(101);} stmt_list {debug(102); curSymbol = pop(curSymbol); debug(103);} BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
-			/* typechecking (returntype, parameters) */
+			func* newFunc = createFunc($2);
+			if(newFunc==NULL) {
+				error("function_definition: newFunc is NULL");
+			}
+			newFunc->returnType = $1;
+			insertParams(newFunc,$4);
+			insertFunc(curSymbol, newFunc);
 		}	
-	  BRACE_OPEN {debug(105); curSymbol = push(curSymbol); debug(106);} stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
+	  BRACE_OPEN {debug(105); curSymbol = push(curSymbol); debug(106); addParamsToSymbol(curSymbol, $4); } stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
 	;
 									
 /*
@@ -321,12 +359,20 @@ expression
      ;
 
 primary
-     : NUM { debug(55); $$.type = T_INT; }
+     : NUM { 
+    	debug(55);
+//		if($$==NULL) {
+//			error("primary: $1 is NULL");
+//		}
+    	 //$$->type = T_INT;
+       }
      | ID { 
     	 debug(56); 
-    	 var *found = findVar(curSymbol, $1);
+    	 var* found = findVar(curSymbol, $1);
     	 if(found!=NULL) {
-    		 $$ = *found;
+    		 $$ = found;
+    	 } else {
+    		 /* "typechecking" -> error */
     	 }
       }
      ;

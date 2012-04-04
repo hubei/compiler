@@ -8,6 +8,7 @@
 #include "parser.h"
 #include "address_code.h"
 #include "mips32gen.h"
+#include "symboltable.h"
 
 #include "main.h"
 
@@ -306,12 +307,19 @@ int main(int argc, char *argv[]) {
 	} else {
 		yyparse();
 		fclose(yyin);
-		// TODO If necessary, call any functions for IR code generation
-		irCode* ircode = getIRCode();
+		irCode* ircode = NULL;
+
 		if(cc_options.ir_file!=NULL) {
 			FILE *irFile;
 			irFile = fopen(cc_options.ir_file, "w+");
+
+			// Test symbolTable
+			test_symTab(irFile);
+
+			// TODO If necessary, call any functions for IR code generation
+			ircode = getIRCode();
 			fprintf(irFile,"%s",IRtoString());
+
 			fclose(irFile);
 		}
 

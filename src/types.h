@@ -59,6 +59,7 @@ typedef struct func {
 	char* id; // key
 	type returnType;
 	var* param; // hash table of variables, that are parameters
+	int num_params;
 	UT_hash_handle hh; /* makes this structure hashable */
 } func;
 
@@ -73,61 +74,65 @@ typedef struct symbol {
 } symbol;
 
 
-/*
+/**
  *	Based on the expression-rules from the parser.y
- *	TODO Basti hier die richtigen code aus der aufg beschr
  */
 typedef enum operations {
-	OP_ASSIGN,     //!< OP_ASSIGN
-	OP_LOGICAL_OR, //!< OP_LOGICAL_OR
-	OP_LOGICAL_AND,//!< OP_LOGICAL_AND
-	OP_LOGICAL_NOT,//!< OP_LOGICAL_NOT
-	OP_EQ,         //!< OP_EQ
-	OP_NE,         //!< OP_NE
-	OP_LSEQ,       //!< OP_LSEQ
-	OP_GTEQ,       //!< OP_GTEQ
-	OP_GT,         //!< OP_GT
-	OP_PLUS,       //!< OP_PLUS
-	OP_MINUS,      //!< OP_MINUS
-	OP_MUL,        //!< OP_MUL
-	OP_DIV,        //!< OP_DIV
-	OP_MOD,        //!< OP_MOD
-	OP_UNARY_MINUS //!< OP_UNARY_MINUS
-};
+	OP_ASSIGN,
+	OP_ADD,
+	OP_SUB,
+	OP_MUL,
+	OP_DIV,
+	OP_MINUS,
+	OP_IFEQ,
+	OP_IFNE,
+	OP_IFGT,
+	OP_IFGE,
+	OP_IFLT,
+	OP_IFLE,
+	OP_GOTO,
+	OP_RETURN_VAL,
+	OP_RETURN_VOID,
+	OP_CALL_RES,
+	OP_CALL_VOID,
+	OP_ARRAY_LD,
+	OP_ARRAY_ST
+} operations;
 
 /**
- * 	@brief Enables the determination whether a type is a Variable, Function or constant
+ *  @brief	Enables the determination whether a type is a Variable, Function or constant
  */
 typedef enum irType {
 	ARG_VAR,
 	ARG_FUNC,
 	ARG_CONST
-} ;
+} irType ;
 
-/*
- * 	IrCode argument. Can be either a variable, function or constant.
+/**
+ *  @brief	IrCode argument. Can be either a variable, function or constant.
  * 	In order to determine which one is stored, a type will be assigned, based on the
  * 	previous enum.
  */
+
 typedef struct irCode_arg {
 	union {
 		var* _var;
 		func* _func;
 		int _constant;
 	} arg;
-	enum irType type;
+    int type;
 } irCode_arg;
 
-/*
- * 	Actual IR 3-address code. It always contains a pointer to the next expression, until ultimately
+/**
+ * 	@brief Actual IR 3-address code. It always contains a pointer to the next expression, until ultimately
  * 	an "=" is read or a function is called.
  */
 typedef struct irCode {
 	int row;
-	enum operations ops;
-	irCode_arg arg0;
-	irCode_arg arg1;
-	irCode_arg arg2;
+	int ops;
+	irCode_arg* res;
+	irCode_arg* arg0;
+	irCode_arg* arg1;
 	struct irCode *next; //Next operation until NULL
 } irCode;
 

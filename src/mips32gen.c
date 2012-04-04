@@ -19,3 +19,11 @@ int mips32gen(FILE *file,irCode *ircode) {
 	return 42;
 }
 
+char* generate(irCode* ircode) {
+	return NULL;
+}
+
+char* getComment() {
+	return NULL;
+}
+
