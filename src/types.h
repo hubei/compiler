@@ -23,6 +23,22 @@ typedef enum type {
 	T_INT, T_VOID, T_INT_A
 } type;
 
+
+typedef struct {
+	type type;
+} expr;
+
+/**
+ * @brief expression list of the parser (function parameters)
+ */
+typedef struct exprList {
+		struct expr* expr;
+		struct exprList* prev;
+		struct exprList* next;
+} exprList;
+
+
+
 /**
  * @brief symbol representation of a variable
  * This is a hash table. Its key is `id`, the rest are values.

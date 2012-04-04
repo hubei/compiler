@@ -13,14 +13,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool correctFuncTypes(string funcID, exprList* parameters) {
+int correctFuncTypes(symbol* curSymbol, string funcID, exprList* parameters) {
 	func* function = findFunc(curSymbol, funcID);
 	var* parametersHash = function->param;
-	for(s=parametersHash; s != NULL; s=s->hh.next) {
-		if(s.type != parameters->expr.type) {
-			return false;
+	int i=1;
+	for(var* s=parametersHash; s != NULL; s=s->hh.next) {
+		expr* expression = (expr*)parameters->expr;
+		if(s->type != expression->type) {
+			return i;
 		}
 		parameters = parameters->next;
+		i++;
 	}
-	return true;
+	return 0;
 }
+
+int correctReturnType(symbol* curSymbol, string funcID, expr* returnTypeExpr) {
+	func* function = findFunc(curSymbol, funcID);
+	if(function->returnType == returnTypeExpr->type) {
+		return 1;
+	}
+	return 0;
+}
+

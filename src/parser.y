@@ -47,14 +47,8 @@ symbol* curSymbol;
 	var var;
 	func func;
 	type type;
-	struct exprList {
-		struct expr* expr;
-		struct exprList* prev;
-		struct exprList* next;
-	} exprList; 
-	struct {
-		type type;
-	} expr;
+	exprList exprList;
+	expr expr;
 }
 
 /*
@@ -99,7 +93,7 @@ symbol* curSymbol;
 
 %type <var>identifier_declaration primary function_parameter_list function_parameter
 %type <type>type
-%type <expr>expression
+%type <expr>expression function_call
 %type <exprList>function_call_parameters
 
 %%
@@ -294,7 +288,11 @@ stmt_loop
  * assignment operators. 
  */
 expression
-     : expression ASSIGN expression { debug(35); }
+     : expression ASSIGN expression { debug(35); 
+     	if($1.type != $3.type)
+			yyerror("%s cannot be assigned to %s",$3,$1,@1.first_line);
+		}
+	}
      | expression LOGICAL_OR expression { 
     	 debug(36);
      }
@@ -337,8 +335,14 @@ primary
  * The non-terminal 'function_call' is used by the non-terminal 'expression' for calling functions.
  */
 function_call
-	: ID PARA_OPEN PARA_CLOSE { debug(57); /* typechecking */}
-	| ID PARA_OPEN function_call_parameters PARA_CLOSE { debug(58); if (!correctFuncTypes($1,$3)) {yyerror("Wrong parameter in function call");}}
+	: ID PARA_OPEN PARA_CLOSE { debug(57); }
+	| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
+		debug(58); 
+		int wrongPara = correctFuncTypes(curSymbol,$1,&$3); 
+		if (wrongPara!=0) {
+			yyerror("Type of parameter %d is incompatible in function call %s",wrongPara,$1,@3.first_line);
+		}
+	}
 	;
 
 /*
@@ -352,8 +356,8 @@ function_call_parameters
 
 %%
 
-void yyerror (const char *msg)
+void yyerror (const char *msg, int line)
 {
-	fprintf(stderr,"Syntax Error!\n");
+	fprintf(stderr,"Syntax Error!\nLine: $d: $s",line, msg);
 }
 
