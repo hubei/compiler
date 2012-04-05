@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct symbolTable* symbolTable = NULL;
+struct symbol* symbolTable = NULL;
 
 
 /**
@@ -49,12 +49,21 @@ char* setString(const char* source) {
  * @param symbol
  * @return
  */
-symbol* push(symbol* symbol) {
-	struct symbol* newSymbol = createSymbol();
-	newSymbol->next = symbol;
-	return newSymbol;
+symbol* push(symbol* symbol, struct func* func) {
+	if(func == NULL)
+		error("push: func is NULL");
+	if(func->symbol == NULL) {
+		func->symbol = createSymbol();
+		func->symbol->next = symbol;
+	}
+	return func->symbol;
 }
 
+/**
+ *
+ * @param symbol
+ * @return
+ */
 symbol* pop(symbol* symbol) {
 	if (symbol == NULL) {
 		error("pop: input is NULL");
@@ -78,14 +87,6 @@ symbol* createSymbol() {
 		error("Symbol could not be created");
 	}
 
-	// insert new symbol to symbolTable (only to have a reference to it, when printing
-	struct symbolTable* symTabEntry = NULL;
-	symTabEntry = malloc(sizeof(struct symbolTable));
-	if(symTabEntry == NULL)
-		error("createSymbol: unable to allocate symTabEntry");
-	symTabEntry->symbol = newSymbol;
-	LL_APPEND(symbolTable,symTabEntry);
-
 	/* initialize all pointers to NULL
 	 * This is very important, because C does not set a new pointer to NULL automatically
 	 * This means, after declaration without initialization, the pointer can point anywhere!
@@ -100,8 +101,8 @@ symbol* createSymbol() {
 }
 
 /**
- * @brief
  *
+ * @param id
  * @return
  */
 var* createVar(string id) {
@@ -207,6 +208,11 @@ void insertParams(func* func, var* params) {
 	func->num_params = HASH_COUNT(params);
 }
 
+/**
+ * @brief Insert given parameters into symbol table
+ * @param symbol the symbol where to insert params
+ * @param params params (from a function) to be inserted
+ */
 void addParamsToSymbol(symbol* symbol, var* params) {
 	var *var, *tmp2;
 	HASH_ITER(hh, params, var, tmp2) {
@@ -214,16 +220,16 @@ void addParamsToSymbol(symbol* symbol, var* params) {
 	}
 }
 
-// find in current scope or scopes above
-//gibt das kein Return aus?
-// -> du suchst nur in symbol. Symbol hat den next-pointer, der auf das nächste Symbol zeigt.
-// du musst diesem next Pointer folgende, bis dieser NULL ist. -> Schleife ;)
-// gilt natürlich auch für findFunc
+/**
+ *
+ * @param symbol
+ * @param id
+ * @return
+ */
 var* findVar(symbol* symbol, string id) {
 	struct var *k;
-	//HASH_FIND(hh, symbol->symVar, id, strlen(id), k);
-	HASH_FIND_STR( symbol->symVar, id, k); // geht auch so, ist nicht so komplex
-	return k; //sicher falsch, aber warum? -> ist korrekt, nur return muss komplett klein geschrieben werden ;)
+	HASH_FIND(hh, symbol->symVar, id, strlen(id), k);
+	return k;
 }
 
 /**
@@ -234,19 +240,18 @@ var* findVar(symbol* symbol, string id) {
  */
 func* findFunc(symbol* symbol, string id) {
 	struct func *k=NULL;
-	while(symbol->next!=NULL){
+	struct symbol* tmpSymbol = symbol;
+	while(symbol!=NULL){
 		HASH_FIND(hh, symbol->symFunc, id, strlen(id), k);
 		if(k!=NULL){
 			return k;
 		}
+		tmpSymbol = symbol->next;
 	}
 	k=NULL;
 	return k;
 }
 
-// etwas unsicher was zu tun. bzw wie man auf den scope beschränkt
-// -> du hast in den find Funktionen oben nur auf den aktuellen Scope beschränkt.
-// D.h.: exists wie oben, aber einmal in symFunc und einmal in symVar suchen
 /**
  * @brief a function which proves, whether an function or variable
  * exist in a scope or not
@@ -261,12 +266,27 @@ int exists(symbol* symbol, string id) {
 	HASH_FIND(hh, symbol->symVar, id, strlen(id), k);
 	if(k!=NULL){return 1;};
 	return 0;
-	// nich durch next
+}
+
+/**
+ * @brief Get the symbol pointing to the global scope
+ * @return symbol to global scope
+ */
+symbol* getSymbolTable() {
+	return symbolTable;
+}
+
+/**
+ * @brief Set symbol table
+ * @param sym new symbol table
+ */
+void setSymbolTable(symbol* sym) {
+	symbolTable = sym;
 }
 
 /**
  * @brief Output given message and exit program
- * @param message
+ * @param msg
  */
 void error(string msg) {
 	fprintf(stderr, "%s\n", msg);
@@ -279,7 +299,7 @@ void error(string msg) {
  */
 void print_var(FILE* file, symbol* symbol) {
 	if (symbol == NULL)
-		error("---");
+		error("-2-");
 
 	struct var *k, *tmp;
 	HASH_ITER(hh, symbol->symVar, k, tmp) {
@@ -296,7 +316,7 @@ void print_var(FILE* file, symbol* symbol) {
  */
 void print_func(FILE* file, symbol* symbol) {
 	if (symbol == NULL)
-		error("---");
+		error("-1-");
 
 	struct func *func, *tmp;
 	struct var *var, *tmp2;
@@ -325,16 +345,28 @@ void test_symTab(FILE* file) {
 	if(file == NULL) {
 		file = stdout;
 	}
-	struct symbolTable* elt = NULL;
-	int i = 0;
-	DL_FOREACH(symbolTable,elt) {
-		fprintf(file,"################### Scope %d ###################\n",i);
-		print_var(file,elt->symbol);
-		print_func(file,elt->symbol);
-		i++;
+
+	// print global
+	fprintf(file,"################### global scope ###################\n");
+	print_var(file,symbolTable);
+	print_func(file,symbolTable);
+
+	// print symbol table for each func
+	struct func *func, *tmp;
+	HASH_ITER(hh, symbolTable->symFunc, func, tmp) {
+		if(func->symbol != NULL) {
+			fprintf(file,"################### scope for %s ###################\n",func->id);
+			print_var(file,func->symbol);
+			print_func(file,func->symbol);
+		}
 	}
 }
 
+/**
+ *
+ * @param type
+ * @return
+ */
 string typeToString(type type) {
 	switch(type) {
 	case T_INT: return setString("INT"); break;

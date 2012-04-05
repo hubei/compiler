@@ -111,7 +111,7 @@ symbol* curSymbol;
  * of grammar 'program'. 
  */
 program
-     : {curSymbol = createSymbol();} program_element_list { debug(1); }
+     : {curSymbol = getSymbolTable();} program_element_list { debug(1); }
      ;
 
 /*
@@ -265,7 +265,7 @@ function_definition
 		newFunc->param = NULL;
 		insertFunc(curSymbol, newFunc);
 	  }
-	  BRACE_OPEN {debug(104); curSymbol = push(curSymbol); debug(101);} stmt_list {debug(102); curSymbol = pop(curSymbol); debug(103);} BRACE_CLOSE
+	  BRACE_OPEN { curSymbol = push(curSymbol,findFunc(curSymbol, $2)); } stmt_list {debug(102); curSymbol = pop(curSymbol); debug(103);} BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 			func* newFunc = createFunc($2);
 			if(newFunc==NULL) {
@@ -275,7 +275,7 @@ function_definition
 			insertParams(newFunc,$4);
 			insertFunc(curSymbol, newFunc);
 		}	
-	  BRACE_OPEN {debug(105); curSymbol = push(curSymbol); debug(106); addParamsToSymbol(curSymbol, $4); } stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
+	  BRACE_OPEN {curSymbol = push(curSymbol,findFunc(curSymbol, $2)); addParamsToSymbol(curSymbol, $4); } stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
 	;
 									
 /*
@@ -331,7 +331,11 @@ stmt_loop
  * assignment operators. 
  */
 expression
-     : expression ASSIGN expression { debug(35); }
+     : expression ASSIGN expression { 
+    	 debug(35); 
+//	 sprintf(output,"%d test\n",$1.type);
+//	 printf(output);
+    	 }
      | expression LOGICAL_OR expression { 
     	 debug(36);
      }

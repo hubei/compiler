@@ -305,6 +305,7 @@ int main(int argc, char *argv[]) {
 				stderr,
 				"Input file could not be opened for reading. Maybe, file does not exist?");
 	} else {
+		setSymbolTable(createSymbol());
 		yyparse();
 		fclose(yyin);
 		irCode* ircode = NULL;
