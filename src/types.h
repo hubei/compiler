@@ -48,9 +48,16 @@ typedef struct var {
 	char* id; // key
 	type type;
 	int size; // array size
-	int offset; // TODO
+	int width; // amount of space in memory
+	int offset; // memory location relative to scope
 	UT_hash_handle hh; /* makes this structure hashable */
 } var;
+
+typedef struct param {
+	var* var;
+	struct param* next;
+	struct param* prev;
+} param;
 
 /**
  * @brief symbol representation of a function
@@ -59,7 +66,7 @@ typedef struct var {
 typedef struct func {
 	char* id; // key
 	type returnType;
-	var* param; // hash table of variables, that are parameters
+	param* param; // hash table of variables, that are parameters
 	int num_params;
 	symbol* symbol;
 	UT_hash_handle hh; /* makes this structure hashable */
@@ -71,6 +78,7 @@ typedef struct func {
 struct symbol {
 	var* symVar;
 	func* symFunc;
+	int offset; // offset of variable declaration (for new vars)
 	struct symbol* next; // overlying scope, should always be the global scope, as there are only two layers
 };
 

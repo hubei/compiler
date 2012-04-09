@@ -46,7 +46,12 @@ symbol* curSymbol;
 	int num;
 	var* var;
 	func* func;
+	param* param;
 	type type;
+	struct {
+		type type;
+		int width;
+	} typeExt;
 	exprList exprList;
 	expr expr;
 }
@@ -91,9 +96,10 @@ symbol* curSymbol;
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <var>identifier_declaration primary function_parameter_list function_parameter
+%type <var>identifier_declaration primary function_parameter
+%type <param>function_parameter_list
 %type <expr>expression function_call
-%type <type>type variable_declaration
+%type <typeExt>type variable_declaration
 %type <exprList>function_call_parameters
 
 %%
@@ -135,8 +141,8 @@ program_element
  * instruction.
 */
 type
-     : INT { debug(7); $$ = T_INT; }
-     | VOID { debug(8); $$ = T_VOID;  }
+     : INT { debug(7); $$.type = T_INT; $$.width = 4; }
+     | VOID { debug(8); $$.type = T_VOID; $$.width = 0; }
      ;
 
 /*
@@ -145,18 +151,24 @@ type
 variable_declaration
 	: variable_declaration COMMA identifier_declaration	 {
 		debug(100);
-		$3->type = $1;
-		if($3->size != 0)
+		$3->type = $1.type;
+		$3->width = $1.width;
+		if($3->size != 0) {
 			$3->type = T_INT_A;
+			$3->width = $3->size * $1.width;
+		}
 		insertVar(curSymbol, $3);
 	}
 	| type identifier_declaration {
 		debug(42);
 		if($2 == NULL)
 			error("variable_declaration: $2 is NULL");
-		$2->type = $1;
-		if($2->size != 0)
+		$2->type = $1.type;
+		$2->width = $1.width;
+		if($2->size != 0) {
 			$2->type = T_INT_A;
+			$2->width = $2->size * $1.width;
+		}
 		insertVar(curSymbol, $2);
 		$$ = $1;
 	}
@@ -201,7 +213,7 @@ function_declaration
 		if(newFunc==NULL) {
 			error("function_declaration: newFunc is NULL");
 		}
-		newFunc->returnType = $1;
+		newFunc->returnType = $1.type;
 		newFunc->param = NULL;
 		insertFunc(curSymbol, newFunc);
 	}
@@ -211,8 +223,9 @@ function_declaration
 		if(newFunc==NULL) {
 			error("function_declaration: newFunc is NULL");
 		}
-		newFunc->returnType = $1;
-		insertParams(newFunc,$4);
+		newFunc->returnType = $1.type;
+		newFunc->param = $4;
+		newFunc->num_params = getParamCount($4);
 		insertFunc(curSymbol, newFunc);
 	}
 	;
@@ -223,11 +236,11 @@ function_declaration
 function_parameter_list
 	: function_parameter {
 		debug(45);
-		$$ = addParamToParamhash(NULL, $1);
+		$$ = addParam(NULL, $1);
 	}
 	| function_parameter_list COMMA function_parameter {
 		debug(46);
-		$$ = addParamToParamhash($1, $3);
+		$$ = addParam($1, $3);
 	}
 	;
 
@@ -240,9 +253,12 @@ function_parameter
 		if($2==NULL) {
 			error("function_parameter: $2 is NULL");
 		}
-		$2->type = $1;
-		if($2->size != 0)
+		$2->type = $1.type;
+		$2->width = $1.width;
+		if($2->size != 0) {
 			$2->type = T_INT_A;
+			$2->width = $2->size * $1.width;
+		}
 		$$ = $2;
 	}
 	;
@@ -256,7 +272,7 @@ function_definition
 		if(newFunc==NULL) {
 			error("function_definition: newFunc is NULL");
 		}
-		newFunc->returnType = $1;
+		newFunc->returnType = $1.type;
 		newFunc->param = NULL;
 		insertFunc(curSymbol, newFunc);
 	  }
@@ -266,11 +282,14 @@ function_definition
 			if(newFunc==NULL) {
 				error("function_definition: newFunc is NULL");
 			}
-			newFunc->returnType = $1;
-			insertParams(newFunc,$4);
+			newFunc->returnType = $1.type;
 			insertFunc(curSymbol, newFunc);
 		}	
-	  BRACE_OPEN {curSymbol = push(curSymbol,findFunc(curSymbol, $2)); addParamsToSymbol(curSymbol, $4); } stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
+	  BRACE_OPEN {
+		  curSymbol = push(curSymbol,findFunc(curSymbol, $2)); 
+		  insertParams(findFunc(curSymbol, $2),$4);
+	  	  /*addParamsToSymbol(curSymbol, $4);*/ 
+	  } stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
 	;
 									
 /*
@@ -327,9 +346,9 @@ stmt_loop
  */
 expression
      : expression ASSIGN expression { debug(35); 
-     	if($1.type != $3.type) {
-			yyerror("%s cannot be assigned to %s",$3,$1,@1.first_line);
-		}
+//     	if($1.type != $3.type) {
+//			yyerror("%s cannot be assigned to %s",$3,$1,@1.first_line);
+//		}
 	}
      | expression LOGICAL_OR expression { 
     	 debug(36);
@@ -404,6 +423,7 @@ function_call_parameters
 
 void yyerror (const char *msg, int line)
 {
-	fprintf(stderr,"Syntax Error!\nLine: $d: $s",line, msg);
+	fprintf(stderr,"Syntax Error!\nLine: %d: %s",line, msg);
+	//exit(42);
 }
 
