@@ -344,7 +344,7 @@ stmt_loop
  * assignment operators. 
  */
 expression
-     : expression ASSIGN expression { debug(35); checkCompatibleTypes(@1.first_line, $1, $3);}
+     : expression ASSIGN expression { debug(35); checkCompatibleTypes(@1.first_line, $1, $3);createIRCodeFromExpr($1,OP_ASSIGN,$3);}
      | expression LOGICAL_OR expression { debug(36); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression LOGICAL_AND expression { debug(37); checkCompatibleTypes(@1.first_line, $1, $3);}
      | LOGICAL_NOT expression { debug(38); $$=$2;}
@@ -354,7 +354,7 @@ expression
      | expression LSEQ expression  { debug(42); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression GTEQ expression  { debug(43); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression GT expression { debug(44); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression PLUS expression { debug(45); printf("Test: %d,%d\n",$1,$3); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression PLUS expression { debug(45);checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression MINUS expression { debug(46); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression MUL expression { debug(47); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression DIV expression  { debug(48); checkCompatibleTypes(@1.first_line, $1, $3);}
@@ -379,7 +379,6 @@ primary
 //		if($$==NULL) {
 //			error("primary: $1 is NULL");
 //		}
-    		$$.valueKind= VAL_NUM;
     		 $$.value.num = $1;
     	 	 $$.type = T_INT;
     	 	 $$.lvalue = 0;
@@ -394,7 +393,6 @@ primary
     			 $$.lvalue = 1;
     		 }
     		 $$.value.id = $1;
-    		 $$.valueKind= VAL_ID;
     		 $$.type = found->type;
     	 } else {
     		 typeError(@1.first_line, "Parameter does not exist: %s", $1);
