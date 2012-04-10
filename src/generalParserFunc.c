@@ -12,9 +12,11 @@
 //#include <stdio.h>
 //#include <stdarg.h>
 //#include <stdlib.h>
-//#include <string.h>
+#include <types.h>
 
-
-
+expr expressionReturn(expr children) {
+	children.lvalue = 0;
+	return children;
+}
 
 
