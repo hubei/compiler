@@ -344,8 +344,19 @@ stmt_loop
  * assignment operators. 
  */
 expression
-     : expression ASSIGN expression { debug(35); checkCompatibleTypes(@1.first_line, $1, $3);createIRCodeFromExpr($1,OP_ASSIGN,$3);}
-     | expression LOGICAL_OR expression { debug(36); checkCompatibleTypes(@1.first_line, $1, $3);}
+     : expression ASSIGN expression {
+     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+     		 $$ = $1;
+     		 $$.lvalue = 0;
+     		createIRCodeFromExpr($1,OP_ASSIGN,$3);
+     	 }
+     }
+     | expression LOGICAL_OR expression {
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+    		 $$ = $1;
+    		 $$.lvalue = 0;
+		 }
+	 }
      | expression LOGICAL_AND expression { debug(37); checkCompatibleTypes(@1.first_line, $1, $3);}
      | LOGICAL_NOT expression { debug(38); $$=$2;}
      | expression EQ expression { debug(39); checkCompatibleTypes(@1.first_line, $1, $3);}
