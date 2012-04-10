@@ -5,7 +5,6 @@
  
 %{
 #include <stdio.h>
-//#include <stdarg.h>
 #include <stdlib.h>
 #include "symboltable.h"
 #include "typechecking.h"
@@ -326,34 +325,26 @@ stmt_loop
  * assignment operators. 
  */
 expression
-     : expression ASSIGN expression { debug(35); 
-     	if($1.type != $3.type)
-			yyerror("%s cannot be assigned to %s",$3,$1,@1.first_line);
-		}
+     : expression ASSIGN expression { debug(35);
+     	 checkCompatibleTypes(@1.first_line, $1, $3);
 	}
-     | expression LOGICAL_OR expression { 
-    	 debug(36);
-     }
-     | expression LOGICAL_AND expression { 
-    	 debug(37);
-	 }
-     | LOGICAL_NOT expression { debug(38);}
-     | expression EQ expression { debug(39);}
-     | expression NE expression { debug(40);}
-     | expression LS expression  { debug(41);}
-     | expression LSEQ expression  { debug(42);}
-     | expression GTEQ expression  { debug(43);}
-     | expression GT expression { debug(44);}
-     | expression PLUS expression { debug(45);}
-     | expression MINUS expression { debug(46);}
-     | expression MUL expression { debug(47);}
-     | expression DIV expression  { 
-		debug(48);
-		}
-     | expression MOD expression  { debug(49);}
+     | expression LOGICAL_OR expression { debug(36); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression LOGICAL_AND expression { debug(37); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | LOGICAL_NOT expression { debug(38); $$=$2;}
+     | expression EQ expression { debug(39); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression NE expression { debug(40); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression LS expression  { debug(41); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression LSEQ expression  { debug(42); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression GTEQ expression  { debug(43); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression GT expression { debug(44); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression PLUS expression { debug(45); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression MINUS expression { debug(46); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression MUL expression { debug(47); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression DIV expression  { debug(48); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression MOD expression  { debug(49); checkCompatibleTypes(@1.first_line, $1, $3);}
      | MINUS expression %prec UNARY_MINUS { debug(50);}
      | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51);}
-     | PARA_OPEN expression PARA_CLOSE { debug(52);}
+     | PARA_OPEN expression PARA_CLOSE { debug(52); $$ = $2;}
      | function_call { debug(53);}
      | primary { debug(54); }
      ;
@@ -384,10 +375,7 @@ function_call
 	: ID PARA_OPEN PARA_CLOSE { debug(57); }
 	| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
 		debug(58); 
-		int wrongPara = correctFuncTypes(curSymbol,$1,&$3); 
-		if (wrongPara!=0) {
-			yyerror("Type of parameter %d is incompatible in function call %s",wrongPara,$1,@3.first_line);
-		}
+		correctFuncTypes(@3.first_line, curSymbol,$1,&$3); 
 	}
 	;
 
@@ -402,8 +390,8 @@ function_call_parameters
 
 %%
 
-void yyerror (const char *msg, int line)
+void yyerror (const char *msg)
 {
-	fprintf(stderr,"Syntax Error!\nLine: $d: $s",line, msg);
+	fprintf(stderr, "Syntax Error: %s",msg);
 }
 
