@@ -25,6 +25,8 @@ void typeError (int line, const char *msg, ...)
 	fprintf(stderr, "line %d: %s\n",line,buffer);
 }
 
+
+
 void correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* parameters) {
 	func* function = findFunc(curSymbol, funcID);
 	param* parametersHash = function->param;
@@ -44,10 +46,15 @@ void correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* para
 	}
 }
 
-void checkCompatibleTypes(int line, expr expr1, expr expr2){
+void checkCompatibleTypes(int line, expr expr1, expr expr2, const char *type){
 	if(expr1.type != expr2.type) {
+
 		typeError(line, "%s is incompatible with %s", typeToString(expr1.type), typeToString(expr2.type));
 	}
+}
+
+void checkCompatibleTypesInfo(int line, expr expr1, expr expr2){
+	checkCompatibleTypes(line, expr1, expr2, "");
 }
 
 //int correctReturnType(symbol* curSymbol, string funcID, expr* returnTypeExpr) {

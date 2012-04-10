@@ -379,6 +379,7 @@ primary
 //		if($$==NULL) {
 //			error("primary: $1 is NULL");
 //		}
+    		$$.valueKind= VAL_NUM;
     		 $$.value.num = $1;
     	 	 $$.type = T_INT;
     	 	 $$.lvalue = 0;
@@ -393,6 +394,7 @@ primary
     			 $$.lvalue = 1;
     		 }
     		 $$.value.id = $1;
+    		 $$.valueKind= VAL_ID;
     		 $$.type = found->type;
     	 } else {
     		 typeError(@1.first_line, "Parameter does not exist: %s", $1);
