@@ -24,7 +24,7 @@ int func (int arr[10], int len, int threshold) {
   return sum;
 }
 
-int test(int a, int b) {
+int test2(int a, int b) {
 	int a;
 	a = 0;
 	return a;

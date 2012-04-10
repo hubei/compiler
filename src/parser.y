@@ -224,8 +224,8 @@ function_declaration
 		}
 		newFunc->returnType = $1.type;
 		GETLISTHEAD($4, newFunc->param);
-//		newFunc->param = $4;
-		newFunc->num_params = getParamCount($4);
+		newFunc->param = newFunc->param;
+		newFunc->num_params = getParamCount(newFunc->param);
 		insertFunc(curSymbol, newFunc);
 	}
 	;
@@ -300,11 +300,11 @@ function_definition
 	  BRACE_OPEN {
 		  int ex = exists(curSymbol,$2);
 		  curSymbol = push(curSymbol,findFunc(curSymbol, $2));
-		  if(ex) {
-			  // TODO Dirk check if params are correct
-		  } else {
+//		  if(ex) {
+//			  // TODO Dirk check if params are correct
+//		  } else {
 			  insertParams(findFunc(curSymbol, $2),$4);
-		  }
+//		  }
 	  } stmt_list {
 		  curSymbol = pop(curSymbol);
 	  } BRACE_CLOSE
