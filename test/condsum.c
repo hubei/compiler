@@ -3,6 +3,7 @@ int test;
 int scan ();
 void print (int i);
 void exit (int i);
+int func(int arr[10], int len, int threshold);
 
 /**
  *
@@ -21,6 +22,12 @@ int func (int arr[10], int len, int threshold) {
     print(i);
   }
   return sum;
+}
+
+int test(int a, int b) {
+	int a;
+	a = 0;
+	return a;
 }
 
 int main () {
