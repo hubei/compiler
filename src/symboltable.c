@@ -443,12 +443,13 @@ void test_symTab(FILE* file) {
 	// print symbol table for each func
 	struct func *func, *tmp;
 	HASH_ITER(hh, symbolTable->symFunc, func, tmp) {
-		assert(func->symbol != NULL);
+		if(func->symbol != NULL) {
 			fprintf(file,
 					"################### scope for %s ###################\n",
 					func->id);
 			print_var(file, func->symbol->symVar);
 			print_func(file, func->symbol->symFunc);
+		}
 	}
 }
 

@@ -48,8 +48,7 @@ void correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* para
 
 void checkCompatibleTypes(int line, expr expr1, expr expr2, const char *type){
 	if(expr1.type != expr2.type) {
-
-		typeError(line, "%s is incompatible with %s", typeToString(expr1.type), typeToString(expr2.type));
+		typeError(line, "%s is incompatible with %s / %s", typeToString(expr1.type), typeToString(expr2.type), type);
 	}
 }
 
