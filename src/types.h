@@ -27,6 +27,11 @@ typedef enum type {
 
 typedef struct {
 	type type;
+	int lvalue;
+	union{
+		char* id;
+		int num;
+	}value;
 } expr;
 
 /**

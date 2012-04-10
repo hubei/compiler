@@ -31,14 +31,15 @@ void correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* para
 	int i=1;
 	for(param* s=parametersHash; s != NULL; s=s->next) {
 		if(parameters==NULL) {
-			typeError(line, "Number of parameters");
+			typeError(line, "Too few parameters; %d parameters expected, but %d parameters found",function->num_params,i);
 			return;
 		}
 		expr* expression = (expr*)parameters->expr;
+		//fprintf(stderr, "%s", typeToString(expression->type));
 		if(s->var->type != expression->type) {
 			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,typeToString(s->var->type),typeToString(expression->type));
 		}
-		parameters = parameters->next;
+		parameters = parameters->prev;
 		i++;
 	}
 }
