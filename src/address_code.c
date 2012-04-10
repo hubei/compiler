@@ -9,41 +9,37 @@
 void createIRCodeFromExpr( expr arg0, int op, expr arg1 ) {
 	irCode *x = (irCode*)malloc(sizeof(struct irCode));
 	if(!x) {
-		printf("ERROR IN ALLOCATING!");
+		printf("ERROR IN ALLOCATING!\n");
 		exit(-1);
 	}
 	x->ops = op;
-	printf("Operation: %d\n", x->ops);
-/*
 	//Argument 0
-	printf("ARGUMENTKIND: %d\ ", arg0.valueKind);
 	if(arg0.valueKind==VAL_ID) {
 		x->arg0.type = ARG_VAR;
-		printf("TEST1");
-		memcpy(x->arg0.arg._var,arg0.value.id,strlen(arg0.value.id));
-		printf("TEST2");
+		if(findVar(symbolTable,arg0.value.id)!=NULL) {
+		} else {
+			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
+		}
+		x->arg0.arg._var = findVar(symbolTable,arg0.value.id);
 	} else {
-		x->arg0.type = ARG_CONST;
-		printf("TEST1");
-		memcpy(x->arg0.arg._constant,arg0.value.num,sizeof(int));
-		printf("TEST2");
+		//printf("..........\n");
 	}
 
-	//Argument 1
 	if(arg1.valueKind==VAL_ID) {
 		x->arg1.type = ARG_VAR;
-		printf("TEST3");
-		memcpy(x->arg1.arg._var,arg1.value.id,strlen(arg1.value.id));
-		printf("TEST4");
+		if(findVar(symbolTable,arg1.value.id)!=NULL) {
+		} else {
+			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg1.value.id);
+		}
+		x->arg1.arg._var = findVar(symbolTable,arg1.value.id);
+		//printf("%s = %i\n\n", arg0.value.id, arg1.value.id);
 	} else {
 		x->arg1.type = ARG_CONST;
-		printf("TEST3");
-		memcpy(x->arg1.arg._constant,arg1.value.num,sizeof(int));
-		printf("TEST4");
-		printf("CONST: %d\n", x->arg1.arg._constant);
+		x->arg1.arg._constant = arg1.value.num;
+		//printf("%s = %i\n\n", arg0.value.id, x->arg1.arg._constant);
 	}
-	printParam(x);*/
 	free(x);
+	x=NULL;
 }
 
 /**
@@ -67,7 +63,6 @@ void printParam( irCode *x ) {
 	} else {
 		strcat(const_str,"%s ");
 	}
-	printf(const_str);
 	//printf(const_str,x->arg0.type==ARG_CONST?x->arg0.arg._constant:(x->arg0.type==ARG_VAR?x->arg0.arg._var:x->arg0.arg._func));
 }
 
