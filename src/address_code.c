@@ -1,5 +1,4 @@
 #include "address_code.h"
-#include "types.h"
 
 /**
  * @brief Creates IRCode from parsed expressions
@@ -8,13 +7,63 @@
  * @param op
  */
 void createIRCodeFromExpr( expr arg0, int op, expr arg1 ) {
-	/*
 	irCode *x = (irCode*)malloc(sizeof(struct irCode));
 	if(!x) {
+		printf("ERROR IN ALLOCATING!\n");
 		exit(-1);
 	}
 	x->ops = op;
-	*/
+	//Argument 0
+	if(arg0.valueKind==VAL_ID) {
+		x->arg0.type = ARG_VAR;
+		if(findVar(symbolTable,arg0.value.id)!=NULL) {
+		} else {
+			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
+		}
+		x->arg0.arg._var = findVar(symbolTable,arg0.value.id);
+	} else {
+		//printf("..........\n");
+	}
+
+	if(arg1.valueKind==VAL_ID) {
+		x->arg1.type = ARG_VAR;
+		if(findVar(symbolTable,arg1.value.id)!=NULL) {
+		} else {
+			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg1.value.id);
+		}
+		x->arg1.arg._var = findVar(symbolTable,arg1.value.id);
+		//printf("%s = %i\n\n", arg0.value.id, arg1.value.id);
+	} else {
+		x->arg1.type = ARG_CONST;
+		x->arg1.arg._constant = arg1.value.num;
+		//printf("%s = %i\n\n", arg0.value.id, x->arg1.arg._constant);
+	}
+	free(x);
+	x=NULL;
+}
+
+/**
+ * @Brief Prints current argument (FOR TESTING PURPOSE ONLY)
+ * @param line
+ * @return
+ */
+
+void printParam( irCode *x ) {
+	if(!x)
+		return;
+	char const_str[100] = "Values: ";
+	if(x->arg0.type == ARG_CONST) {
+		strcat(const_str,"%d, ");
+	} else {
+		strcat(const_str,"%s, ");
+	}
+
+	if(x->arg1.type == ARG_CONST) {
+		strcat(const_str,"%d ");
+	} else {
+		strcat(const_str,"%s ");
+	}
+	//printf(const_str,x->arg0.type==ARG_CONST?x->arg0.arg._constant:(x->arg0.type==ARG_VAR?x->arg0.arg._var:x->arg0.arg._func));
 }
 
 /**

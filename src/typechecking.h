@@ -1,5 +1,5 @@
 /**
- * @file symboltable.c
+ * @file typechecking.h
  *
  *  Created on: Mar 31, 2012
  *      Author: DirkK
@@ -12,9 +12,9 @@
 
 
 //int correctReturnType(symbol*, string funcID, expr returnTypeExpr);
-void checkCompatibleTypes(int line, expr expr1, expr expr2);
+int checkCompatibleTypes(int line, expr expr1, expr expr2);
 //void checkCompatibleTypesInfo(int line, expr expr1, expr expr2, char* type);
-void correctFuncTypes(int line, symbol*, string funcID, exprList* parameters);
+int correctFuncTypes(int line, symbol*, string funcID, exprList* parameters);
 void typeError (int line, const char *msg, ...);
 
 #endif

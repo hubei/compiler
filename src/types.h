@@ -101,6 +101,7 @@ typedef enum operations {
 	OP_SUB,
 	OP_MUL,
 	OP_DIV,
+	OP_MOD,
 	OP_MINUS,
 	OP_IFEQ,
 	OP_IFNE,

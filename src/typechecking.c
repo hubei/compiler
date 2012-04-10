@@ -1,5 +1,5 @@
 /*
- * symboltable.c
+ * @file typechecking.c
  *
  * http://uthash.sourceforge.net/
  *
@@ -26,30 +26,33 @@ void typeError (int line, const char *msg, ...)
 }
 
 
-
-void correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* parameters) {
+int correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* parameters) {
 	func* function = findFunc(curSymbol, funcID);
 	param* parametersHash = function->param;
 	int i=1;
 	for(param* s=parametersHash; s != NULL; s=s->next) {
 		if(parameters==NULL) {
 			typeError(line, "Too few parameters; %d parameters expected, but %d parameters found",function->num_params,i);
-			return;
+			return 0;
 		}
 		expr* expression = (expr*)parameters->expr;
 		//fprintf(stderr, "%s", typeToString(expression->type));
 		if(s->var->type != expression->type) {
 			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,typeToString(s->var->type),typeToString(expression->type));
+			return 0;
 		}
 		parameters = parameters->next;
 		i++;
 	}
+	return 1;
 }
 
-void checkCompatibleTypes(int line, expr expr1, expr expr2){
+int checkCompatibleTypes(int line, expr expr1, expr expr2){
 	if(expr1.type != expr2.type) {
 		typeError(line, "%s is incompatible with %s", typeToString(expr1.type), typeToString(expr2.type));
+		return 0;
 	}
+	return 1;
 }
 
 //void checkCompatibleTypes(int line, expr expr1, expr expr2){

@@ -27,7 +27,7 @@ $(OBJDIR):
 ###############################################
 # DHBW Compiler                               #
 ###############################################
-DHBWCC_OBJECTS = $(addprefix $(OBJDIR)/, scanner.o parser.o main.o diag.o resource_manager.o symboltable.o address_code.o mips32gen.o typechecking.o)
+DHBWCC_OBJECTS = $(addprefix $(OBJDIR)/, scanner.o parser.o main.o diag.o resource_manager.o symboltable.o address_code.o mips32gen.o typechecking.o generalParserFunc.o)
 
 ## Convenient targets for DHBW Compiler
 .PHONY: compiler cc_objects cc_parser cc_scanner 
@@ -46,6 +46,9 @@ $(OBJDIR)/address_code.o: $(SRCDIR)/address_code.c $(SRCDIR)/address_code.h
 	$(CC) $(CFLAGS) -c $< -o $@
 	
 $(OBJDIR)/typechecking.o: $(SRCDIR)/typechecking.c $(SRCDIR)/typechecking.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/generalParserFunc.o: $(SRCDIR)/generalParserFunc.c $(SRCDIR)/generalParserFunc.h
 	$(CC) $(CFLAGS) -c $< -o $@
 	
 $(OBJDIR)/mips32gen.o: $(SRCDIR)/mips32gen.c $(SRCDIR)/mips32gen.h
