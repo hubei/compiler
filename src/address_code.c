@@ -1,5 +1,4 @@
 #include "address_code.h"
-#include "types.h"
 
 /**
  * @brief Creates IRCode from parsed expressions
@@ -8,13 +7,68 @@
  * @param op
  */
 void createIRCodeFromExpr( expr arg0, int op, expr arg1 ) {
-	/*
 	irCode *x = (irCode*)malloc(sizeof(struct irCode));
 	if(!x) {
+		printf("ERROR IN ALLOCATING!");
 		exit(-1);
 	}
 	x->ops = op;
-	*/
+	printf("Operation: %d\n", x->ops);
+/*
+	//Argument 0
+	printf("ARGUMENTKIND: %d\ ", arg0.valueKind);
+	if(arg0.valueKind==VAL_ID) {
+		x->arg0.type = ARG_VAR;
+		printf("TEST1");
+		memcpy(x->arg0.arg._var,arg0.value.id,strlen(arg0.value.id));
+		printf("TEST2");
+	} else {
+		x->arg0.type = ARG_CONST;
+		printf("TEST1");
+		memcpy(x->arg0.arg._constant,arg0.value.num,sizeof(int));
+		printf("TEST2");
+	}
+
+	//Argument 1
+	if(arg1.valueKind==VAL_ID) {
+		x->arg1.type = ARG_VAR;
+		printf("TEST3");
+		memcpy(x->arg1.arg._var,arg1.value.id,strlen(arg1.value.id));
+		printf("TEST4");
+	} else {
+		x->arg1.type = ARG_CONST;
+		printf("TEST3");
+		memcpy(x->arg1.arg._constant,arg1.value.num,sizeof(int));
+		printf("TEST4");
+		printf("CONST: %d\n", x->arg1.arg._constant);
+	}
+	printParam(x);*/
+	free(x);
+}
+
+/**
+ * @Brief Prints current argument (FOR TESTING PURPOSE ONLY)
+ * @param line
+ * @return
+ */
+
+void printParam( irCode *x ) {
+	if(!x)
+		return;
+	char const_str[100] = "Values: ";
+	if(x->arg0.type == ARG_CONST) {
+		strcat(const_str,"%d, ");
+	} else {
+		strcat(const_str,"%s, ");
+	}
+
+	if(x->arg1.type == ARG_CONST) {
+		strcat(const_str,"%d ");
+	} else {
+		strcat(const_str,"%s ");
+	}
+	printf(const_str);
+	//printf(const_str,x->arg0.type==ARG_CONST?x->arg0.arg._constant:(x->arg0.type==ARG_VAR?x->arg0.arg._var:x->arg0.arg._func));
 }
 
 /**
