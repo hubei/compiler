@@ -223,7 +223,8 @@ function_declaration
 			error("function_declaration: newFunc is NULL");
 		}
 		newFunc->returnType = $1.type;
-		newFunc->param = $4;
+		GETLISTHEAD($4, newFunc->param);
+//		newFunc->param = $4;
 		newFunc->num_params = getParamCount($4);
 		insertFunc(curSymbol, newFunc);
 	}
@@ -273,22 +274,40 @@ function_definition
 		}
 		newFunc->returnType = $1.type;
 		newFunc->param = NULL;
-		insertFunc(curSymbol, newFunc);
+		if(exists(curSymbol,$2)) {
+			// TODO Dirk check if function definition and prototype are equal (check params too!)
+		} else {
+			insertFunc(curSymbol, newFunc);
+		}
 	  }
-	  BRACE_OPEN { curSymbol = push(curSymbol,findFunc(curSymbol, $2)); } stmt_list {debug(102); curSymbol = pop(curSymbol); debug(103);} BRACE_CLOSE
+	  BRACE_OPEN {
+		  curSymbol = push(curSymbol,findFunc(curSymbol, $2)); 
+	  } stmt_list {
+		  curSymbol = pop(curSymbol);
+	  } BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 			func* newFunc = createFunc($2);
 			if(newFunc==NULL) {
 				error("function_definition: newFunc is NULL");
 			}
 			newFunc->returnType = $1.type;
-			insertFunc(curSymbol, newFunc);
+			if(exists(curSymbol,$2)) {
+				// TODO Dirk check if function definition and prototype are equal (no params)
+			} else {
+				insertFunc(curSymbol, newFunc);
+			}
 		}	
 	  BRACE_OPEN {
-		  curSymbol = push(curSymbol,findFunc(curSymbol, $2)); 
-		  insertParams(findFunc(curSymbol, $2),$4);
-	  	  /*addParamsToSymbol(curSymbol, $4);*/ 
-	  } stmt_list {debug(107); curSymbol = pop(curSymbol); debug(108);} BRACE_CLOSE
+		  int ex = exists(curSymbol,$2);
+		  curSymbol = push(curSymbol,findFunc(curSymbol, $2));
+		  if(ex) {
+			  // TODO Dirk check if params are correct
+		  } else {
+			  insertParams(findFunc(curSymbol, $2),$4);
+		  }
+	  } stmt_list {
+		  curSymbol = pop(curSymbol);
+	  } BRACE_CLOSE
 	;
 									
 /*
@@ -413,5 +432,5 @@ void yyerror (const char *msg)
 {
 	fprintf(stderr, "Syntax Error: %s",msg);
 	//exit(1);
-}
+} 
 

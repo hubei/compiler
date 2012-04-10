@@ -316,15 +316,15 @@ func* findFunc(symbol* symbol, string id) {
  * @return 1 if id exists, 0 if not
  */
 int exists(symbol* symbol, string id) {
-	struct func *k;
+	struct func *k = NULL;
 	HASH_FIND(hh, symbol->symFunc, id, strlen(id), k);
 	if (k != NULL) {
 		return 1;
-	};
+	}
 	HASH_FIND(hh, symbol->symVar, id, strlen(id), k);
 	if (k != NULL) {
 		return 1;
-	};
+	}
 	return 0;
 }
 
