@@ -11,7 +11,7 @@
 #include "types.h"
 #include <stdio.h>
 
-int mips32gen(FILE*,irCode*);
+int mips32gen(FILE*,irCode*,symbol*);
 
 
 #endif /* MIPS32GEN_H_ */

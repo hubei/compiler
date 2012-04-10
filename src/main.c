@@ -305,6 +305,7 @@ int main(int argc, char *argv[]) {
 				stderr,
 				"Input file could not be opened for reading. Maybe, file does not exist?");
 	} else {
+		setSymbolTable(createSymbol());
 		yyparse();
 		fclose(yyin);
 		irCode* ircode = NULL;
@@ -329,7 +330,7 @@ int main(int argc, char *argv[]) {
 					stderr,
 					"Output file could not be opened for writing. Maybe, file does not exist?");
 		} else {
-			int ret = mips32gen(yyout,ircode);
+			int ret = mips32gen(yyout,ircode,getSymbolTable());
 			if(ret!=0) {
 				fprintf(stderr, "Error generating mips32 code with code: %d", ret);
 			}

@@ -10,6 +10,7 @@
 
 #include "include/uthash.h"
 #include "include/utlist.h"
+typedef struct symbol symbol; // prototype
 
 /**
  * @brief string representation
@@ -46,10 +47,17 @@ typedef struct exprList {
 typedef struct var {
 	char* id; // key
 	type type;
-	int size; // size that is needed (datatype and arraysize)
-	int offset; // TODO
+	int size; // array size
+	int width; // amount of space in memory
+	int offset; // memory location relative to scope
 	UT_hash_handle hh; /* makes this structure hashable */
 } var;
+
+typedef struct param {
+	var* var;
+	struct param* next;
+	struct param* prev;
+} param;
 
 /**
  * @brief symbol representation of a function
@@ -58,21 +66,21 @@ typedef struct var {
 typedef struct func {
 	char* id; // key
 	type returnType;
-	var* param; // hash table of variables, that are parameters
+	param* param; // hash table of variables, that are parameters
 	int num_params;
+	symbol* symbol;
 	UT_hash_handle hh; /* makes this structure hashable */
 } func;
 
 /**
- * @brief Symbol structure of the symboltable, implemented as a doubly linked list
+ * @brief Symbol structure of the symbol table, implemented as a doubly linked list
  */
-typedef struct symbol {
+struct symbol {
 	var* symVar;
 	func* symFunc;
-	/*struct symbol* prev;*/ // this is actually not really needed, because we only have two different scope levels
-	struct symbol* next; // with var names prev and next, this struct can be used with utlist
-} symbol;
-
+	int offset; // offset of variable declaration (for new vars)
+	struct symbol* next; // overlying scope, should always be the global scope, as there are only two layers
+};
 
 /**
  *	Based on the expression-rules from the parser.y
