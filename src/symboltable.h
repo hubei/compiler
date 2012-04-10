@@ -8,7 +8,7 @@
 #define SYMBOLTABLE_H_
 
 #include "types.h"
-#include "stdio.h"
+#include <stdio.h>
 
 #define GETLISTHEAD(list, result) \
 	result = list; \

@@ -25,16 +25,19 @@ void typeError (int line, const char *msg, ...)
 	fprintf(stderr, "line %d: %s\n",line,buffer);
 }
 
+
+
 void correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* parameters) {
 	func* function = findFunc(curSymbol, funcID);
 	param* parametersHash = function->param;
 	int i=1;
 	for(param* s=parametersHash; s != NULL; s=s->next) {
 		if(parameters==NULL) {
-			typeError(line, "Number of parameters");
+			typeError(line, "Too few parameters; %d parameters expected, but %d parameters found",function->num_params,i);
 			return;
 		}
 		expr* expression = (expr*)parameters->expr;
+		//fprintf(stderr, "%s", typeToString(expression->type));
 		if(s->var->type != expression->type) {
 			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,typeToString(s->var->type),typeToString(expression->type));
 		}
@@ -48,6 +51,10 @@ void checkCompatibleTypes(int line, expr expr1, expr expr2){
 		typeError(line, "%s is incompatible with %s", typeToString(expr1.type), typeToString(expr2.type));
 	}
 }
+
+//void checkCompatibleTypes(int line, expr expr1, expr expr2){
+//	checkCompatibleTypesInfo(line, expr1, expr2, "");
+//}
 
 //int correctReturnType(symbol* curSymbol, string funcID, expr* returnTypeExpr) {
 //	func* function = findFunc(curSymbol, funcID);

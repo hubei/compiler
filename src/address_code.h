@@ -18,7 +18,10 @@ void backpatch(int,int); //Zeile,
 string IRtoString();
 char* OpToString( char*,irCode*,int);
 
-
+/**
+ * @brief Real conversion from expressions to IRCode
+ */
+void createIRCodeFromExpr(expr,int,expr);
 irCode* getIRCode();
 
 #endif

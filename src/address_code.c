@@ -2,10 +2,20 @@
 #include "types.h"
 
 /**
- * TODO: Convert an entire IRCode-Line to string
- * @return
+ * @brief Creates IRCode from parsed expressions
+ * @param arg0
+ * @param arg1
+ * @param op
  */
-
+void createIRCodeFromExpr( expr arg0, int op, expr arg1 ) {
+	/*
+	irCode *x = (irCode*)malloc(sizeof(struct irCode));
+	if(!x) {
+		exit(-1);
+	}
+	x->ops = op;
+	*/
+}
 
 /**
  * @brief Returns IRCode to String
@@ -17,7 +27,7 @@ string IRtoString( irCode *line ) {
 	if(!line)
 		return "";
 	result = OpToString(result,line,line->ops);
-	return (const char*)result;
+	return (string)result;
 }
 
 /**
@@ -36,6 +46,9 @@ char* concat( char* dest, char *source ) {
 			strcpy(tmp,dest);					//Copy content from dest to *tmp*
 		}
 		dest = (char*)realloc(dest,newlen+1);	//Reallocate dest
+		if(!dest) {
+			return NULL;
+		}
 		if(strlen(dest)>0 && tmp!=NULL) {
 			strcpy(dest,tmp);					//re-move from temp-buffer to *dest*
 			free(tmp);							//free tmp and NULL it
@@ -62,201 +75,201 @@ char* OpToString( char *result, irCode *line, int op ) {
 	switch(line->ops) {
 		case OP_ASSIGN: {
 				//Format: X = ....
-			if(line->res->arg._var!=NULL || line->arg0->arg._var==NULL)
+			if(line->res.arg._var!=NULL || line->arg0.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id != NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 				concat(result," = ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result,";");
 			}
 		}
 		break;
 		case OP_ADD: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 				concat(result," = ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," + ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result,";");
 			}
 		}
 		break;
 		case OP_SUB: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 				concat(result," = ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," - ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result,";");
 			}
 		}
 		break;
 		case OP_MUL: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 				concat(result," = ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," * ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result,";");
 			}
 		}
 		break;
 		case OP_DIV: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 				concat(result," = ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," * ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result,";");
 			}
 		}
 		break;
 		case OP_MINUS: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 				concat(result," = -");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 			}
 		}
 		break;
 		case OP_IFEQ: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
 				concat(result,"IF ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," == ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result," GOTO " );
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 			}
 		}
 		break;
 		case OP_IFNE: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
 				concat(result,"IF ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," != ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result," GOTO " );
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 			}
 		}
 		break;
 		case OP_IFGT: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
 				concat(result,"IF ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," > ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result," GOTO " );
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 			}
 		}
 		break;
 		case OP_IFGE: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
 				concat(result,"IF ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," >= ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result," GOTO " );
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 			}
 		}
 		break;
 		case OP_IFLT: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
 				concat(result,"IF ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," < ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result," GOTO " );
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 			}
 		}
 		break;
 		case OP_IFLE: {
-			if(line->res->arg._var==NULL || line->arg0->arg._var==NULL || line->arg1->arg._var==NULL)
+			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
 				concat(result,"IF ");
-				concat(result,line->arg0->arg._var->id);
+				concat(result,line->arg0.arg._var->id);
 				concat(result," <= ");
-				concat(result,line->arg1->arg._var->id);
+				concat(result,line->arg1.arg._var->id);
 				concat(result," GOTO " );
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 			}
 		}
 		break;
 		case OP_GOTO: {
-			if(line->res->arg._var==NULL)
+			if(line->res.arg._var==NULL)
 				return "";
-			if(line->res->arg._var->id != NULL && line->arg0->arg._var->id!=NULL && line->arg1->arg._var->id!=NULL) {
+			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
 				concat(result,"GOTO ");
-				concat(result,line->res->arg._var->id);
+				concat(result,line->res.arg._var->id);
 			}
 		}
 		break;
