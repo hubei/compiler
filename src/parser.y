@@ -354,7 +354,7 @@ expression
      | expression LSEQ expression  { debug(42); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression GTEQ expression  { debug(43); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression GT expression { debug(44); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression PLUS expression { debug(45); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression PLUS expression { debug(45); printf("Test: %d,%d\n",$1,$3); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression MINUS expression { debug(46); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression MUL expression { debug(47); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression DIV expression  { debug(48); checkCompatibleTypes(@1.first_line, $1, $3);}
