@@ -1,5 +1,5 @@
 /**
- * @file symboltable.c
+ * @file typechecking.h
  *
  *  Created on: Mar 31, 2012
  *      Author: DirkK

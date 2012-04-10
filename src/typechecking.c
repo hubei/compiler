@@ -1,5 +1,5 @@
 /*
- * symboltable.c
+ * @file typechecking.c
  *
  * http://uthash.sourceforge.net/
  *
@@ -24,7 +24,6 @@ void typeError (int line, const char *msg, ...)
 	va_end(fmtargs);
 	fprintf(stderr, "line %d: %s\n",line,buffer);
 }
-
 
 
 int correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* parameters) {

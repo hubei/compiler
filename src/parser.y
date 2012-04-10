@@ -9,6 +9,7 @@
 #include "symboltable.h"
 #include "typechecking.h"
 #include "address_code.h" 
+#include "generalParserFunc.h"
 
 #define YYERROR_VERBOSE
 	
@@ -412,6 +413,7 @@ primary
     		 $$.value.num = $1;
     	 	 $$.type = T_INT;
     	 	 $$.lvalue = 0;
+    	 	 $$.valueKind = VAL_NUM;
        }
      | ID { 
     	 debug(56); 
@@ -424,6 +426,7 @@ primary
     		 }
     		 $$.value.id = $1;
     		 $$.type = found->type;
+    		 $$.valueKind = VAL_ID;
     	 } else {
     		 typeError(@1.first_line, "Parameter does not exist: %s", $1);
     	 }
@@ -449,12 +452,14 @@ function_call_parameters
      : function_call_parameters COMMA expression { debug(59); 
      	 $$->expr = &$3; 
      	 $$->prev = &$1; 
-     	 $$->prev->next = &$$; 
+     	 $$->prev->next = &$$;
+     	 exprList* temp = $$;
+     	 GETLISTHEAD(temp,$$);
      	 /*FIXME maybe check for nullpointers? :P*/}
      | expression { 
     	 $$=malloc(sizeof($$));
     	 assert($$!=NULL);
-    	 $$->expr = &$1; 
+    	 $$->expr = &$1;
      }
      ;
 
