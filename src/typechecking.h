@@ -11,7 +11,9 @@
 #include "include/utlist.h"
 
 
-int correctReturnType(symbol*, string funcID, expr returnTypeExpr);
-int correctFuncTypes(symbol*, string funcID, exprList* parameters);
+//int correctReturnType(symbol*, string funcID, expr returnTypeExpr);
+void checkCompatibleTypes(int line, expr expr1, expr expr2,...);
+void correctFuncTypes(int line, symbol*, string funcID, exprList* parameters);
+void typeError (int line, const char *msg, ...);
 
 #endif
