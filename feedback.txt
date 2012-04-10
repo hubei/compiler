@@ -1,0 +1,23 @@
+system datein include <>
+include uthash
+type _t
+assert symboltable != NULL
+realloc
+
+symentry
+	name => key
+	id => func/var
+	union {
+	struct var;
+	struct func;
+	}
+	
+	
+exists benutzen
+prototype
+
+expression
+	lvalue : bool
+	rvalue
+	a+b -> rvalue
+	
