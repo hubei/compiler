@@ -95,9 +95,9 @@ symbol* curSymbol;
 %right LOGICAL_NOT NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <var>identifier_declaration primary function_parameter
+%type <var>identifier_declaration function_parameter
 %type <param>function_parameter_list
-%type <expr>expression function_call
+%type <expr>expression function_call primary
 %type <typeExt>type variable_declaration
 %type <exprList>function_call_parameters
 
@@ -344,9 +344,7 @@ stmt_loop
  * assignment operators. 
  */
 expression
-     : expression ASSIGN expression { debug(35);
-     	 checkCompatibleTypes(@1.first_line, $1, $3);
-	}
+     : expression ASSIGN expression { debug(35); checkCompatibleTypes(@1.first_line, $1, $3, "ASSIGN");}
      | expression LOGICAL_OR expression { debug(36); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression LOGICAL_AND expression { debug(37); checkCompatibleTypes(@1.first_line, $1, $3);}
      | LOGICAL_NOT expression { debug(38); $$=$2;}
@@ -361,11 +359,18 @@ expression
      | expression MUL expression { debug(47); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression DIV expression  { debug(48); checkCompatibleTypes(@1.first_line, $1, $3);}
      | expression MOD expression  { debug(49); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | MINUS expression %prec UNARY_MINUS { debug(50);}
-     | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51);}
+     | MINUS expression %prec UNARY_MINUS { debug(50); $$ = $2;}
+     | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51); 
+     	 if($3.type!=T_INT) {
+     		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
+     	 }
+     	 $$=$3;
+     	 $$.type=T_INT_A;
+     	 $$.lvalue=0;
+     }
      | PARA_OPEN expression PARA_CLOSE { debug(52); $$ = $2;}
-     | function_call { debug(53);}
-     | primary { debug(54); }
+     | function_call { debug(53); $$ = $1;}
+     | primary { debug(54); $$ = $1;}
      ;
 
 primary
@@ -374,15 +379,23 @@ primary
 //		if($$==NULL) {
 //			error("primary: $1 is NULL");
 //		}
-    	 //$$->type = T_INT;
+    		 $$.value.num = $1;
+    	 	 $$.type = T_INT;
+    	 	 $$.lvalue = 0;
        }
      | ID { 
     	 debug(56); 
     	 var* found = findVar(curSymbol, $1);
     	 if(found!=NULL) {
-    		 $$ = found;
+    		 if(found->type == T_INT_A) {
+    			 $$.lvalue = 0;
+    		 } else if(found->type == T_INT) {
+    			 $$.lvalue = 1;
+    		 }
+    		 $$.value.id = $1;
+    		 $$.type = found->type;
     	 } else {
-    		 /* "typechecking" -> error */
+    		 typeError(@1.first_line, "Parameter does not exist: %s", $1);
     	 }
       }
      ;
