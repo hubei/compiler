@@ -8,11 +8,13 @@
  * @param op
  */
 void createIRCodeFromExpr( expr arg0, int op, expr arg1 ) {
+	/*
 	irCode *x = (irCode*)malloc(sizeof(struct irCode));
 	if(!x) {
 		exit(-1);
 	}
 	x->ops = op;
+	*/
 }
 
 /**

@@ -23,11 +23,16 @@ typedef const char* string;
 typedef enum type {
 	T_INT, T_VOID, T_INT_A
 } type;
+typedef enum valueKind {
+		VAL_ID, VAL_NUM
+}valueKind;
+
 
 
 typedef struct {
 	type type;
 	int lvalue;
+	valueKind valueKind;
 	union{
 		char* id;
 		int num;

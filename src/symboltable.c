@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 struct symbol* symbolTable = NULL;
 
@@ -32,8 +33,9 @@ char* setString(const char* source) {
 	char* target;
 	if (source != NULL) {
 		target = malloc(sizeof(source));
-		if (target == NULL)
-			error("setString: Could not allocate new String target.");
+		//if (target == NULL)
+			//error("setString: Could not allocate new String target.");
+		assert(target!=NULL);													//	assert
 		strcpy(target, source);
 	} else {
 		error("setString: Source is not initialized!");
@@ -57,8 +59,9 @@ void error(string msg) {
  * @return new symbol
  */
 symbol* push(symbol* symbol, struct func* func) {
-	if (func == NULL)
-		error("push: func is NULL");
+	//if (func == NULL)
+		//error("push: func is NULL");
+	assert(func!=NULL);									//assert
 	if (func->symbol == NULL) {
 		func->symbol = createSymbol();
 		func->symbol->next = symbol;
@@ -110,38 +113,43 @@ symbol* createSymbol() {
 }
 
 /**
- * @brief
+ * @brief creates a new Variable
  * @param id
  * @return
  */
 var* createVar(string id) {
 	var *newVar = NULL;
 	newVar = malloc(sizeof(var));
-	if (newVar == NULL) {
-		error("Variable could not be created");
-	}
+	//if (newVar == NULL) {
+	//	error("Variable could not be created");
+	//}
+	assert(newVar!=NULL);												//Assert
 	newVar->id = malloc(sizeof(id));
-	if (newVar->id == NULL) {
-		error("createVar: Could not allocate id");
-	}
+	//if (newVar->id == NULL) {
+	//	error("createVar: Could not allocate id");
+	//}
+	assert(newVar->id!=NULL);									//Assert
 	strcpy(newVar->id, id);
 	return newVar;
 }
 
 /**
- *
+ * @brief creates a new Function.
+ * @param id
  * @return
  */
 func* createFunc(string id) {
 	func *newFunc = NULL;
 	newFunc = malloc(sizeof(func));
-	if (newFunc == NULL) {
-		error("Function could not be created");
-	}
+	//if (newFunc == NULL) {
+	//	error("Function could not be created");
+	//}
+	assert(newFunc != NULL);												//Assert
 	newFunc->id = malloc(sizeof(id));
-	if (newFunc->id == NULL) {
-		error("createFunc: Could not allocate id");
-	}
+	//if (newFunc->id == NULL) {
+	//	error("createFunc: Could not allocate id");
+	//}
+	assert(newFunc->id != NULL);
 	strcpy(newFunc->id, id);
 	newFunc->num_params = 0;
 	return newFunc;
@@ -154,17 +162,17 @@ func* createFunc(string id) {
  * @return reference to new param
  */
 param* addParam(param* prevParam, var* paramVar) {
-	if(paramVar==NULL)
-		error("---");
-
-	if(paramVar->id==NULL)
-		error("---");
-
+	//if(paramVar==NULL)
+	//	error("---");
+	assert(paramVar!=NULL);									//assert
+	//if(paramVar->id==NULL)
+	//	error("---");
+	assert(paramVar->id!=NULL);
 	struct param* newParam = NULL;
 	newParam = malloc(sizeof(paramVar));
-	if(newParam == NULL)
-		error("addParam: newParam is NULL");
-
+	//if(newParam == NULL)
+	//	error("addParam: newParam is NULL");
+	assert(newParam != NULL);								//assert
 	newParam->prev = NULL;
 	newParam->next = NULL;
 	newParam->var = paramVar;
@@ -178,19 +186,21 @@ param* addParam(param* prevParam, var* paramVar) {
 }
 
 /**
- *
+ * @brief adds an variable to an existing symbol
  * @param symbol
  * @param var
  */
 void insertVar(symbol* symbol, var* var) {
-	//prüfen ob übergebenen parameter nicht null sind
-	if (symbol == NULL)
-		error("---");
-	if (var == NULL)
-		error("---");
-	if (var->id == NULL)
-		error("insertVar: id of var is NULL!");
-
+//	prüfen ob übergebenen parameter nicht null sind
+//	if (symbol == NULL)
+//	error("---");
+	assert(symbol != NULL);									//assert
+//	if (var == NULL)
+//		error("---");
+	assert(var != NULL);									//assert
+//	if (var->id == NULL)
+//		error("insertVar: id of var is NULL!");
+	assert(var->id != NULL);									//assert
 	// TODO Dirk check for existing
 
 	// offset
@@ -203,17 +213,20 @@ void insertVar(symbol* symbol, var* var) {
 }
 
 /**
- *
+ * @brief
  * @param symbol
  * @param func
  */
-void insertFunc(symbol* symbol, func* func) {
-	if (symbol == NULL)
-		error("---");
-	if (func == NULL)
-		error("---");
-	if (func->id == NULL)
-		error("insertFunc: id of func is NULL!");
+void insertFunc(symbol* symbol, func* func) {					//assert
+//	if (symbol == NULL)
+//		error("---");
+	assert(symbol != NULL);
+//	if (func == NULL)
+//		error("---");
+	assert(func != NULL);
+//	if (func->id == NULL)
+//		error("insertFunc: id of func is NULL!");
+	assert(func->id != NULL);
 
 	// TODO Dirk check for existing
 
@@ -229,18 +242,20 @@ void insertFunc(symbol* symbol, func* func) {
  * @param lastParam reference to the last param of the paramList
  */
 void insertParams(func* func, param* lastParam) {
-	if(func == NULL)
-		error("insertParams: func is NULL!");
-	if(func->symbol == NULL)
-		error("insertParams: func->symbol is NULL");
-
+//	if(func == NULL)
+//		error("insertParams: func is NULL!");
+	assert(func!=NULL);
+//	if(func->symbol == NULL)
+//		error("insertParams: func->symbol is NULL");
+	assert(func->symbol != NULL);
 	param* param = lastParam;
 	var* var = NULL;
 	int paramCount = 0;
 	while(param != NULL) {
 		var = param->var;
-		if(var == NULL)
-			error("insertParams: var is NULL");
+//		if(var == NULL)
+//			error("insertParams: var is NULL");
+		assert(var!=NULL);
 
 		// offset
 		var->offset = func->symbol->offset;
@@ -356,8 +371,9 @@ void print_var(FILE* file, var* symVar) {
 
 	struct var *k, *tmp;
 	HASH_ITER(hh, symVar, k, tmp) {
-		if (k->id == NULL)
-			error("print_var: id is NULL!");
+//		if (k->id == NULL)
+//			error("print_var: id is NULL!");
+		assert(k->id != NULL);							//assert
 		fprintf(file, "var %s\n\ttype: %s - size: %d - width: %d - offset: %d\n", k->id,
 				typeToString(k->type), k->size, k->width, k->offset);
 	}
@@ -371,8 +387,9 @@ void print_param(FILE* file, param* paramHead) {
 	var* var = NULL;
 	while(param != NULL) {
 		var = param->var;
-		if(var == NULL)
-			error("print_param: var is NULL");
+//		if(var == NULL)
+//			error("print_param: var is NULL");
+		assert(var!=NULL);										//assert
 		fprintf(file, "\tparam %s\n\t\ttype: %s - size: %d - width: %d - offset: %d\n", var->id,
 						typeToString(var->type), var->size, var->width, var->offset);
 		param = param->next;
@@ -398,8 +415,9 @@ void print_func(FILE* file, func* symFunc) {
 
 	struct func *func, *tmp;
 	HASH_ITER(hh, symFunc, func, tmp) {
-		if (func->id == NULL)
-			error("print_func: id is NULL!");
+//		if (func->id == NULL)
+//			error("print_func: id is NULL!");
+		assert(func->id != NULL);
 		fprintf(file, "func %s\n\treturntype: %s - num_params: %d\n", func->id,
 				typeToString(func->returnType), func->num_params);
 
@@ -425,7 +443,7 @@ void test_symTab(FILE* file) {
 	// print symbol table for each func
 	struct func *func, *tmp;
 	HASH_ITER(hh, symbolTable->symFunc, func, tmp) {
-		if (func->symbol != NULL) {
+		if(func->symbol != NULL) {
 			fprintf(file,
 					"################### scope for %s ###################\n",
 					func->id);
