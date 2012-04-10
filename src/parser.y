@@ -51,7 +51,7 @@ symbol* curSymbol;
 		type type;
 		int width;
 	} typeExt;
-	exprList exprList;
+	exprList *exprList;
 	expr expr;
 }
 
@@ -365,8 +365,8 @@ expression
      		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
      	 }
      	 $$=$3;
-     	 $$.type=T_INT_A;
-     	 $$.lvalue=0;
+     	 $$.type=T_INT;
+     	 $$.lvalue=1;
      }
      | PARA_OPEN expression PARA_CLOSE { debug(52); $$ = $2;}
      | function_call { debug(53); $$ = $1;}
@@ -418,8 +418,16 @@ function_call
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-     : function_call_parameters COMMA expression { debug(59); $$.expr = &$3; $$.prev = &$1; $$.prev->next = &$$; /*FIXME maybe check for nullpointers? :P*/}
-     | expression { debug(60); $$.expr = &$1; }
+     : function_call_parameters COMMA expression { debug(59); 
+     	 $$->expr = &$3; 
+     	 $$->prev = &$1; 
+     	 $$->prev->next = &$$; 
+     	 /*FIXME maybe check for nullpointers? :P*/}
+     | expression { 
+    	 $$=malloc(sizeof($$));
+    	 assert($$!=NULL);
+    	 $$->expr = &$1; 
+     }
      ;
 
 %%

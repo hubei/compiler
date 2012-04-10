@@ -41,7 +41,7 @@ void correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* para
 		if(s->var->type != expression->type) {
 			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,typeToString(s->var->type),typeToString(expression->type));
 		}
-		parameters = parameters->prev;
+		parameters = parameters->next;
 		i++;
 	}
 }
