@@ -17,7 +17,7 @@ string IRtoString( irCode *line ) {
 	if(!line)
 		return "";
 	result = OpToString(result,line,line->ops);
-	return (const char*)result;
+	return (string)result;
 }
 
 /**
@@ -36,6 +36,9 @@ char* concat( char* dest, char *source ) {
 			strcpy(tmp,dest);					//Copy content from dest to *tmp*
 		}
 		dest = (char*)realloc(dest,newlen+1);	//Reallocate dest
+		if(!dest) {
+			return NULL;
+		}
 		if(strlen(dest)>0 && tmp!=NULL) {
 			strcpy(dest,tmp);					//re-move from temp-buffer to *dest*
 			free(tmp);							//free tmp and NULL it
