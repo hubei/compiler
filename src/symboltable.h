@@ -10,12 +10,6 @@
 #include "types.h"
 #include <stdio.h>
 
-#define GETLISTHEAD(list, result) \
-	result = list; \
-	while(result->prev != NULL) { \
-		result = result->prev; \
-	} \
-
 /**
  * @brief pointer to the top of the symbol table
  */

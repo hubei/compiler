@@ -366,30 +366,76 @@ stmt_loop
 expression
      : expression ASSIGN expression {
      	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-     		 $$ = $1;
-     		 $$.lvalue = 0;
+     		$$ = expressionReturn($1);
      		createIRCodeFromExpr($1,OP_ASSIGN,$3);
      	 }
      }
      | expression LOGICAL_OR expression {
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-    		 $$ = $1;
-    		 $$.lvalue = 0;
+    		 $$ = expressionReturn($1);
 		 }
 	 }
-     | expression LOGICAL_AND expression { debug(37); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression LOGICAL_AND expression { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
      | LOGICAL_NOT expression { debug(38); $$=$2;}
-     | expression EQ expression { debug(39); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression NE expression { debug(40); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression LS expression  { debug(41); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression LSEQ expression  { debug(42); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression GTEQ expression  { debug(43); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression GT expression { debug(44); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression PLUS expression { debug(45);checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression MINUS expression { debug(46); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression MUL expression { debug(47); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression DIV expression  { debug(48); checkCompatibleTypes(@1.first_line, $1, $3);}
-     | expression MOD expression  { debug(49); checkCompatibleTypes(@1.first_line, $1, $3);}
+     | expression EQ expression { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression NE expression { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression LS expression  { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression LSEQ expression  { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression GTEQ expression  { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression GT expression { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression PLUS expression { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression MINUS expression { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression MUL expression { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression DIV expression  { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
+     | expression MOD expression  { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $$ = expressionReturn($1);
+		 }
+     }
      | MINUS expression %prec UNARY_MINUS { debug(50); $$ = $2;}
      | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51); 
      	 if($3.type!=T_INT) {
