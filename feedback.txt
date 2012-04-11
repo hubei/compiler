@@ -1,9 +1,3 @@
-system datein include <>
-include uthash
-type _t
-assert symboltable != NULL
-realloc
-
 symentry
 	name => key
 	id => func/var
