@@ -7,7 +7,7 @@
 
 #include "mips32gen.h"
 
-int mips32gen(FILE *file,irCode *ircode, symbol *symbolTable) {
+int mips32gen(FILE *file,irCode_t *ircode, symbol_t *symbolTable) {
 	if(file == NULL) {
 		return 1;
 	}
@@ -21,7 +21,7 @@ int mips32gen(FILE *file,irCode *ircode, symbol *symbolTable) {
 	// global data section
 	fprintf(file,".data\n");
 
-	struct var *k, *tmp;
+	struct var_t *k, *tmp;
 	HASH_ITER(hh, symbolTable->symVar, k, tmp) {
 		fprintf(file,"%s:\n",k->id);
 		fprintf(file,"\t.word 0");
@@ -41,7 +41,7 @@ int mips32gen(FILE *file,irCode *ircode, symbol *symbolTable) {
 	fprintf(file, "_start:\n\tJAL main\n\n");
 
 	// code
-	struct func *f, *tmp2;
+	struct func_t *f, *tmp2;
 	HASH_ITER(hh, symbolTable->symFunc, f, tmp2) {
 		fprintf(file, "%s:\n",f->id);
 
@@ -59,7 +59,7 @@ int mips32gen(FILE *file,irCode *ircode, symbol *symbolTable) {
 	return 42;
 }
 
-char* generate(irCode* ircode) {
+char* generate(irCode_t* ircode) {
 	return NULL;
 }
 

@@ -7,14 +7,9 @@
  *      Author: DirkK
  */
 
-//#include "include/uthash.h"
-//#include "symboltable.h"
-//#include <stdio.h>
-//#include <stdarg.h>
-//#include <stdlib.h>
-#include <types.h>
+#include "types.h"
 
-expr expressionReturn(expr children) {
+expr_t expressionReturn(expr_t children) {
 	children.lvalue = 0;
 	return children;
 }

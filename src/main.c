@@ -308,7 +308,7 @@ int main(int argc, char *argv[]) {
 		setSymbolTable(createSymbol());
 		yyparse();
 		fclose(yyin);
-		irCode* ircode = NULL;
+		irCode_t* ircode = NULL;
 
 		if(cc_options.ir_file!=NULL) {
 			FILE *irFile;

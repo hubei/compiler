@@ -17,12 +17,12 @@ void backpatch(int,int); //Zeile,
  * @brief Converts an IRCode into a string
  */
 string IRtoString();
-char* OpToString( char*,irCode*,int);
-void printParam( irCode* );
+char* OpToString( char*,irCode_t*,int);
+void printParam( irCode_t* );
 /**
  * @brief Real conversion from expressions to IRCode
  */
-void createIRCodeFromExpr(expr,int,expr);
-irCode* getIRCode();
+void createIRCodeFromExpr(expr_t,int,expr_t);
+irCode_t* getIRCode();
 
 #endif

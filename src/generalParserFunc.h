@@ -13,7 +13,7 @@
 		result = result->prev; \
 	} \
 
-expr expressionReturn(expr children);
+expr_t expressionReturn(expr_t children);
 
 #endif
 

@@ -8,8 +8,8 @@ symentry
 	name => key
 	id => func/var
 	union {
-	struct var;
-	struct func;
+		struct var;
+		struct func;
 	}
 	
 	
@@ -21,3 +21,5 @@ expression
 	rvalue
 	a+b -> rvalue
 	
+	
+exists in insertFunc

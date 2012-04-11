@@ -7,14 +7,14 @@
  *      Author: NicolaiO
  */
 
-#include "include/uthash.h"
+#include "uthash.h"
 #include "symboltable.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
-struct symbol* symbolTable = NULL;
+struct symbol_t* symbolTable = NULL;
 
 /**
  * @brief Simple debug function that prints the given number followed by a '-'
@@ -58,7 +58,7 @@ void error(string msg) {
  * @param func function that the new scope is linked to
  * @return new symbol
  */
-symbol* push(symbol* symbol, struct func* func) {
+symbol_t* push(symbol_t* symbol, struct func_t* func) {
 	//if (func == NULL)
 		//error("push: func is NULL");
 	assert(func!=NULL);									//assert
@@ -75,7 +75,7 @@ symbol* push(symbol* symbol, struct func* func) {
  * @param symbol current symbol
  * @return associated symbol (normally global)
  */
-symbol* pop(symbol* symbol) {
+symbol_t* pop(symbol_t* symbol) {
 	if (symbol == NULL) {
 		error("pop: input is NULL");
 	} else {
@@ -91,9 +91,9 @@ symbol* pop(symbol* symbol) {
  * @brief create a new empty symbol
  * @return new symbol
  */
-symbol* createSymbol() {
-	symbol *newSymbol = NULL;
-	newSymbol = malloc(sizeof(symbol));
+symbol_t* createSymbol() {
+	symbol_t *newSymbol = NULL;
+	newSymbol = malloc(sizeof(symbol_t));
 	if (newSymbol == NULL) {
 		error("Symbol could not be created");
 	}
@@ -117,9 +117,9 @@ symbol* createSymbol() {
  * @param id
  * @return
  */
-var* createVar(string id) {
-	var *newVar = NULL;
-	newVar = malloc(sizeof(var));
+var_t* createVar(string id) {
+	var_t *newVar = NULL;
+	newVar = malloc(sizeof(var_t));
 	//if (newVar == NULL) {
 	//	error("Variable could not be created");
 	//}
@@ -138,9 +138,9 @@ var* createVar(string id) {
  * @param id
  * @return
  */
-func* createFunc(string id) {
-	func *newFunc = NULL;
-	newFunc = malloc(sizeof(func));
+func_t* createFunc(string id) {
+	func_t *newFunc = NULL;
+	newFunc = malloc(sizeof(func_t));
 	//if (newFunc == NULL) {
 	//	error("Function could not be created");
 	//}
@@ -161,14 +161,14 @@ func* createFunc(string id) {
  * @param paramVar var object that represents the param
  * @return reference to new param
  */
-param* addParam(param* prevParam, var* paramVar) {
+param_t* addParam(param_t* prevParam, var_t* paramVar) {
 	//if(paramVar==NULL)
 	//	error("---");
 	assert(paramVar!=NULL);									//assert
 	//if(paramVar->id==NULL)
 	//	error("---");
 	assert(paramVar->id!=NULL);
-	struct param* newParam = NULL;
+	struct param_t* newParam = NULL;
 	newParam = malloc(sizeof(paramVar));
 	//if(newParam == NULL)
 	//	error("addParam: newParam is NULL");
@@ -190,7 +190,7 @@ param* addParam(param* prevParam, var* paramVar) {
  * @param symbol
  * @param var
  */
-void insertVar(symbol* symbol, var* var) {
+void insertVar(symbol_t* symbol, var_t* var) {
 //	prüfen ob übergebenen parameter nicht null sind
 //	if (symbol == NULL)
 //	error("---");
@@ -217,7 +217,7 @@ void insertVar(symbol* symbol, var* var) {
  * @param symbol
  * @param func
  */
-void insertFunc(symbol* symbol, func* func) {					//assert
+void insertFunc(symbol_t* symbol, func_t* func) {					//assert
 //	if (symbol == NULL)
 //		error("---");
 	assert(symbol != NULL);
@@ -241,15 +241,15 @@ void insertFunc(symbol* symbol, func* func) {					//assert
  * @param func function to insert params into
  * @param lastParam reference to the last param of the paramList
  */
-void insertParams(func* func, param* lastParam) {
+void insertParams(func_t* func, param_t* lastParam) {
 //	if(func == NULL)
 //		error("insertParams: func is NULL!");
 	assert(func!=NULL);
 //	if(func->symbol == NULL)
 //		error("insertParams: func->symbol is NULL");
 	assert(func->symbol != NULL);
-	param* param = lastParam;
-	var* var = NULL;
+	param_t* param = lastParam;
+	var_t* var = NULL;
 	int paramCount = 0;
 	while(param != NULL) {
 		var = param->var;
@@ -275,9 +275,9 @@ void insertParams(func* func, param* lastParam) {
  * @param paramHead first param of paramList
  * @return number of params
  */
-int getParamCount(param* paramHead) {
+int getParamCount(param_t* paramHead) {
 	int count = 0;
-	param* param = paramHead;
+	param_t* param = paramHead;
 	while(param != NULL) {
 		count++;
 		param = param->next;
@@ -291,9 +291,9 @@ int getParamCount(param* paramHead) {
  * @param id
  * @return
  */
-var* findVar(symbol* symbol, string id) {
-	struct var *k;
-	struct symbol* tmpSymbol = symbol;
+var_t* findVar(symbol_t* symbol, string id) {
+	struct var_t *k;
+	struct symbol_t* tmpSymbol = symbol;
 	while (tmpSymbol != NULL) {
 		HASH_FIND(hh, tmpSymbol->symVar, id, strlen(id), k);
 		if (k != NULL) {
@@ -310,9 +310,9 @@ var* findVar(symbol* symbol, string id) {
  * @param id
  * @return the function
  */
-func* findFunc(symbol* symbol, string id) {
-	struct func *k = NULL;
-	struct symbol* tmpSymbol = symbol;
+func_t* findFunc(symbol_t* symbol, string id) {
+	struct func_t *k = NULL;
+	struct symbol_t* tmpSymbol = symbol;
 	while (tmpSymbol != NULL) {
 		HASH_FIND(hh, tmpSymbol->symFunc, id, strlen(id), k);
 		if (k != NULL) {
@@ -330,8 +330,8 @@ func* findFunc(symbol* symbol, string id) {
  * @param id
  * @return 1 if id exists, 0 if not
  */
-int exists(symbol* symbol, string id) {
-	struct func *k = NULL;
+int exists(symbol_t* symbol, string id) {
+	struct func_t *k = NULL;
 	HASH_FIND(hh, symbol->symFunc, id, strlen(id), k);
 	if (k != NULL) {
 		return 1;
@@ -347,7 +347,7 @@ int exists(symbol* symbol, string id) {
  * @brief Get the symbol pointing to the global scope
  * @return symbol to global scope
  */
-symbol* getSymbolTable() {
+symbol_t* getSymbolTable() {
 	return symbolTable;
 }
 
@@ -355,7 +355,7 @@ symbol* getSymbolTable() {
  * @brief Set symbol table (this will be the global symbol)
  * @param sym new symbol table
  */
-void setSymbolTable(symbol* sym) {
+void setSymbolTable(symbol_t* sym) {
 	symbolTable = sym;
 }
 
@@ -365,11 +365,11 @@ void setSymbolTable(symbol* sym) {
  * @param symVar hash table of variables
  * @param kind should be either "var" or "param"
  */
-void print_var(FILE* file, var* symVar) {
+void print_var(FILE* file, var_t* symVar) {
 	if (symVar == NULL)
 		return;
 
-	struct var *k, *tmp;
+	struct var_t *k, *tmp;
 	HASH_ITER(hh, symVar, k, tmp) {
 //		if (k->id == NULL)
 //			error("print_var: id is NULL!");
@@ -379,12 +379,12 @@ void print_var(FILE* file, var* symVar) {
 	}
 }
 
-void print_param(FILE* file, param* paramHead) {
+void print_param(FILE* file, param_t* paramHead) {
 //	if (symVar == NULL)
 //		return;
 
-	param* param = paramHead;
-	var* var = NULL;
+	param_t* param = paramHead;
+	var_t* var = NULL;
 	while(param != NULL) {
 		var = param->var;
 //		if(var == NULL)
@@ -409,11 +409,11 @@ void print_param(FILE* file, param* paramHead) {
  * @param file an open FILE or NULL for stdout
  * @param symFunc hash table of functions
  */
-void print_func(FILE* file, func* symFunc) {
+void print_func(FILE* file, func_t* symFunc) {
 	if (symFunc == NULL)
 		return;
 
-	struct func *func, *tmp;
+	struct func_t *func, *tmp;
 	HASH_ITER(hh, symFunc, func, tmp) {
 //		if (func->id == NULL)
 //			error("print_func: id is NULL!");
@@ -441,7 +441,7 @@ void test_symTab(FILE* file) {
 	print_func(file, symbolTable->symFunc);
 
 	// print symbol table for each func
-	struct func *func, *tmp;
+	struct func_t *func, *tmp;
 	HASH_ITER(hh, symbolTable->symFunc, func, tmp) {
 		if(func->symbol != NULL) {
 			fprintf(file,
@@ -458,7 +458,7 @@ void test_symTab(FILE* file) {
  * @param type
  * @return
  */
-string typeToString(type type) {
+string typeToString(type_t type) {
 	switch (type) {
 	case T_INT:
 		return setString("INT");

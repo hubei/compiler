@@ -13,7 +13,7 @@
 
 #define YYERROR_VERBOSE
 	
-symbol* curSymbol;
+symbol_t* curSymbol;
 	
 %}
 
@@ -44,16 +44,16 @@ symbol* curSymbol;
 %union {
 	char* str;
 	int num;
-	var* var;
-	func* func;
-	param* param;
-	type type;
+	var_t* var;
+	func_t* func;
+	param_t* param;
+	type_t type;
 	struct {
-		type type;
+		type_t type;
 		int width;
 	} typeExt;
-	exprList *exprList;
-	expr expr;
+	exprList_t *exprList;
+	expr_t expr;
 }
 
 /*
@@ -181,7 +181,7 @@ variable_declaration
 identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
     	 debug(13); 
-    	 var* newVar = createVar($1);
+    	 var_t* newVar = createVar($1);
     	 if(newVar == NULL) {
     		 error("identifier_declaration: newVar is NULL");
     	 }
@@ -194,7 +194,7 @@ identifier_declaration
      } 
      | ID {	
     	 debug(14);
-    	 var* newVar = createVar($1);
+    	 var_t* newVar = createVar($1);
     	 if(newVar == NULL) {
     		 error("identifier_declaration: newVar is NULL");
     	 }
@@ -209,7 +209,7 @@ identifier_declaration
 function_declaration
 	: type ID PARA_OPEN PARA_CLOSE {
 		debug(47); 
-		func* newFunc = createFunc($2);
+		func_t* newFunc = createFunc($2);
 		if(newFunc==NULL) {
 			error("function_declaration: newFunc is NULL");
 		}
@@ -219,7 +219,7 @@ function_declaration
 	}
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		debug(44);
-		func* newFunc = createFunc($2);
+		func_t* newFunc = createFunc($2);
 		if(newFunc==NULL) {
 			error("function_declaration: newFunc is NULL");
 		}
@@ -269,7 +269,7 @@ function_parameter
  */
 function_definition
 	: type ID PARA_OPEN PARA_CLOSE {
-		func* newFunc = createFunc($2);
+		func_t* newFunc = createFunc($2);
 		if(newFunc==NULL) {
 			error("function_definition: newFunc is NULL");
 		}
@@ -287,7 +287,7 @@ function_definition
 		  curSymbol = pop(curSymbol);
 	  } BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
-			func* newFunc = createFunc($2);
+			func_t* newFunc = createFunc($2);
 			if(newFunc==NULL) {
 				error("function_definition: newFunc is NULL");
 			}
@@ -474,7 +474,7 @@ primary
        }
      | ID { 
     	 debug(56); 
-    	 var* found = findVar(curSymbol, $1);
+    	 var_t* found = findVar(curSymbol, $1);
     	 if(found!=NULL) {
     		 if(found->type == T_INT_A) {
     			 $$.lvalue = 0;
@@ -507,11 +507,13 @@ function_call
  */ 									
 function_call_parameters
      : function_call_parameters COMMA expression { debug(59); 
-     	 $$->expr = &$3; 
-     	 $$->prev = &$1; 
-     	 $$->prev->next = &$$;
-     	 exprList* temp = $$;
-     	 GETLISTHEAD(temp,$$);
+//     	 $$->expr = &$3; 
+//     	 $$->prev = &$1; 
+//     	 $$->prev->next = $$;
+//     	 exprList_t* tmp1 = NULL;
+//     	 exprList_t* tmp2 = $$;
+//     	 //GETLISTHEAD(tmp2, tmp1);
+//     	 $$ =  tmp1;
      	 /*FIXME maybe check for nullpointers? :P*/}
      | expression { 
     	 $$=malloc(sizeof($$));

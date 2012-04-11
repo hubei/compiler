@@ -7,7 +7,7 @@
  *      Author: DirkK
  */
 
-#include "include/uthash.h"
+#include "uthash.h"
 #include "symboltable.h"
 #include <stdio.h>
 #include <stdarg.h>
@@ -26,16 +26,16 @@ void typeError (int line, const char *msg, ...)
 }
 
 
-int correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* parameters) {
-	func* function = findFunc(curSymbol, funcID);
-	param* parametersHash = function->param;
+int correctFuncTypes(int line, symbol_t* curSymbol, string funcID, exprList_t* parameters) {
+	func_t* function = findFunc(curSymbol, funcID);
+	param_t* parametersHash = function->param;
 	int i=1;
-	for(param* s=parametersHash; s != NULL; s=s->next) {
+	for(param_t* s=parametersHash; s != NULL; s=s->next) {
 		if(parameters==NULL) {
 			typeError(line, "Too few parameters; %d parameters expected, but %d parameters found",function->num_params,i);
 			return 0;
 		}
-		expr* expression = (expr*)parameters->expr;
+		expr_t* expression = (expr_t*)parameters->expr;
 		//fprintf(stderr, "%s", typeToString(expression->type));
 		if(s->var->type != expression->type) {
 			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,typeToString(s->var->type),typeToString(expression->type));
@@ -47,7 +47,7 @@ int correctFuncTypes(int line, symbol* curSymbol, string funcID, exprList* param
 	return 1;
 }
 
-int checkCompatibleTypes(int line, expr expr1, expr expr2){
+int checkCompatibleTypes(int line, expr_t expr1, expr_t expr2){
 	if(expr1.type != expr2.type) {
 		typeError(line, "%s is incompatible with %s", typeToString(expr1.type), typeToString(expr2.type));
 		return 0;

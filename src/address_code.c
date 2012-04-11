@@ -6,8 +6,8 @@
  * @param arg1
  * @param op
  */
-void createIRCodeFromExpr( expr arg0, int op, expr arg1 ) {
-	irCode *x = (irCode*)malloc(sizeof(struct irCode));
+void createIRCodeFromExpr( expr_t arg0, int op, expr_t arg1 ) {
+	irCode_t *x = (irCode_t*)malloc(sizeof(struct irCode_t));
 	if(!x) {
 		printf("ERROR IN ALLOCATING!\n");
 		exit(-1);
@@ -48,7 +48,7 @@ void createIRCodeFromExpr( expr arg0, int op, expr arg1 ) {
  * @return
  */
 
-void printParam( irCode *x ) {
+void printParam( irCode_t *x ) {
 	if(!x)
 		return;
 	char const_str[100] = "Values: ";
@@ -71,7 +71,7 @@ void printParam( irCode *x ) {
  * @param line
  * @return
  */
-string IRtoString( irCode *line ) {
+string IRtoString( irCode_t *line ) {
 	char* result = (char*)malloc(1);
 	if(!line)
 		return "";
@@ -115,7 +115,7 @@ char* concat( char* dest, char *source ) {
  * @param op
  * @return
  */
-char* OpToString( char *result, irCode *line, int op ) {
+char* OpToString( char *result, irCode_t *line, int op ) {
 	//Result
 	//X = a operator b
 	char cur_line[12] = "";
@@ -326,7 +326,7 @@ char* OpToString( char *result, irCode *line, int op ) {
 	return result;
 }
 
-irCode* getIRCode() {
-	irCode* result = NULL;
+irCode_t* getIRCode() {
+	irCode_t* result = NULL;
 	return result;
 }

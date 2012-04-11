@@ -13,36 +13,36 @@
 /**
  * @brief pointer to the top of the symbol table
  */
-struct symbol* symbolTable;
+struct symbol_t* symbolTable;
 
-symbol* push(symbol*, func*); // save given symbol on stack and return new symbol with link to old
-symbol* pop(symbol*); // return next symbol from stack
+symbol_t* push(symbol_t*, func_t*); // save given symbol on stack and return new symbol with link to old
+symbol_t* pop(symbol_t*); // return next symbol from stack
 
-symbol* createSymbol();
-var* createVar(string);
-func* createFunc(string);
+symbol_t* createSymbol();
+var_t* createVar(string);
+func_t* createFunc(string);
 
-param* addParam(param*,var*);
-void insertParams(func*,param*);
-int getParamCount(param*);
+param_t* addParam(param_t*,var_t*);
+void insertParams(func_t*,param_t*);
+int getParamCount(param_t*);
 
-void insertVar(symbol*, var*);
-void insertFunc(symbol*, func*);
-var* findVar(symbol*, string); // find in current scope or scopes above
-func* findFunc(symbol*, string);
-int exists(symbol*, string); // only in current scope
+void insertVar(symbol_t*, var_t*);
+void insertFunc(symbol_t*, func_t*);
+var_t* findVar(symbol_t*, string); // find in current scope or scopes above
+func_t* findFunc(symbol_t*, string);
+int exists(symbol_t*, string); // only in current scope
 
 char* setString(const char*);
-string typeToString(type);
+string typeToString(type_t);
 void error(string);
 void debug(int);
 
-void print_param(FILE*,param*);
-void print_var(FILE*,var*);
-void print_func(FILE*,func*);
+void print_param(FILE*,param_t*);
+void print_var(FILE*,var_t*);
+void print_func(FILE*,func_t*);
 void test_symTab(FILE*);
 
-symbol* getSymbolTable();
-void setSymbolTable(symbol*);
+symbol_t* getSymbolTable();
+void setSymbolTable(symbol_t*);
 
 #endif

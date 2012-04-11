@@ -7,14 +7,12 @@
 #ifndef TYPECHECKING_H_
 #define TYPECHECKING_H_
 
-#include "include/uthash.h"
-#include "include/utlist.h"
-
+#include "uthash.h"
 
 //int correctReturnType(symbol*, string funcID, expr returnTypeExpr);
-int checkCompatibleTypes(int line, expr expr1, expr expr2);
+int checkCompatibleTypes(int line, expr_t expr1, expr_t expr2);
 //void checkCompatibleTypesInfo(int line, expr expr1, expr expr2, char* type);
-int correctFuncTypes(int line, symbol*, string funcID, exprList* parameters);
+int correctFuncTypes(int line, symbol_t*, string funcID, exprList_t* parameters);
 void typeError (int line, const char *msg, ...);
 
 #endif
