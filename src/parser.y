@@ -367,7 +367,7 @@ expression
      : expression ASSIGN expression {
      	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
      		$$ = expressionReturn($1);
-     		createIRCodeFromExpr($1,OP_ASSIGN,$3);
+     		createIRCodeFromExpr(curSymbol,$1,OP_ASSIGN,$3);
      	 }
      }
      | expression LOGICAL_OR expression {
@@ -384,67 +384,67 @@ expression
      | expression EQ expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_IFEQ,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_IFEQ,$3);
 		 }
      }
      | expression NE expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_IFNE,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_IFNE,$3);
 		 }
      }
      | expression LS expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_IFLT,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_IFLT,$3);
 		 }
      }
      | expression LSEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_IFLE,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_IFLE,$3);
 		 }
      }
      | expression GTEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_IFGE,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_IFGE,$3);
 		 }
      }
      | expression GT expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_IFGT,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_IFGT,$3);
 		 }
      }
      | expression PLUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_ADD,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);
 		 }
      }
      | expression MINUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_SUB,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_SUB,$3);
 		 }
      }
      | expression MUL expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_MUL,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_MUL,$3);
 		 }
      }
      | expression DIV expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_DIV,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_DIV,$3);
 		 }
      }
      | expression MOD expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $$ = expressionReturn($1);
-			 createIRCodeFromExpr($1,OP_MOD,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_MOD,$3);
 		 }
      }
      | MINUS expression %prec UNARY_MINUS { debug(50); $$ = $2;}

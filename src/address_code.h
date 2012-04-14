@@ -22,7 +22,7 @@ void printParam( irCode_t* );
 /**
  * @brief Real conversion from expressions to IRCode
  */
-void createIRCodeFromExpr(expr_t,int,expr_t);
+void createIRCodeFromExpr(symbol_t*, expr_t,int,expr_t);
 irCode_t* getIRCode();
 
 #endif
