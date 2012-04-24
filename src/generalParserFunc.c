@@ -9,9 +9,8 @@
 
 #include "types.h"
 
-expr_t expressionReturn(expr_t children) {
-	children.lvalue = 0;
-	return children;
+void expressionReturn(expr_t* children) {
+	children->lvalue = 0;
 }
 
 

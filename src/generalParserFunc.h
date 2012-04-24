@@ -13,7 +13,7 @@
 		result = result->prev; \
 	} \
 
-expr_t expressionReturn(expr_t children);
+void expressionReturn(expr_t* children);
 
 #endif
 

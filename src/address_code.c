@@ -6,33 +6,33 @@
  * @param arg1
  * @param op
  */
-void createIRCodeFromExpr( symbol_t* symTab, expr_t arg0, int op, expr_t arg1 ) {
+void createIRCodeFromExpr( symbol_t* symTab, expr_t* arg0, int op, expr_t* arg1 ) {
 	irCode_t *x = (irCode_t*)malloc(sizeof(struct irCode_t));
 	assert(x!=NULL);
 	x->ops = op;
 	//Argument 0
-	if(arg0.valueKind==VAL_ID) {
+	if(arg0->valueKind==VAL_ID) {
 		x->arg0.type = ARG_VAR;
-		if(findVar(symTab,arg0.value.id)!=NULL) {
+		if(findVar(symTab,arg0->value.id)!=NULL) {
 		} else {
-			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
+			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0->value.id);
 		}
-		x->arg0.arg._var = findVar(symTab,arg0.value.id);
+		x->arg0.arg._var = findVar(symTab,arg0->value.id);
 	} else {
 		//printf("..........\n");
 	}
 
-	if(arg1.valueKind==VAL_ID) {
+	if(arg1->valueKind==VAL_ID) {
 		x->arg1.type = ARG_VAR;
-		if(findVar(symTab,arg1.value.id)!=NULL) {
+		if(findVar(symTab,arg1->value.id)!=NULL) {
 		} else {
-			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg1.value.id);
+			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg1->value.id);
 		}
-		x->arg1.arg._var = findVar(symTab,arg1.value.id);
+		x->arg1.arg._var = findVar(symTab,arg1->value.id);
 		//printf("%s = %i\n\n", arg0.value.id, arg1.value.id);
 	} else {
 		x->arg1.type = ARG_CONST;
-		x->arg1.arg._constant = arg1.value.num;
+		x->arg1.arg._constant = arg1->value.num;
 		//printf("%s = %i\n\n", arg0.value.id, x->arg1.arg._constant);
 	}
 	free(x);

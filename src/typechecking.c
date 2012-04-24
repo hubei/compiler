@@ -65,6 +65,11 @@ int correctFuncTypes(int line, symbol_t* curSymbol, string funcID, exprList_t* p
 		parameters = parameters->next;
 		i++;
 	}
+	if(parameters->expr != NULL) {
+		typeError(line, "Too much parameters; %d parameters expected, but %d parameters found",function->num_params,i);
+		return 0;
+	}
+
 	return 1;
 }
 
@@ -76,8 +81,8 @@ int checkCompatibleTypesRaw(int line, type_t type1, type_t type2){
 	return 1;
 }
 
-int checkCompatibleTypes(int line, expr_t expr1, expr_t expr2){
-	return checkCompatibleTypesRaw(line, expr1.type, expr2.type);
+int checkCompatibleTypes(int line, expr_t* expr1, expr_t* expr2){
+	return checkCompatibleTypesRaw(line, expr1->type, expr2->type);
 }
 
 
