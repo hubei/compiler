@@ -276,7 +276,8 @@ function_definition
 		newFunc->returnType = $1.type;
 		newFunc->param = NULL;
 		if(exists(curSymbol,$2)) {
-			// TODO Dirk check if function definition and prototype are equal (check params too!)
+			checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
+			// TODO Dirk RESOLVED check if function definition and prototype are equal (no params)
 		} else {
 			insertFunc(curSymbol, newFunc);
 		}
@@ -293,7 +294,9 @@ function_definition
 			}
 			newFunc->returnType = $1.type;
 			if(exists(curSymbol,$2)) {
-				// TODO Dirk check if function definition and prototype are equal (no params)
+				checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
+				correctFuncTypesParam(@1.first_line, curSymbol, $2, $4);
+				// TODO Dirk RESOLVED check if function definition and prototype are equal (with params)
 			} else {
 				insertFunc(curSymbol, newFunc);
 			}
