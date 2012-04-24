@@ -26,6 +26,27 @@ void typeError (int line, const char *msg, ...)
 }
 
 
+int correctFuncTypesParam(int line, symbol_t* curSymbol, string funcID, param_t* parameters) {
+	func_t* function = findFunc(curSymbol, funcID);
+	param_t* parametersHash = function->param;
+	int i=1;
+	for(param_t* s=parametersHash; s != NULL; s=s->next) {
+		if(parameters==NULL) {
+			typeError(line, "Too few parameters; %d parameters expected, but %d parameters found",function->num_params,i);
+			return 0;
+		}
+		var_t* expression = (var_t*)parameters->var;
+		//fprintf(stderr, "%s", typeToString(expression->type));
+		if(s->var->type != expression->type) {
+			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,typeToString(s->var->type),typeToString(expression->type));
+			return 0;
+		}
+		parameters = parameters->next;
+		i++;
+	}
+	return 1;
+}
+
 int correctFuncTypes(int line, symbol_t* curSymbol, string funcID, exprList_t* parameters) {
 	func_t* function = findFunc(curSymbol, funcID);
 	param_t* parametersHash = function->param;
@@ -47,13 +68,19 @@ int correctFuncTypes(int line, symbol_t* curSymbol, string funcID, exprList_t* p
 	return 1;
 }
 
-int checkCompatibleTypes(int line, expr_t expr1, expr_t expr2){
-	if(expr1.type != expr2.type) {
-		typeError(line, "%s is incompatible with %s", typeToString(expr1.type), typeToString(expr2.type));
+int checkCompatibleTypesRaw(int line, type_t type1, type_t type2){
+	if(type1 != type2) {
+		typeError(line, "%s is incompatible with %s", typeToString(type1), typeToString(type2));
 		return 0;
 	}
 	return 1;
 }
+
+int checkCompatibleTypes(int line, expr_t expr1, expr_t expr2){
+	return checkCompatibleTypesRaw(line, expr1.type, expr2.type);
+}
+
+
 
 //void checkCompatibleTypes(int line, expr expr1, expr expr2){
 //	checkCompatibleTypesInfo(line, expr1, expr2, "");
