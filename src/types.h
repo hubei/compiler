@@ -156,7 +156,11 @@ typedef struct irCode_t {
 	irCode_arg_t res;
 	irCode_arg_t arg0;
 	irCode_arg_t arg1;
+	struct irCode_t *prev;
 	struct irCode_t *next; //Next operation until NULL
 } irCode_t;
+
+struct irCode_t *irList;
+struct irCode_t *last;
 
 #endif /* TYPES_H_ */

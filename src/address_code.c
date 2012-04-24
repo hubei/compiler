@@ -7,36 +7,82 @@
  * @param op
  */
 void createIRCodeFromExpr( symbol_t* symTab, expr_t arg0, int op, expr_t arg1 ) {
-	irCode_t *x = (irCode_t*)malloc(sizeof(struct irCode_t));
-	assert(x!=NULL);
-	x->ops = op;
+	irCode_t *newIRCode = (irCode_t*)malloc(sizeof(struct irCode_t));
+	assert(newIRCode!=NULL);
+	assert((&newIRCode->arg0)!=NULL);
+	assert((&newIRCode->arg1)!=NULL);
+	newIRCode->ops = op;
 	//Argument 0
+	printf("Operation: %d\n", op);
 	if(arg0.valueKind==VAL_ID) {
-		x->arg0.type = ARG_VAR;
+		newIRCode->arg0.type = ARG_VAR;
 		if(findVar(symTab,arg0.value.id)!=NULL) {
+			//printf("VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
+
+			newIRCode->arg0.arg._var = findVar(symTab,arg0.value.id);
+
 		} else {
 			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
 		}
-		x->arg0.arg._var = findVar(symTab,arg0.value.id);
 	} else {
-		//printf("..........\n");
+		newIRCode->arg0.type = ARG_CONST;
+		newIRCode->arg0.arg._constant = arg0.value.num;
+		printf("NUM: %d\n", arg0.value.num);
 	}
 
+	//Arg 1
 	if(arg1.valueKind==VAL_ID) {
-		x->arg1.type = ARG_VAR;
+		newIRCode->arg1.type = ARG_VAR;
 		if(findVar(symTab,arg1.value.id)!=NULL) {
+			//printf("VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
+			newIRCode->arg1.arg._var = findVar(symTab,arg1.value.id);
 		} else {
-			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg1.value.id);
+			printf("OH MANN, KEINE VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n", arg1.value.id);
 		}
-		x->arg1.arg._var = findVar(symTab,arg1.value.id);
 		//printf("%s = %i\n\n", arg0.value.id, arg1.value.id);
 	} else {
-		x->arg1.type = ARG_CONST;
-		x->arg1.arg._constant = arg1.value.num;
-		//printf("%s = %i\n\n", arg0.value.id, x->arg1.arg._constant);
+		newIRCode->arg1.type = ARG_CONST;
+		newIRCode->arg1.arg._constant = arg1.value.num;
+		printf("NUM(2): %d\n", arg1.value.num);
 	}
-	free(x);
-	x=NULL;
+	//if irList was not assigned yet
+	//--> irList = first node
+
+	if(!irList) {
+		irList = newIRCode;
+		newIRCode->row = 0;
+	} else {
+		if(irList->next==NULL) {
+			irList->next=newIRCode;
+			newIRCode->prev = irList;
+			newIRCode->row = 1;
+			last = newIRCode;
+		} else { //irList != NULL && irList->next != null
+			newIRCode->prev = last;
+			last->next = newIRCode;
+			newIRCode->row = last->row+1;
+			last = newIRCode;
+		}
+	}
+
+	//unless VAR = ....;
+	//we'll create tmp-vars for each step
+	//i.e. 	t0 = 1 + 1;
+	//		a = t0;
+	//
+	// ---> res.arg._var = arg0.arg._const + arg1.arg._const;
+	// ---> res.arg._var = this->prev->res.arg._var;
+	if(op != OP_ASSIGN) {
+		newIRCode->res.type = ARG_VAR;
+		char tmp[0x10]; //16-stellen dürften mal dicke reichen! :D
+		sprintf(tmp,"#V_%d",newIRCode->row);
+		newIRCode->res.arg._var = createVar(tmp);
+		insertVar(symTab,  newIRCode->res.arg._var);
+	} else {
+		newIRCode->res = newIRCode->arg0;
+		newIRCode->arg0 = newIRCode->arg1;
+	}
+	IRtoString( newIRCode );
 }
 
 /**
@@ -138,6 +184,7 @@ char* OpToString( char *result, irCode_t *line, int op ) {
 			if(line->res.arg._var==NULL || line->arg0.arg._var==NULL || line->arg1.arg._var==NULL)
 				return "";
 			if(line->res.arg._var->id != NULL && line->arg0.arg._var->id!=NULL && line->arg1.arg._var->id!=NULL) {
+				//<LINE>: a = 1	+ 2;
 				concat(result,"<");
 				concat(result,cur_line);
 				concat(result,">: ");
