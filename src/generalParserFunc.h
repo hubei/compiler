@@ -7,6 +7,12 @@
 #ifndef GENERALPARSERFUNC_H_
 #define GENERALPARSERFUNC_H_
 
+/**
+ * @brief Loads head of list into result
+ * @param list pointer to any element in a list
+ * @param result pointer to the resulting head of the list
+ * @author NicolaiO
+ */
 #define GETLISTHEAD(list, result) \
 	result = list; \
 	while(result->prev != NULL) { \

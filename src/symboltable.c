@@ -33,7 +33,8 @@ char* setString(const char* source) {
 	char* target;
 	if (source != NULL) {
 		target = malloc(sizeof(source));
-		assert(target!=NULL);													//	assert
+		assert(target!=NULL);
+		//	assert
 		strcpy(target, source);
 	} else {
 		error("setString: Source is not initialized!");
@@ -46,7 +47,7 @@ char* setString(const char* source) {
  * @param msg message to be printed to stderr
  */
 void error(string msg) {
-	fprintf(stderr, "\n%s\n", msg);
+	fprintf(stderr, "\n%s\nExiting...\n", msg);
 	exit(1);
 }
 
@@ -57,7 +58,8 @@ void error(string msg) {
  * @return new symbol
  */
 symbol_t* push(symbol_t* symbol, struct func_t* func) {
-	assert(func!=NULL);									//assert
+	assert(func!=NULL);
+	//assert
 	if (func->symbol == NULL) {
 		func->symbol = createSymbol();
 		func->symbol->next = symbol;
@@ -84,7 +86,9 @@ symbol_t* pop(symbol_t* symbol) {
 symbol_t* createSymbol() {
 	symbol_t *newSymbol = NULL;
 	newSymbol = malloc(sizeof(symbol_t));
-	assert(newSymbol!=NULL);
+	if(newSymbol==NULL) {
+		error("createSymbol: Could not allocate newSymbol");
+	}
 
 	/* initialize all pointers to NULL
 	 * This is very important, because C does not set a new pointer to NULL automatically
@@ -106,6 +110,7 @@ symbol_t* createSymbol() {
  * @return
  */
 var_t* createVar(string id) {
+	assert(id != NULL);
 	var_t *newVar = NULL;
 	newVar = malloc(sizeof(var_t));
 	if (newVar == NULL) {
@@ -125,6 +130,7 @@ var_t* createVar(string id) {
  * @return
  */
 func_t* createFunc(string id) {
+	assert(id != NULL);
 	func_t *newFunc = NULL;
 	newFunc = malloc(sizeof(func_t));
 	if (newFunc == NULL) {
@@ -146,17 +152,17 @@ func_t* createFunc(string id) {
  * @return reference to new param
  */
 param_t* addParam(param_t* prevParam, var_t* paramVar) {
-	assert(paramVar!=NULL);									//assert
+	assert(paramVar!=NULL);
 	assert(paramVar->id!=NULL);
 	struct param_t* newParam = NULL;
 	newParam = malloc(sizeof(paramVar));
-	if(newParam == NULL)
-		error("addParam: newParam is NULL");							//assert
+	if (newParam == NULL)
+		error("addParam: newParam is NULL");
 	newParam->prev = NULL;
 	newParam->next = NULL;
 	newParam->var = paramVar;
 
-	if(prevParam != NULL) {
+	if (prevParam != NULL) {
 		prevParam->next = newParam;
 		newParam->prev = prevParam;
 	}
@@ -172,10 +178,16 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
 
 void insertVar(symbol_t* symbol, var_t* var) {
 //	prüfen ob übergebenen parameter nicht null sind
-	assert(symbol != NULL);									//assert
-	assert(var != NULL);									//assert
-	assert(var->id != NULL);								//assert
-	// TODO Dirk check for existing
+	assert(symbol != NULL);
+	//assert
+	assert(var != NULL);
+	//assert
+	assert(var->id != NULL);
+	//assert
+
+	if (exists(symbol, var->id)) {
+		error("Function is already in symbol table");
+	}
 
 	// offset
 	var->offset = symbol->offset;
@@ -191,12 +203,14 @@ void insertVar(symbol_t* symbol, var_t* var) {
  * @param symbol, symbol, is a struct, containing hash tables for variables and functions
  * @param func, hash table, defining functions
  */
-void insertFunc(symbol_t* symbol, func_t* func) {					//assert
+void insertFunc(symbol_t* symbol, func_t* func) {
 	assert(symbol != NULL);
 	assert(func != NULL);
 	assert(func->id != NULL);
 
-	// TODO Dirk check for existing
+	if (exists(symbol, func->id)) {
+		error("Function is already symbol table");
+	}
 
 	//einfügen in die hashmap
 	HASH_ADD_KEYPTR( hh, symbol->symFunc, func->id, strlen(func->id), func);
@@ -215,7 +229,7 @@ void insertParams(func_t* func, param_t* lastParam) {
 	param_t* param = lastParam;
 	var_t* var = NULL;
 	int paramCount = 0;
-	while(param != NULL) {
+	while (param != NULL) {
 		var = param->var;
 		assert(var!=NULL);
 
@@ -223,7 +237,8 @@ void insertParams(func_t* func, param_t* lastParam) {
 		var->offset = func->symbol->offset;
 		func->symbol->offset += var->width;
 
-		HASH_ADD_KEYPTR( hh, func->symbol->symVar, var->id, strlen(var->id), var);
+		HASH_ADD_KEYPTR( hh, func->symbol->symVar, var->id, strlen(var->id),
+				var);
 		func->param = param;
 		param = param->prev;
 		paramCount++;
@@ -240,7 +255,7 @@ void insertParams(func_t* func, param_t* lastParam) {
 int getParamCount(param_t* paramHead) {
 	int count = 0;
 	param_t* param = paramHead;
-	while(param != NULL) {
+	while (param != NULL) {
 		count++;
 		param = param->next;
 	}
@@ -254,6 +269,8 @@ int getParamCount(param_t* paramHead) {
  * @return the variable
  */
 var_t* findVar(symbol_t* symbol, string id) {
+	assert(symbol != NULL);
+	assert(id != NULL);
 	struct var_t *k;
 	struct symbol_t* tmpSymbol = symbol;
 	while (tmpSymbol != NULL) {
@@ -273,6 +290,8 @@ var_t* findVar(symbol_t* symbol, string id) {
  * @return the function
  */
 func_t* findFunc(symbol_t* symbol, string id) {
+	assert(symbol != NULL);
+	assert(id != NULL);
 	struct func_t *k = NULL;
 	struct symbol_t* tmpSymbol = symbol;
 	while (tmpSymbol != NULL) {
@@ -293,6 +312,8 @@ func_t* findFunc(symbol_t* symbol, string id) {
  * @return 1 if id exists, 0 if not
  */
 int exists(symbol_t* symbol, string id) {
+	assert(symbol != NULL);
+	assert(id != NULL);
 	struct func_t *k = NULL;
 	HASH_FIND(hh, symbol->symFunc, id, strlen(id), k);
 	if (k != NULL) {
@@ -329,12 +350,15 @@ void setSymbolTable(symbol_t* sym) {
  */
 void print_var(FILE* file, var_t* symVar) {
 	assert(file!=NULL);
+	// symVar can be NULL -> empty hash table
 
 	struct var_t *k, *tmp;
 	HASH_ITER(hh, symVar, k, tmp) {
-		assert(k->id != NULL);							//assert
-		fprintf(file, "var %s\n\ttype: %s - size: %d - width: %d - offset: %d\n", k->id,
-				typeToString(k->type), k->size, k->width, k->offset);
+		assert(k->id != NULL);
+		//assert
+		fprintf(file,
+				"var %s\n\ttype: %s - size: %d - width: %d - offset: %d\n",
+				k->id, typeToString(k->type), k->size, k->width, k->offset);
 	}
 }
 
@@ -346,14 +370,18 @@ void print_var(FILE* file, var_t* symVar) {
 
 void print_param(FILE* file, param_t* paramHead) {
 	assert(file!=NULL);
+	// paramHead can be NULL -> no params
 
 	param_t* param = paramHead;
 	var_t* var = NULL;
-	while(param != NULL) {
+	while (param != NULL) {
 		var = param->var;
-		assert(var!=NULL);										//assert
-		fprintf(file, "\tparam %s\n\t\ttype: %s - size: %d - width: %d - offset: %d\n", var->id,
-						typeToString(var->type), var->size, var->width, var->offset);
+		assert(var!=NULL);
+		//assert
+		fprintf(file,
+				"\tparam %s\n\t\ttype: %s - size: %d - width: %d - offset: %d\n",
+				var->id, typeToString(var->type), var->size, var->width,
+				var->offset);
 		param = param->next;
 	}
 }
@@ -365,6 +393,7 @@ void print_param(FILE* file, param_t* paramHead) {
  */
 void print_func(FILE* file, func_t* symFunc) {
 	assert(file!=NULL);
+	// symFunc can be NULL -> empty hash table
 
 	struct func_t *func, *tmp;
 	HASH_ITER(hh, symFunc, func, tmp) {
@@ -373,7 +402,7 @@ void print_func(FILE* file, func_t* symFunc) {
 				typeToString(func->returnType), func->num_params);
 
 		// print params, if there are any
-		print_param(file,func->param);
+		print_param(file, func->param);
 	}
 }
 
@@ -382,6 +411,7 @@ void print_func(FILE* file, func_t* symFunc) {
  * @param file link to an open file or NULL
  */
 void test_symTab(FILE* file) {
+	// use stdout, if there is no file
 	if (file == NULL) {
 		file = stdout;
 	}
@@ -394,7 +424,7 @@ void test_symTab(FILE* file) {
 	// print symbol table for each func
 	struct func_t *func, *tmp;
 	HASH_ITER(hh, symbolTable->symFunc, func, tmp) {
-		if(func->symbol != NULL) {
+		if (func->symbol != NULL) {
 			fprintf(file,
 					"################### scope for %s ###################\n",
 					func->id);
@@ -419,8 +449,10 @@ string typeToString(type_t type) {
 		break;
 	case T_VOID:
 		return setString("VOID");
+	case T_UNKOWN:
+		return setString("UNKOWN");
 		break;
 	}
-	return setString("unknown");
+	return setString("no valid type");
 }
 

@@ -21,16 +21,15 @@ typedef const char* string;
  * @brief set of possible types
  */
 typedef enum type_t {
-	T_INT, T_VOID, T_INT_A
+	T_UNKOWN, T_INT, T_VOID, T_INT_A
 } type_t;
 
 /**
  * TODO Dirk documentation
  */
 typedef enum valueKind_t {
-		VAL_ID, VAL_NUM
-}valueKind_t;
-
+	VAL_ID, VAL_NUM
+} valueKind_t;
 
 /**
  * TODO Dirk documentation
@@ -39,19 +38,19 @@ typedef struct expr_t {
 	type_t type;
 	int lvalue;
 	valueKind_t valueKind;
-	union{
+	union {
 		char* id;
 		int num;
-	}value;
+	} value;
 } expr_t;
 
 /**
  * @brief expression list of the parser (function parameters)
  */
 typedef struct exprList_t {
-		struct expr_t* expr;
-		struct exprList_t* prev;
-		struct exprList_t* next;
+	struct expr_t* expr;
+	struct exprList_t* prev;
+	struct exprList_t* next;
 } exprList_t;
 
 /**
@@ -126,9 +125,7 @@ typedef enum operations_t {
  *  @brief	Enables the determination whether a type is a Variable, Function or constant
  */
 typedef enum irType_t {
-	ARG_VAR,
-	ARG_FUNC,
-	ARG_CONST
+	ARG_VAR, ARG_FUNC, ARG_CONST
 } irType_t;
 
 /**
@@ -143,7 +140,7 @@ typedef struct irCode_arg_t {
 		func_t* _func;
 		int _constant;
 	} arg;
-    int type;
+	int type;
 } irCode_arg_t;
 
 /**
@@ -152,7 +149,7 @@ typedef struct irCode_arg_t {
  */
 typedef struct irCode_t {
 	int row;
-	int ops;
+	operations_t ops;
 	irCode_arg_t res;
 	irCode_arg_t arg0;
 	irCode_arg_t arg1;

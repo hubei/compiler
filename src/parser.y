@@ -276,8 +276,17 @@ function_definition
 		newFunc->returnType = $1.type;
 		newFunc->param = NULL;
 		if(exists(curSymbol,$2)) {
-			checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
-			// TODO Dirk RESOLVED check if function definition and prototype are equal (no params)
+			func_t* existingFunc = findFunc(curSymbol, $2);
+			if(existingFunc == NULL) {
+				error("function_definition: could not find function, but it should exist...");
+			} else if(existingFunc->symbol==NULL) {
+				// check if function definition and prototype are equal (no params)
+				checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
+			} else {
+				// function was already defined!
+				// TODO Dirk create better error functions...
+				yyerror("Function already defined!");
+			}
 		} else {
 			insertFunc(curSymbol, newFunc);
 		}
@@ -288,19 +297,28 @@ function_definition
 		  curSymbol = pop(curSymbol);
 	  } BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
-			func_t* newFunc = createFunc($2);
-			if(newFunc==NULL) {
-				error("function_definition: newFunc is NULL");
-			}
-			newFunc->returnType = $1.type;
-			if(exists(curSymbol,$2)) {
+		func_t* newFunc = createFunc($2);
+		if(newFunc==NULL) {
+			error("function_definition: newFunc is NULL");
+		}
+		newFunc->returnType = $1.type;
+		if(exists(curSymbol,$2)) {
+			func_t* existingFunc = findFunc(curSymbol, $2);
+			if(existingFunc == NULL) {
+				error("function_definition: could not find function, but it should exist...");
+			} else if(existingFunc->symbol==NULL) {
+				// check if function definition and prototype are equal (no params)
 				checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
 				correctFuncTypesParam(@1.first_line, curSymbol, $2, $4);
-				// TODO Dirk RESOLVED check if function definition and prototype are equal (with params)
 			} else {
-				insertFunc(curSymbol, newFunc);
+				// function was already defined!
+				// TODO Dirk create better error functions...
+				yyerror("Function already defined!");
 			}
-		}	
+		} else {
+			insertFunc(curSymbol, newFunc);
+		}
+	  }	
 	  BRACE_OPEN {
 		  int ex = exists(curSymbol,$2);
 		  curSymbol = push(curSymbol,findFunc(curSymbol, $2));
@@ -370,6 +388,7 @@ expression
      : expression ASSIGN expression {
      	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
      		expressionReturn($1);
+        	$$=malloc(sizeof(expr_t));
      		$$ = $1;
      		createIRCodeFromExpr(curSymbol,$1,OP_ASSIGN,$3);
      	 }
@@ -377,12 +396,14 @@ expression
      | expression LOGICAL_OR expression {
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
     		 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
     		 $$ = $1;
 		 }
 	 }
      | expression LOGICAL_AND expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 		 }
      }
@@ -390,6 +411,7 @@ expression
      | expression EQ expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_IFEQ,$3);
 		 }
@@ -397,6 +419,7 @@ expression
      | expression NE expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_IFNE,$3);
 		 }
@@ -404,6 +427,7 @@ expression
      | expression LS expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_IFLT,$3);
 		 }
@@ -411,13 +435,15 @@ expression
      | expression LSEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_IFLE,$3);
+			 //createIRCodeFromExpr(curSymbol,$1,OP_IFLE,$3);
 		 }
      }
      | expression GTEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_IFGE,$3);
 		 }
@@ -425,6 +451,7 @@ expression
      | expression GT expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_IFGT,$3);
 		 }
@@ -432,13 +459,15 @@ expression
      | expression PLUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);
+			 //createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);
 		 }
      }
      | expression MINUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_SUB,$3);
 		 }
@@ -446,6 +475,7 @@ expression
      | expression MUL expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_MUL,$3);
 		 }
@@ -453,6 +483,7 @@ expression
      | expression DIV expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_DIV,$3);
 		 }
@@ -460,22 +491,37 @@ expression
      | expression MOD expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
+			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
 			 createIRCodeFromExpr(curSymbol,$1,OP_MOD,$3);
 		 }
      }
-     | MINUS expression %prec UNARY_MINUS { debug(50); $$ = $2;}
-     | ID BRACKET_OPEN primary BRACKET_CLOSE { debug(51); 
+     | MINUS expression %prec UNARY_MINUS { 
+    	 debug(50); 
+    	 $$=malloc(sizeof(expr_t));
+    	 $$ = $2;}
+     | ID BRACKET_OPEN primary BRACKET_CLOSE { 
+    	 debug(51); 
      	 if($3->type!=T_INT) {
      		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
      	 }
+		 $$=malloc(sizeof(expr_t));
      	 $$=$3;
      	 $$->type=T_INT;
      	 $$->lvalue=1;
      }
-     | PARA_OPEN expression PARA_CLOSE { debug(52); $$ = $2;}
-     | function_call { debug(53); $$ = $1;}
-     | primary { debug(54); $$ = $1;}
+     | PARA_OPEN expression PARA_CLOSE { 
+    	 debug(52);
+		 $$=malloc(sizeof(expr_t)); 
+     	 $$ = $2;}
+     | function_call { 
+    	 debug(53); 
+		 $$=malloc(sizeof(expr_t));
+    	 $$ = $1;}
+     | primary { 
+    	 debug(54); 
+		 $$ = $1;
+     }
      ;
 
 primary
@@ -484,13 +530,15 @@ primary
 //		if($$==NULL) {
 //			error("primary: $1 is NULL");
 //		}
-    	$$=malloc(sizeof(*$$));
-    		 $$->value.num = $1;
-    	 	 $$->type = T_INT;
-    	 	 $$->lvalue = 0;
-    	 	 $$->valueKind = VAL_NUM;
+    	$$=malloc(sizeof(expr_t));
+		 $$->value.num = $1;
+		 $$->type = T_INT;
+		 $$->lvalue = 0;
+		 $$->valueKind = VAL_NUM;
+//	     printf("num: %d\n", $$->value.num);
        }
-     | ID { 
+     | ID {
+    	 $$=malloc(sizeof(expr_t));
     	 debug(56); 
     	 var_t* found = findVar(curSymbol, $1);
     	 if(found!=NULL) {
@@ -506,6 +554,7 @@ primary
     	 } else {
     		 typeError(@1.first_line, "Parameter does not exist: %s", $1);
     	 }
+//	     printf("id: %s\n", $$->value.id);
       }
      ;
 
@@ -513,9 +562,13 @@ primary
  * The non-terminal 'function_call' is used by the non-terminal 'expression' for calling functions.
  */
 function_call
-	: ID PARA_OPEN PARA_CLOSE { debug(57); }
+	: ID PARA_OPEN PARA_CLOSE { 
+		debug(57);
+		$$=malloc(sizeof(expr_t));
+	}
 	| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
 		debug(58); 
+		$$=malloc(sizeof(expr_t));
 		printf("fucntion call: %d: Value: %s \n", @1.first_line, $3->expr->value);
 		correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
 	}
@@ -527,6 +580,7 @@ function_call
  */ 									
 function_call_parameters
      : function_call_parameters COMMA expression { debug(59); 
+	 	 $$=malloc(sizeof(expr_t));
 //     	 $$->expr = &$3; 
 //     	 $$->prev = &$1; 
 //     	 $$->prev->next = $$;
@@ -537,8 +591,10 @@ function_call_parameters
      	 printf("more than one parameter\n");
      	 /*FIXME maybe check for nullpointers? :P*/}
      | expression { 
-    	 $$=malloc(sizeof(*$$));
-    	 assert($$!=NULL);
+    	 $$=malloc(sizeof(expr_t));
+    	 if($$==NULL) {
+    		 error("fcp_expression: malloc unsuccessful");
+    	 }
     	 $$->expr = $1;
     	 printf("fucntion call parameters: %d: Value: %s \n", @1.first_line, $$->expr->value);
      }
@@ -549,6 +605,6 @@ function_call_parameters
 void yyerror (const char *msg)
 {
 	fprintf(stderr, "Syntax Error: %s",msg);
-	//exit(1);
+	exit(1);
 } 
 

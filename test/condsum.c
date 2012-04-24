@@ -24,17 +24,11 @@ int func (int arr[10], int len, int threshold) {
   return sum;
 }
 
-int test2(int a, int b) {
-	int a;
-	a = 0;
-	return a;
-}
-
 int main () {
   global = 1;
-  return func(a,5+5,5);
+//  return func(a,5+5,5);
 
-  print(scan());
+//  print(scan());
 
   exit(0);
 }

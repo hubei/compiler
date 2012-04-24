@@ -65,7 +65,7 @@ int correctFuncTypes(int line, symbol_t* curSymbol, string funcID, exprList_t* p
 		parameters = parameters->next;
 		i++;
 	}
-	if(parameters->expr != NULL) {
+	if(parameters != NULL) {
 		typeError(line, "Too much parameters; %d parameters expected, but %d parameters found",function->num_params,i);
 		return 0;
 	}
