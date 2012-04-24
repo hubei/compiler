@@ -6,44 +6,42 @@
  * @param arg1
  * @param op
  */
-void createIRCodeFromExpr( symbol_t* symTab, expr_t arg0, int op, expr_t arg1 ) {
+void createIRCodeFromExpr( symbol_t* symTab, expr_t* arg0, int op, expr_t* arg1 ) {
 	irCode_t *newIRCode = (irCode_t*)malloc(sizeof(struct irCode_t));
 	assert(newIRCode!=NULL);
 	assert((&newIRCode->arg0)!=NULL);
 	assert((&newIRCode->arg1)!=NULL);
 	newIRCode->ops = op;
-	//Argument 0
 	printf("Operation: %d\n", op);
-	if(arg0.valueKind==VAL_ID) {
+	if(arg0->valueKind==VAL_ID) {
 		newIRCode->arg0.type = ARG_VAR;
-		if(findVar(symTab,arg0.value.id)!=NULL) {
+		if(findVar(symTab,arg0->value.id)!=NULL) {
 			//printf("VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
 
-			newIRCode->arg0.arg._var = findVar(symTab,arg0.value.id);
-
+			newIRCode->arg0.arg._var = findVar(symTab,arg0->value.id);
 		} else {
-			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
+			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0->value.id);
 		}
 	} else {
 		newIRCode->arg0.type = ARG_CONST;
-		newIRCode->arg0.arg._constant = arg0.value.num;
-		printf("NUM: %d\n", arg0.value.num);
+		newIRCode->arg0.arg._constant = arg0->value.num;
+		printf("NUM: %d\n", arg0->value.num);
 	}
 
 	//Arg 1
-	if(arg1.valueKind==VAL_ID) {
+	if(arg1->valueKind==VAL_ID) {
 		newIRCode->arg1.type = ARG_VAR;
-		if(findVar(symTab,arg1.value.id)!=NULL) {
+		if(findVar(symTab,arg1->value.id)!=NULL) {
 			//printf("VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
-			newIRCode->arg1.arg._var = findVar(symTab,arg1.value.id);
+			newIRCode->arg1.arg._var = findVar(symTab,arg1->value.id);
 		} else {
-			printf("OH MANN, KEINE VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n", arg1.value.id);
+			printf("OH MANN, KEINE VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n", arg1->value.id);
 		}
 		//printf("%s = %i\n\n", arg0.value.id, arg1.value.id);
 	} else {
 		newIRCode->arg1.type = ARG_CONST;
-		newIRCode->arg1.arg._constant = arg1.value.num;
-		printf("NUM(2): %d\n", arg1.value.num);
+		newIRCode->arg1.arg._constant = arg1->value.num;
+		printf("NUM(2): %d\n", arg1->value.num);
 	}
 	//if irList was not assigned yet
 	//--> irList = first node

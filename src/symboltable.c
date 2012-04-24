@@ -79,7 +79,7 @@ symbol_t* pop(symbol_t* symbol) {
 
 /**
  * @brief create a new empty symbol
- * @return new symbol
+ * @return new symbol, is a struct, containing hash tables for variables and functions
  */
 symbol_t* createSymbol() {
 	symbol_t *newSymbol = NULL;
@@ -102,30 +102,38 @@ symbol_t* createSymbol() {
 
 /**
  * @brief creates a new Variable
- * @param id
+ * @param id, identiefys a var
  * @return
  */
 var_t* createVar(string id) {
 	var_t *newVar = NULL;
 	newVar = malloc(sizeof(var_t));
-	assert(newVar!=NULL);												//Assert
+	if (newVar == NULL) {
+		error("Variable could not be created");
+	}
 	newVar->id = malloc(sizeof(id));
-	assert(newVar->id!=NULL);									//Assert
+	if (newVar->id == NULL) {
+		error("createVar: Could not allocate id");
+	}
 	strcpy(newVar->id, id);
 	return newVar;
 }
 
 /**
  * @brief creates a new Function.
- * @param id
+ * @param id, identiefys a function
  * @return
  */
 func_t* createFunc(string id) {
 	func_t *newFunc = NULL;
 	newFunc = malloc(sizeof(func_t));
-	assert(newFunc != NULL);												//Assert
+	if (newFunc == NULL) {
+		error("Function could not be created");
+	}
 	newFunc->id = malloc(sizeof(id));
-	assert(newFunc->id != NULL);
+	if (newFunc->id == NULL) {
+		error("createFunc: Could not allocate id");
+	}
 	strcpy(newFunc->id, id);
 	newFunc->num_params = 0;
 	return newFunc;
@@ -142,7 +150,8 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
 	assert(paramVar->id!=NULL);
 	struct param_t* newParam = NULL;
 	newParam = malloc(sizeof(paramVar));
-	assert(newParam != NULL);								//assert
+	if(newParam == NULL)
+		error("addParam: newParam is NULL");							//assert
 	newParam->prev = NULL;
 	newParam->next = NULL;
 	newParam->var = paramVar;
@@ -157,9 +166,10 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
 
 /**
  * @brief adds an variable to an existing symbol
- * @param symbol
- * @param var
+ * @param symbol, is a struct, containing hash tables for variables and functions
+ * @param var, hash table, defining variables
  */
+
 void insertVar(symbol_t* symbol, var_t* var) {
 //	prüfen ob übergebenen parameter nicht null sind
 	assert(symbol != NULL);									//assert
@@ -177,9 +187,9 @@ void insertVar(symbol_t* symbol, var_t* var) {
 }
 
 /**
- * @brief
- * @param symbol
- * @param func
+ * @brief adds a function to an existing symbol
+ * @param symbol, symbol, is a struct, containing hash tables for variables and functions
+ * @param func, hash table, defining functions
  */
 void insertFunc(symbol_t* symbol, func_t* func) {					//assert
 	assert(symbol != NULL);
@@ -238,10 +248,10 @@ int getParamCount(param_t* paramHead) {
 }
 
 /**
- *
+ * @brief sarches for variables in all scopes of the symbol table
  * @param symbol
  * @param id
- * @return
+ * @return the variable
  */
 var_t* findVar(symbol_t* symbol, string id) {
 	struct var_t *k;
@@ -257,7 +267,7 @@ var_t* findVar(symbol_t* symbol, string id) {
 }
 
 /**
- * @brief searches for functions in all scopes
+ * @brief searches for functions in all scopes  of the symbol table
  * @param symbol
  * @param id
  * @return the function
@@ -327,6 +337,12 @@ void print_var(FILE* file, var_t* symVar) {
 				typeToString(k->type), k->size, k->width, k->offset);
 	}
 }
+
+/**
+ * @brief prints parameters of variables
+ * @param file specifies the location of the file where the parameters are printed to
+ * @param paramHead
+ */
 
 void print_param(FILE* file, param_t* paramHead) {
 	assert(file!=NULL);

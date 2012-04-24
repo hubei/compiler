@@ -10,9 +10,11 @@
 #include "uthash.h"
 
 //int correctReturnType(symbol*, string funcID, expr returnTypeExpr);
-int checkCompatibleTypes(int line, expr_t expr1, expr_t expr2);
+int checkCompatibleTypes(int line, expr_t* expr1, expr_t* expr2);
+int checkCompatibleTypesRaw(int line, type_t type1, type_t type2);
 //void checkCompatibleTypesInfo(int line, expr expr1, expr expr2, char* type);
 int correctFuncTypes(int line, symbol_t*, string funcID, exprList_t* parameters);
+int correctFuncTypesParam(int line, symbol_t*, string funcID, param_t* parameters);
 void typeError (int line, const char *msg, ...);
 
 #endif
