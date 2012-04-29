@@ -437,7 +437,7 @@ expression
 			 expressionReturn($1);
 			 $$=malloc(sizeof(expr_t));
 			 $$ = $1;
-			 //createIRCodeFromExpr(curSymbol,$1,OP_IFLE,$3);
+			 createIRCodeFromExpr(curSymbol,$1,OP_IFLE,$3);
 		 }
      }
      | expression GTEQ expression  { 
@@ -459,47 +459,38 @@ expression
      | expression PLUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 //createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);;
 		 }
      }
      | expression MINUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_SUB,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_SUB,$3);
 		 }
      }
      | expression MUL expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_MUL,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_MUL,$3);
 		 }
      }
      | expression DIV expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_DIV,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_DIV,$3);
 		 }
      }
      | expression MOD expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_MOD,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_MOD,$3);
 		 }
      }
      | MINUS expression %prec UNARY_MINUS { 
     	 debug(50); 
     	 $$=malloc(sizeof(expr_t));
-    	 $$ = $2;}
+    	 $$ = $2;
+     }
      | ID BRACKET_OPEN primary BRACKET_CLOSE { 
     	 debug(51); 
      	 if($3->type!=T_INT) {

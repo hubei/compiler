@@ -125,7 +125,7 @@ typedef enum operations_t {
  *  @brief	Enables the determination whether a type is a Variable, Function or constant
  */
 typedef enum irType_t {
-	ARG_VAR, ARG_FUNC, ARG_CONST
+	ARG_UNKOWN, ARG_VAR, ARG_FUNC, ARG_CONST
 } irType_t;
 
 /**
@@ -140,15 +140,15 @@ typedef struct irCode_arg_t {
 		func_t* _func;
 		int _constant;
 	} arg;
-	int type;
+	irType_t type;
 } irCode_arg_t;
 
 /**
- * 	@brief Actual IR 3-address code. It always contains a pointer to the next expression, until ultimately
- * 	an "=" is read or a function is called.
+ * 	@brief One row of a IR 3-address code with references to next and previous line
  */
 typedef struct irCode_t {
 	int row;
+	char* label; // optional label
 	operations_t ops;
 	irCode_arg_t res;
 	irCode_arg_t arg0;

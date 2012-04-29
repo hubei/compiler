@@ -319,7 +319,7 @@ int main(int argc, char *argv[]) {
 
 			// TODO If necessary, call any functions for IR code generation
 			ircode = getIRCode();
-			fprintf(irFile,"%s",IRtoString());
+			printIRCode(NULL, ircode);
 
 			fclose(irFile);
 		}
