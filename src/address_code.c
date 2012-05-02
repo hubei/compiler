@@ -19,8 +19,6 @@ expr_t* createIRCodeFromExpr(symbol_t* symTab, expr_t* arg0, operations_t op,
 		newIRCode->arg0.type = ARG_VAR;
 		var_t* var = findVar(symTab, arg0->value.id);
 		if (var != NULL) {
-			//printf("VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
-
 			newIRCode->arg0.arg._var = var;
 		} else {
 			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n",
@@ -29,7 +27,6 @@ expr_t* createIRCodeFromExpr(symbol_t* symTab, expr_t* arg0, operations_t op,
 	} else {
 		newIRCode->arg0.type = ARG_CONST;
 		newIRCode->arg0.arg._constant = arg0->value.num;
-		printf("NUM: %d\n", arg0->value.num);
 	}
 
 	//Arg 1
@@ -46,7 +43,6 @@ expr_t* createIRCodeFromExpr(symbol_t* symTab, expr_t* arg0, operations_t op,
 	} else {
 		newIRCode->arg1.type = ARG_CONST;
 		newIRCode->arg1.arg._constant = arg1->value.num;
-		printf("NUM(2): %d\n", arg1->value.num);
 	}
 	//if irList was not assigned yet
 	//--> irList = first node
@@ -80,6 +76,7 @@ expr_t* createIRCodeFromExpr(symbol_t* symTab, expr_t* arg0, operations_t op,
 		char tmp[0x10]; //16-stellen dürften mal dicke reichen! :D
 		sprintf(tmp, "#V_%d", newIRCode->row);
 		newIRCode->res.arg._var = createVar(tmp);
+		newIRCode->res.arg._var->type = arg0->type;
 		insertVar(symTab, newIRCode->res.arg._var);
 
 		resExpr = malloc(sizeof(expr_t));
