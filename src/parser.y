@@ -388,7 +388,7 @@ expression
      : expression ASSIGN expression {
      	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
      		expressionReturn($1);
-        	$$=malloc(sizeof(expr_t));
+//        	$$=malloc(sizeof(expr_t));
      		$$ = $1;
      		createIRCodeFromExpr(curSymbol,$1,OP_ASSIGN,$3);
      	 }
@@ -488,7 +488,7 @@ expression
      }
      | MINUS expression %prec UNARY_MINUS { 
     	 debug(50); 
-    	 $$=malloc(sizeof(expr_t));
+//    	 $$=malloc(sizeof(expr_t));
     	 $$ = $2;
      }
      | ID BRACKET_OPEN primary BRACKET_CLOSE { 
@@ -496,18 +496,18 @@ expression
      	 if($3->type!=T_INT) {
      		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
      	 }
-		 $$=malloc(sizeof(expr_t));
+//		 $$=malloc(sizeof(expr_t));
      	 $$=$3;
      	 $$->type=T_INT;
      	 $$->lvalue=1;
      }
      | PARA_OPEN expression PARA_CLOSE { 
     	 debug(52);
-		 $$=malloc(sizeof(expr_t)); 
+//		 $$=malloc(sizeof(expr_t)); 
      	 $$ = $2;}
      | function_call { 
     	 debug(53); 
-		 $$=malloc(sizeof(expr_t));
+//		 $$=malloc(sizeof(expr_t));
     	 $$ = $1;}
      | primary { 
     	 debug(54); 
