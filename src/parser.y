@@ -187,10 +187,6 @@ identifier_declaration
     	 }
     	 $$ = newVar;
 		 $$->size = $3;
-// example of how to get line numbers
-//		fprintf (stderr, "l%d,c%d-l%d,c%d\n",
-//                            @1.first_line, @1.first_column,
-//                            @1.last_line, @1.last_column);
      } 
      | ID {	
     	 debug(14);
@@ -388,72 +384,56 @@ expression
      : expression ASSIGN expression {
      	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
      		expressionReturn($1);
-//        	$$=malloc(sizeof(expr_t));
-     		$$ = $1;
-     		createIRCodeFromExpr(curSymbol,$1,OP_ASSIGN,$3);
+     		$$ = createIRCodeFromExpr(curSymbol,$1,OP_ASSIGN,$3);
      	 }
      }
      | expression LOGICAL_OR expression {
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
     		 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-    		 $$ = $1;
+    		 $$ = $1; // FIXME Nico do sth here
 		 }
 	 }
      | expression LOGICAL_AND expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
+			 $$ = $1; // FIXME Nico do sth here
 		 }
      }
      | LOGICAL_NOT expression { debug(38); $$=$2;}
      | expression EQ expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_IFEQ,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFEQ,$3);
 		 }
      }
      | expression NE expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_IFNE,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFNE,$3);
 		 }
      }
      | expression LS expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_IFLT,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFLT,$3);
 		 }
      }
      | expression LSEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_IFLE,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFLE,$3);
 		 }
      }
      | expression GTEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_IFGE,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFGE,$3);
 		 }
      }
      | expression GT expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$=malloc(sizeof(expr_t));
-			 $$ = $1;
-			 createIRCodeFromExpr(curSymbol,$1,OP_IFGT,$3);
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFGT,$3);
 		 }
      }
      | expression PLUS expression { 
@@ -489,7 +469,6 @@ expression
      }
      | MINUS expression %prec UNARY_MINUS { 
     	 debug(50); 
-//    	 $$=malloc(sizeof(expr_t));
     	 $$ = $2;
      }
      | ID BRACKET_OPEN primary BRACKET_CLOSE { 
@@ -497,18 +476,15 @@ expression
      	 if($3->type!=T_INT) {
      		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
      	 }
-//		 $$=malloc(sizeof(expr_t));
      	 $$=$3;
      	 $$->type=T_INT;
      	 $$->lvalue=1;
      }
      | PARA_OPEN expression PARA_CLOSE { 
     	 debug(52);
-//		 $$=malloc(sizeof(expr_t)); 
      	 $$ = $2;}
      | function_call { 
     	 debug(53); 
-//		 $$=malloc(sizeof(expr_t));
     	 $$ = $1;}
      | primary { 
     	 debug(54); 
@@ -519,15 +495,16 @@ expression
 primary
      : NUM { 
     	debug(55);
-//		if($$==NULL) {
-//			error("primary: $1 is NULL");
-//		}
+    	$$ = NULL;
     	$$=malloc(sizeof(expr_t));
-		 $$->value.num = $1;
-		 $$->type = T_INT;
-		 $$->lvalue = 0;
-		 $$->valueKind = VAL_NUM;
-//	     printf("num: %d\n", $$->value.num);
+		if($$==NULL) {
+			error("primary: Could not allocate");
+		}
+		$$->value.num = $1;
+		$$->type = T_INT;
+		$$->lvalue = 0;
+		$$->valueKind = VAL_NUM;
+//	    printf("num: %d\n", $$->value.num);
        }
      | ID {
     	 $$=malloc(sizeof(expr_t));
@@ -575,7 +552,7 @@ function_call
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-     : function_call_parameters COMMA expression { debug(59); 
+     : function_call_parameters COMMA expression { debug(59);
 	 	 $$=malloc(sizeof(expr_t));
      	 $$->expr = $3; 
      	 $$->prev = $1; 
