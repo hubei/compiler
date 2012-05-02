@@ -29,12 +29,13 @@ void debug(int number) {
  * @param source A string that should be stored in memory
  * @return A reference to the stored string
  */
-char* setString(const char* source) {
-	char* target;
+char* setString(char* source) {
+	char* target = NULL;
 	if (source != NULL) {
-		target = malloc(sizeof(source));
-		assert(target!=NULL);
-		//	assert
+		target = malloc(strlen(source) + 1);
+		if (target == NULL) {
+			// TODO error
+		}
 		strcpy(target, source);
 	} else {
 		error("setString: Source is not initialized!");
@@ -59,7 +60,7 @@ void error(string msg) {
  */
 symbol_t* push(symbol_t* symbol, struct func_t* func) {
 	assert(func!=NULL);
-	//assert
+
 	if (func->symbol == NULL) {
 		func->symbol = createSymbol();
 		func->symbol->next = symbol;
@@ -86,7 +87,7 @@ symbol_t* pop(symbol_t* symbol) {
 symbol_t* createSymbol() {
 	symbol_t *newSymbol = NULL;
 	newSymbol = malloc(sizeof(symbol_t));
-	if(newSymbol==NULL) {
+	if (newSymbol == NULL) {
 		error("createSymbol: Could not allocate newSymbol");
 	}
 
@@ -116,11 +117,15 @@ var_t* createVar(string id) {
 	if (newVar == NULL) {
 		error("Variable could not be created");
 	}
-	newVar->id = malloc(sizeof(id));
+	newVar->id = malloc(strlen(id) + 1);
 	if (newVar->id == NULL) {
 		error("createVar: Could not allocate id");
 	}
 	strcpy(newVar->id, id);
+	newVar->offset = 0;
+	newVar->size = 0;
+	newVar->type = T_UNKOWN;
+	newVar->width = 0;
 	return newVar;
 }
 
@@ -132,16 +137,19 @@ var_t* createVar(string id) {
 func_t* createFunc(string id) {
 	assert(id != NULL);
 	func_t *newFunc = NULL;
-	newFunc = malloc(sizeof(func_t));
+	newFunc = malloc(sizeof(struct func_t));
 	if (newFunc == NULL) {
 		error("Function could not be created");
 	}
-	newFunc->id = malloc(sizeof(id));
+	newFunc->id = malloc(strlen(id) + 1);
 	if (newFunc->id == NULL) {
 		error("createFunc: Could not allocate id");
 	}
 	strcpy(newFunc->id, id);
 	newFunc->num_params = 0;
+	newFunc->param = NULL;
+	newFunc->returnType = T_UNKOWN;
+	newFunc->symbol = NULL;
 	return newFunc;
 }
 
@@ -155,7 +163,7 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
 	assert(paramVar!=NULL);
 	assert(paramVar->id!=NULL);
 	struct param_t* newParam = NULL;
-	newParam = malloc(sizeof(paramVar));
+	newParam = malloc(sizeof(var_t));
 	if (newParam == NULL)
 		error("addParam: newParam is NULL");
 	newParam->prev = NULL;
@@ -352,13 +360,14 @@ void print_var(FILE* file, var_t* symVar) {
 	assert(file!=NULL);
 	// symVar can be NULL -> empty hash table
 
-	struct var_t *k, *tmp;
+	struct var_t *k = NULL, *tmp = NULL;
 	HASH_ITER(hh, symVar, k, tmp) {
 		assert(k->id != NULL);
-		//assert
+		string strType = typeToString(k->type);
 		fprintf(file,
 				"var %s\n\ttype: %s - size: %d - width: %d - offset: %d\n",
-				k->id, typeToString(k->type), k->size, k->width, k->offset);
+				k->id, strType, k->size, k->width, k->offset);
+		free((char*)strType);
 	}
 }
 
@@ -377,11 +386,12 @@ void print_param(FILE* file, param_t* paramHead) {
 	while (param != NULL) {
 		var = param->var;
 		assert(var!=NULL);
-		//assert
+		string strType = typeToString(var->type);
 		fprintf(file,
 				"\tparam %s\n\t\ttype: %s - size: %d - width: %d - offset: %d\n",
-				var->id, typeToString(var->type), var->size, var->width,
+				var->id, strType, var->size, var->width,
 				var->offset);
+		free((char*)strType);
 		param = param->next;
 	}
 }
@@ -398,8 +408,10 @@ void print_func(FILE* file, func_t* symFunc) {
 	struct func_t *func, *tmp;
 	HASH_ITER(hh, symFunc, func, tmp) {
 		assert(func->id != NULL);
+		string strType = typeToString(func->returnType);
 		fprintf(file, "func %s\n\treturntype: %s - num_params: %d\n", func->id,
-				typeToString(func->returnType), func->num_params);
+				strType, func->num_params);
+		free((char*)strType);
 
 		// print params, if there are any
 		print_param(file, func->param);

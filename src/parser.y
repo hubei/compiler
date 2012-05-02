@@ -495,7 +495,6 @@ expression
 primary
      : NUM { 
     	debug(55);
-    	$$ = NULL;
     	$$=malloc(sizeof(expr_t));
 		if($$==NULL) {
 			error("primary: Could not allocate");
@@ -539,8 +538,8 @@ function_call
 	}
 	| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
 		debug(58); 
-		$$=malloc(sizeof(expr_t));
 		printf("function call: %d: Value: %s %d \n", @1.first_line, $3->expr->value.id, $3->expr->value.num);
+		$$ = malloc(sizeof(expr_t)); 
 		correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
 		$$->value.id = $1;
 		$$->lvalue = 0;
@@ -553,7 +552,8 @@ function_call
  */ 									
 function_call_parameters
      : function_call_parameters COMMA expression { debug(59);
-	 	 $$=malloc(sizeof(expr_t));
+	 	 $$=malloc(sizeof(exprList_t));
+	 	 $$->next = NULL;
      	 $$->expr = $3; 
      	 $$->prev = $1; 
      	 $$->prev->next = $$;

@@ -15,6 +15,8 @@ expr_t* createIRCodeFromExpr(symbol_t* symTab, expr_t* arg0, operations_t op,
 		err(1, "Could not allocate memory");
 	}
 	newIRCode->ops = op;
+	newIRCode->next=NULL;
+	newIRCode->prev=NULL;
 	if (arg0->valueKind == VAL_ID) {
 		newIRCode->arg0.type = ARG_VAR;
 		var_t* var = findVar(symTab, arg0->value.id);
