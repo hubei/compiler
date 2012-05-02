@@ -53,7 +53,7 @@ int correctFuncTypes(int line, symbol_t* curSymbol, string funcID, exprList_t* p
 	int i=1;
 	for(param_t* s=parametersHash; s != NULL; s=s->next) {
 		if(parameters==NULL) {
-			typeError(line, "Too few parameters; %d parameters expected, but %d parameters found",function->num_params,i);
+			typeError(line, "Too few parameters; %d parameters expected, but %d parameters found",function->num_params,i-1);
 			return 0;
 		}
 		expr_t* expression = (expr_t*)parameters->expr;

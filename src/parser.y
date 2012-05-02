@@ -459,7 +459,8 @@ expression
      | expression PLUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);;
+			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);
+			 printf("l. %d: addition: %d + %d; %d\n", @1.first_line, $1->value, $3->value, $$->type);
 		 }
      }
      | expression MINUS expression { 
@@ -556,12 +557,16 @@ function_call
 	: ID PARA_OPEN PARA_CLOSE { 
 		debug(57);
 		$$=malloc(sizeof(expr_t));
+		$$->value.id = $1;
+		$$->lvalue = 0;
 	}
 	| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
 		debug(58); 
 		$$=malloc(sizeof(expr_t));
-		printf("fucntion call: %d: Value: %s \n", @1.first_line, $3->expr->value);
+		printf("function call: %d: Value: %s %d \n", @1.first_line, $3->expr->value.id, $3->expr->value.num);
 		correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
+		$$->value.id = $1;
+		$$->lvalue = 0;
 	}
 	;
 
@@ -572,22 +577,24 @@ function_call
 function_call_parameters
      : function_call_parameters COMMA expression { debug(59); 
 	 	 $$=malloc(sizeof(expr_t));
-//     	 $$->expr = &$3; 
-//     	 $$->prev = &$1; 
-//     	 $$->prev->next = $$;
-//     	 exprList_t* tmp1 = NULL;
-//     	 exprList_t* tmp2 = $$;
-//     	 //GETLISTHEAD(tmp2, tmp1);
-//     	 $$ =  tmp1;
+     	 $$->expr = $3; 
+     	 $$->prev = $1; 
+     	 $$->prev->next = $$;
+     	 exprList_t* tmp1 = NULL;
+     	 exprList_t* tmp2 = $$;
+     	 GETLISTHEAD(tmp2, tmp1);
+     	 $$ =  tmp1;
      	 printf("more than one parameter\n");
      	 /*FIXME maybe check for nullpointers? :P*/}
      | expression { 
-    	 $$=malloc(sizeof(expr_t));
+    	 $$=malloc(sizeof(exprList_t));
     	 if($$==NULL) {
     		 error("fcp_expression: malloc unsuccessful");
     	 }
     	 $$->expr = $1;
-    	 printf("fucntion call parameters: %d: Value: %s \n", @1.first_line, $$->expr->value);
+    	 $$->prev = NULL;
+    	 $$->next = NULL;
+    	 printf("function call parameters: l. %d: Value: %s \n", @1.first_line, $$->expr->value);
      }
      ;
 
