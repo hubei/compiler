@@ -440,7 +440,7 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
 			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);
-			 printf("l. %d: addition: %d + %d; %d\n", @1.first_line, $1->value, $3->value, $$->type);
+			 //printf("l. %d: addition: %d + %d; %d\n", @1.first_line, $1->value, $3->value, $$->type);
 		 }
      }
      | expression MINUS expression { 
@@ -538,8 +538,12 @@ function_call
 	}
 	| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
 		debug(58); 
-		printf("function call: %d: Value: %s %d \n", @1.first_line, $3->expr->value.id, $3->expr->value.num);
-		$$ = malloc(sizeof(expr_t)); 
+		exprList_t* tmp1 = NULL;
+		exprList_t* tmp2 = $3;
+		GETLISTHEAD(tmp2, tmp1);
+		$3 =  tmp1;
+		$$=malloc(sizeof(expr_t));
+		//printf("function call: %d: Value: %s %d \n", @1.first_line, $3->expr->value.id, $3->expr->value.num);
 		correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
 		$$->value.id = $1;
 		$$->lvalue = 0;
@@ -557,11 +561,7 @@ function_call_parameters
      	 $$->expr = $3; 
      	 $$->prev = $1; 
      	 $$->prev->next = $$;
-     	 exprList_t* tmp1 = NULL;
-     	 exprList_t* tmp2 = $$;
-     	 GETLISTHEAD(tmp2, tmp1);
-     	 $$ =  tmp1;
-     	 printf("more than one parameter\n");
+     	 //printf("more than one parameter\n");
      	 /*FIXME maybe check for nullpointers? :P*/}
      | expression { 
     	 $$=malloc(sizeof(exprList_t));
@@ -571,7 +571,7 @@ function_call_parameters
     	 $$->expr = $1;
     	 $$->prev = NULL;
     	 $$->next = NULL;
-    	 printf("function call parameters: l. %d: Value: %s \n", @1.first_line, $$->expr->value);
+    	 //printf("function call parameters: l. %d: Value: %s \n", @1.first_line, $$->expr->value);
      }
      ;
 
