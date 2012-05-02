@@ -15,8 +15,8 @@ expr_t* createIRCodeFromExpr(symbol_t* symTab, expr_t* arg0, operations_t op,
 		err(1, "Could not allocate memory");
 	}
 	newIRCode->ops = op;
-	newIRCode->next=NULL;
-	newIRCode->prev=NULL;
+	newIRCode->next = NULL;
+	newIRCode->prev = NULL;
 	if (arg0->valueKind == VAL_ID) {
 		newIRCode->arg0.type = ARG_VAR;
 		var_t* var = findVar(symTab, arg0->value.id);
@@ -100,9 +100,9 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 	if (out == NULL)
 		out = stdout;
 
-	char* res;
-	char* arg1;
-	char* arg0;
+	char* res = NULL;
+	char* arg1 = NULL;
+	char* arg0 = NULL;
 
 	irCode_t *nextIrCode = irCode;
 	while (nextIrCode != NULL) {
@@ -118,9 +118,10 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		case OP_SUB:
 		case OP_MUL:
 		case OP_DIV:
-		case OP_MOD:
+		case OP_MOD: {
 			fprintf(out, "<%.4d> %s = %s %s %s\n", nextIrCode->row, res, arg0,
 					opToStr(nextIrCode->ops), arg1);
+		}
 			break;
 		case OP_MINUS:
 			fprintf(out, "<%.4d> %s = - %s\n", nextIrCode->row, res, arg0);
@@ -131,7 +132,8 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		case OP_IFGE:
 		case OP_IFLT:
 		case OP_IFLE:
-			fprintf(out, "<%.4d> IF %s %s %s GOTO %s\n", nextIrCode->row, arg0, opToStr(nextIrCode->ops), arg1, res);
+			fprintf(out, "<%.4d> IF %s %s %s GOTO %s\n", nextIrCode->row, arg0,
+					opToStr(nextIrCode->ops), arg1, res);
 			break;
 		case OP_GOTO:
 			fprintf(out, "<%.4d> GOTO %s\n", nextIrCode->row, res);
@@ -145,7 +147,8 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		case OP_CALL_RES:
 			// TODO param list
 			// R = CALL FUNC, (LISTE)
-			fprintf(out, "<%.4d> %s = CALL %s, (%s)\n", nextIrCode->row, res, arg0, arg1);
+			fprintf(out, "<%.4d> %s = CALL %s, (%s)\n", nextIrCode->row, res,
+					arg0, arg1);
 			break;
 		case OP_CALL_VOID:
 			// TODO param list
@@ -154,15 +157,28 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 			break;
 		case OP_ARRAY_LD:
 			// R = ARR[IDX]
-			fprintf(out, "<%.4d> %s = %s[%s]\n", nextIrCode->row, res, arg0, arg1);
+			fprintf(out, "<%.4d> %s = %s[%s]\n", nextIrCode->row, res, arg0,
+					arg1);
 			break;
 		case OP_ARRAY_ST:
 			// ARR[IDX] = S
-			fprintf(out, "<%.4d> %s[%s] = %s\n", nextIrCode->row, res, arg0, arg1);
+			fprintf(out, "<%.4d> %s[%s] = %s\n", nextIrCode->row, res, arg0,
+					arg1);
 			break;
 		default:
 			// unkown ops, should not happen...
 			break;
+		}
+
+
+		if(nextIrCode->res.type == ARG_CONST) {
+			free(res);
+		}
+		if(nextIrCode->arg0.type == ARG_CONST) {
+			free(arg0);
+		}
+		if(nextIrCode->arg1.type == ARG_CONST) {
+			free(arg1);
 		}
 
 		nextIrCode = nextIrCode->next;
@@ -195,8 +211,7 @@ char* getConstOrId(irCode_arg_t* arg) {
 }
 
 char* opToStr(operations_t ops) {
-	char* op = malloc(6);
-	op = "";
+	char* op = "";
 	switch (ops) {
 	case OP_ASSIGN:
 		break;

@@ -63,7 +63,11 @@ int correctFuncTypes(int line, symbol_t* curSymbol, string funcID, exprList_t* p
 		expr_t* expression = (expr_t*)parameters->expr;
 		//fprintf(stderr, "%s", typeToString(expression->type));
 		if(s->var->type != expression->type) {
-			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,typeToString(s->var->type),typeToString(expression->type));
+			string strType = typeToString(s->var->type);
+			string strTypeExpr = typeToString(expression->type);
+			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,strType,strTypeExpr);
+			free((char*)strType);
+			free((char*)strTypeExpr);
 			return 0;
 		}
 		parameters = parameters->next;
@@ -79,7 +83,11 @@ int correctFuncTypes(int line, symbol_t* curSymbol, string funcID, exprList_t* p
 
 int checkCompatibleTypesRaw(int line, type_t type1, type_t type2){
 	if(type1 != type2) {
-		typeError(line, "%s is incompatible with %s", typeToString(type1), typeToString(type2));
+		string strType = typeToString(type1);
+		string strType2 = typeToString(type2);
+		typeError(line, "%s is incompatible with %s", strType, strType2);
+		free((char*)strType);
+		free((char*)strType2);
 		return 0;
 	}
 	return 1;
