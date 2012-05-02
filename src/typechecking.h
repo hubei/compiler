@@ -9,6 +9,12 @@
 
 #include "uthash.h"
 
+typedef struct parameterList_t {
+	string parameter;
+	struct parameterList_t* prev;
+	struct parameterList_t* next;
+} paList_t;
+
 //int correctReturnType(symbol*, string funcID, expr returnTypeExpr);
 int checkCompatibleTypes(int line, expr_t* expr1, expr_t* expr2);
 int checkCompatibleTypesRaw(int line, type_t type1, type_t type2);
