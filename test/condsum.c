@@ -27,6 +27,7 @@ int func (int arr[10], int len, int threshold) {
 int main () {
   global = 1;
   return func(a,5+5,5);
+  a=5;
 
 //  print(scan());
 

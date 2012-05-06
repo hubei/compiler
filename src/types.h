@@ -46,7 +46,7 @@ typedef struct indexList_t {
 typedef struct expr_t {
 	type_t type;
 	int lvalue;
-	valueKind_t* valueKind;
+	valueKind_t valueKind;
 	indexList_t* trueList;
 	indexList_t* falseList;
 	union {
@@ -171,8 +171,7 @@ typedef struct irCode_t {
 	expr_t* res;
 	expr_t* arg0;
 	expr_t* arg1;
-	struct irCode_t* prev;
-	struct irCode_t* next;
+	struct irCode_t *prev, *next;
 } irCode_t;
 
 #endif /* TYPES_H_ */

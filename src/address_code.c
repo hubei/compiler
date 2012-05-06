@@ -17,8 +17,27 @@ int getNextInstr() {
 void backpatch(indexList_t* list, int index) {
 	indexList_t* lHead = NULL;
 	GETLISTHEAD(list, lHead);
+
+	irCode_t* irhead = NULL;
+	irCode_t* ir = NULL;
+	GETLISTHEAD(irListTail, irhead);
+	// loop through all indices in given list
 	while (lHead != NULL) {
-		lHead->index = index;
+		ir = irhead;
+		// loop through all irCode until the row was found or the list ends
+		while(ir != NULL) {
+			if(ir->row == lHead->index) {
+				// create new result expression to store the GOTO address
+				ir->res = malloc(sizeof(expr_t));
+				if(ir->res == NULL) {
+					// TODO error
+				} else {
+					ir->res->value.num = index;
+				}
+				break;
+			}
+			ir = ir->next;
+		}
 		lHead = lHead->next;
 	}
 }
