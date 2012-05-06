@@ -382,9 +382,13 @@ stmt_loop
  */
 expression
      : expression ASSIGN expression {
-     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+    	 int isAssignAllowed = checkCompatibleTypesAssign(@1.first_line, $1, $3);
+     	 if(isAssignAllowed>0 && checkLValue(@1.first_line, $1)) {
      		expressionReturn($1);
      		$$ = createIRCodeFromExpr(curSymbol,$1,OP_ASSIGN,$3);
+     		 if(isAssignAllowed == 2) {
+				 //$$->
+			 }
      	 }
      }
      | expression LOGICAL_OR expression {
