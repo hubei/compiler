@@ -1,5 +1,91 @@
 #include "address_code.h"
+#include "generalParserFunc.h"
 #include <err.h>
+
+// always point to the next instruction
+int instruction = 0;
+
+int getNextInstr() {
+	return instruction + 1;
+}
+
+/**
+ * @brief set the index to all elements in list
+ * @param list a list of indices
+ * @param index index to set on the elements
+ */
+void backpatch(indexList_t* list, int index) {
+	indexList_t* lHead = NULL;
+	GETLISTHEAD(list, lHead);
+	while (lHead != NULL) {
+		lHead->index = index;
+		lHead = lHead->next;
+	}
+}
+
+indexList_t* merge(indexList_t* l1, indexList_t* l2) {
+	indexList_t* l1Tail = NULL;
+	GETLISTTAIL(l1, l1Tail);
+	indexList_t* l2Head = NULL;
+	GETLISTHEAD(l2, l2Head);
+	l1Tail->next = l2Head;
+	l2Head->prev = l1Tail;
+
+	indexList_t* l1Head = NULL;
+	GETLISTHEAD(l1, l1Head);
+	return l1Head;
+}
+
+indexList_t* createList(int i) {
+	indexList_t* newList = malloc(sizeof(indexList_t));
+	if (newList == NULL) {
+		// TODO error
+	}
+	newList->index = i;
+	return newList;
+}
+
+expr_t* newTmp() {
+	char* id = malloc(getNextInstr() + 4);
+	sprintf(id, "#V_%d", getNextInstr());
+	expr_t* newT = newExpr(id, T_INT);
+	insertVar(curSymbol, createVar(id));
+	return newT;
+}
+
+expr_t* newExpr(char* id, type_t type) {
+	expr_t* newE = malloc(sizeof(expr_t));
+	if(newE == NULL) {
+		// TODO error
+	}
+	newE->value.id = id;
+	newE->type = type;
+	newE->lvalue = 0; // FIXME Dirk do I have to do sth here??
+	newE->valueKind = VAL_ID;
+	return newE;
+}
+
+//irCode_arg_t* argFromExpr(expr_t* expr) {
+//	irCode_arg_t* arg = malloc(sizeof(irCode_arg_t));
+//	if(arg == NULL) {
+//		// TODO error
+//	}
+//	if (expr->valueKind == VAL_ID) {
+//		arg->type = ARG_VAR;
+//		var_t* var = findVar(curSymbol, expr->value.id);
+//		if (var != NULL) {
+//			arg->arg._var = var;
+//		} else {
+//			// TODO throw error
+//			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n",
+//					expr->value.id);
+//		}
+//	} else {
+//		arg->type = ARG_CONST;
+//		arg->arg._constant = expr->value.num;
+//	}
+//	return arg;
+//}
 
 /**
  * @brief Creates IRCode from parsed expressions
@@ -7,95 +93,53 @@
  * @param arg1
  * @param op
  */
-expr_t* createIRCodeFromExpr(symbol_t* symTab, expr_t* arg0, operations_t op,
-		expr_t* arg1) {
+void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
+
+	// create a new ircode line
 	irCode_t *newIRCode = (irCode_t*) malloc(sizeof(struct irCode_t));
-	expr_t *resExpr = NULL;
 	if (newIRCode == NULL) {
 		err(1, "Could not allocate memory");
 	}
+
+	// initialize
 	newIRCode->ops = op;
 	newIRCode->next = NULL;
 	newIRCode->prev = NULL;
-	if (arg0->valueKind == VAL_ID) {
-		newIRCode->arg0.type = ARG_VAR;
-		var_t* var = findVar(symTab, arg0->value.id);
-		if (var != NULL) {
-			newIRCode->arg0.arg._var = var;
-		} else {
-			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n",
-					arg0->value.id);
-		}
-	} else {
-		newIRCode->arg0.type = ARG_CONST;
-		newIRCode->arg0.arg._constant = arg0->value.num;
+	newIRCode->label = NULL;
+	newIRCode->arg0 = arg0;
+	newIRCode->arg1 = arg1;
+	newIRCode->res = res;
+
+	// TODO res, arg0, arg1... expr -> arg
+
+//	// Arg 0
+//	if (arg0Expr != NULL) {
+//		newIRCode->arg0 = argFromExpr(arg0Expr);
+//	}
+//	// Arg 1
+//	if (arg1Expr != NULL) {
+//		newIRCode->arg1 = argFromExpr(arg1Expr);
+//	}
+//	// res
+//	if (resExpr != NULL) {
+//		newIRCode->res = argFromExpr(resExpr);
+//	}
+
+	// insert into list
+	if (irListTail != NULL) {
+		irListTail->next = newIRCode;
 	}
-
-	//Arg 1
-	if (arg1->valueKind == VAL_ID) {
-		newIRCode->arg1.type = ARG_VAR;
-		if (findVar(symTab, arg1->value.id) != NULL) {
-			//printf("VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
-			newIRCode->arg1.arg._var = findVar(symTab, arg1->value.id);
-		} else {
-			printf("OH MANN, KEINE VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n",
-					arg1->value.id);
-		}
-		//printf("%s = %i\n\n", arg0.value.id, arg1.value.id);
-	} else {
-		newIRCode->arg1.type = ARG_CONST;
-		newIRCode->arg1.arg._constant = arg1->value.num;
-	}
-	//if irList was not assigned yet
-	//--> irList = first node
-
-	if (!irList) {
-		irList = newIRCode;
-		newIRCode->row = 0;
-	} else {
-		if (irList->next == NULL) {
-			irList->next = newIRCode;
-			newIRCode->prev = irList;
-			newIRCode->row = 1;
-			last = newIRCode;
-		} else { //irList != NULL && irList->next != null
-			newIRCode->prev = last;
-			last->next = newIRCode;
-			newIRCode->row = last->row + 1;
-			last = newIRCode;
-		}
-	}
-
-	//unless VAR = ....;
-	//we'll create tmp-vars for each step
-	//i.e. 	t0 = 1 + 1;
-	//		a = t0;
-	//
-	// ---> res.arg._var = arg0.arg._const + arg1.arg._const;
-	// ---> res.arg._var = this->prev->res.arg._var;
-	if (op != OP_ASSIGN) {
-		newIRCode->res.type = ARG_VAR;
-		char tmp[0x10]; //16-stellen dürften mal dicke reichen! :D
-		sprintf(tmp, "#V_%d", newIRCode->row);
-		newIRCode->res.arg._var = createVar(tmp);
-		newIRCode->res.arg._var->type = arg0->type;
-		insertVar(symTab, newIRCode->res.arg._var);
-
-		resExpr = malloc(sizeof(expr_t));
-
-		resExpr->value.id = newIRCode->res.arg._var->id;
-		resExpr->type = newIRCode->res.arg._var->type;
-		resExpr->lvalue = 0; // FIXME Dirk do I have to do sth here??
-		resExpr->valueKind = VAL_ID;
-	} else {
-		newIRCode->res = newIRCode->arg0;
-		newIRCode->arg0 = newIRCode->arg1;
-		resExpr = arg0;
-	}
-
-	return resExpr;
+	newIRCode->prev = irListTail;
+	newIRCode->row = instruction;
+	irListTail = newIRCode; // new tail
+	instruction++;
 }
 
+/**
+ * @brief print the given irCode list into given file or to stdout, if file is NULL
+ * @param out an opened file or NULL for stdout
+ * @param irCode an irCode list HEAD
+ */
 void printIRCode(FILE *out, irCode_t *irCode) {
 	if (out == NULL)
 		out = stdout;
@@ -105,10 +149,11 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 	char* arg0 = NULL;
 
 	irCode_t *nextIrCode = irCode;
+	// for each irCode line
 	while (nextIrCode != NULL) {
-		res = getConstOrId(&nextIrCode->res);
-		arg1 = getConstOrId(&nextIrCode->arg1);
-		arg0 = getConstOrId(&nextIrCode->arg0);
+		res = getConstOrId(nextIrCode->res);
+		arg1 = getConstOrId(nextIrCode->arg1);
+		arg0 = getConstOrId(nextIrCode->arg0);
 
 		switch (nextIrCode->ops) {
 		case OP_ASSIGN:
@@ -170,47 +215,56 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 			break;
 		}
 
-
-		if(nextIrCode->res.type == ARG_CONST) {
-			free(res);
-		}
-		if(nextIrCode->arg0.type == ARG_CONST) {
-			free(arg0);
-		}
-		if(nextIrCode->arg1.type == ARG_CONST) {
-			free(arg1);
-		}
+		// free allocated mem for string rep. of numbers
+//		if (nextIrCode->res->type == ARG_CONST) {
+//			free(res);
+//		}
+//		if (nextIrCode->arg0->type == ARG_CONST) {
+//			free(arg0);
+//		}
+//		if (nextIrCode->arg1->type == ARG_CONST) {
+//			free(arg1);
+//		}
 
 		nextIrCode = nextIrCode->next;
 	}
 }
 
-char* getConstOrId(irCode_arg_t* arg) {
+/**
+ * @brief Get a string representation of the given argument
+ * argument can be a function, variable or constant (number)
+ * @param arg irCode_arg_t
+ * @return function/variable name or constant number as string
+ */
+char* getConstOrId(expr_t* expr) {
 	char* res = NULL;
-	switch (arg->type) {
-	case ARG_VAR:
-		res = arg->arg._var->id;
-		break;
-	case ARG_FUNC:
-		res = arg->arg._func->id;
-		break;
-	case ARG_CONST:
-		res = malloc(11); // int has max 10 digits + end of string
-		if (res == NULL)
-			err(1, "Could not allocate");
-		sprintf(res, "%d", arg->arg._constant);
-		break;
-	case ARG_UNKOWN:
-	default:
-		res = "";
-		break;
-	}
-
-	assert(res!=NULL);
+	// FIXME get code from Dirk
+//	switch (expr->valueKind) {
+//	case ARG_FUNC:
+//		res = arg->arg._func->id;
+//		break;
+//	case ARG_CONST:
+//		res = malloc(11); // int has max 10 digits + end of string
+//		if (res == NULL)
+//			err(1, "Could not allocate");
+//		sprintf(res, "%d", arg->arg._constant);
+//		break;
+//	case ARG_UNKOWN:
+//	default:
+//		res = "";
+//		break;
+//	}
+//
+//	assert(res!=NULL);
 	return res;
 }
 
-char* opToStr(operations_t ops) {
+/**
+ * @brief get a string representation of the given operand
+ * @param ops operation
+ * @return string
+ */
+char* opToStr(operation_t ops) {
 	char* op = "";
 	switch (ops) {
 	case OP_ASSIGN:
@@ -265,8 +319,14 @@ char* opToStr(operations_t ops) {
 	return op;
 }
 
+/**
+ * return list of all irCodes
+ * @return
+ */
 irCode_t* getIRCode() {
-	return irList;
+	irCode_t* head = NULL;
+	GETLISTHEAD(irListTail, head);
+	return head;
 }
 
 ///**

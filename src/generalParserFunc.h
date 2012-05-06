@@ -19,7 +19,15 @@
 		result = result->prev; \
 	} \
 
+#define GETLISTTAIL(list, result) \
+	result = list; \
+	while(result->next != NULL) { \
+		result = result->next; \
+	} \
+
 void expressionReturn(expr_t* children);
+
+symbol_t* curSymbol;
 
 #endif
 

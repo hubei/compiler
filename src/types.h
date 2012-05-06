@@ -32,12 +32,23 @@ typedef enum valueKind_t {
 } valueKind_t;
 
 /**
+ * @brief list of indices
+ */
+typedef struct indexList_t {
+	int index;
+	struct indexList_t* next;
+	struct indexList_t* prev;
+} indexList_t;
+
+/**
  * TODO Dirk documentation
  */
 typedef struct expr_t {
 	type_t type;
 	int lvalue;
-	valueKind_t valueKind;
+	valueKind_t* valueKind;
+	indexList_t* trueList;
+	indexList_t* falseList;
 	union {
 		char* id;
 		int num;
@@ -52,6 +63,13 @@ typedef struct exprList_t {
 	struct exprList_t* prev;
 	struct exprList_t* next;
 } exprList_t;
+
+/**
+ * @brief statement type for parser
+ */
+typedef struct stmt_t {
+	indexList_t nextList;
+} stmt_t;
 
 /**
  * @brief symbol representation of a variable
@@ -98,7 +116,7 @@ struct symbol_t {
 /**
  *	Based on the expression-rules from the parser.y
  */
-typedef enum operations_t {
+typedef enum operation_t {
 	OP_ASSIGN,
 	OP_ADD,
 	OP_SUB,
@@ -119,45 +137,42 @@ typedef enum operations_t {
 	OP_CALL_VOID,
 	OP_ARRAY_LD,
 	OP_ARRAY_ST
-} operations_t;
+} operation_t;
 
-/**
- *  @brief	Enables the determination whether a type is a Variable, Function or constant
- */
-typedef enum irType_t {
-	ARG_UNKOWN, ARG_VAR, ARG_FUNC, ARG_CONST
-} irType_t;
-
-/**
- *  @brief	IrCode argument. Can be either a variable, function or constant.
- * 	In order to determine which one is stored, a type will be assigned, based on the
- * 	previous enum.
- */
-
-typedef struct irCode_arg_t {
-	union {
-		var_t* _var;
-		func_t* _func;
-		int _constant;
-	} arg;
-	irType_t type;
-} irCode_arg_t;
+///**
+// *  @brief	Enables the determination whether a type is a Variable, Function or constant
+// */
+//typedef enum irType_t {
+//	ARG_UNKOWN, ARG_VAR, ARG_FUNC, ARG_CONST
+//} irType_t;
+//
+///**
+// *  @brief	IrCode argument. Can be either a variable, function or constant.
+// * 	In order to determine which one is stored, a type will be assigned, based on the
+// * 	previous enum.
+// */
+//
+//typedef struct irCode_arg_t {
+//	union {
+//		var_t* _var;
+//		func_t* _func;
+//		int _constant;
+//	} arg;
+//	irType_t type;
+//} irCode_arg_t;
 
 /**
  * 	@brief One row of a IR 3-address code with references to next and previous line
  */
 typedef struct irCode_t {
 	int row;
-	char* label; // optional label
-	operations_t ops;
-	irCode_arg_t res;
-	irCode_arg_t arg0;
-	irCode_arg_t arg1;
-	struct irCode_t *prev;
-	struct irCode_t *next; //Next operation until NULL
+	char* label; // optional label FIXME not sure if needed
+	operation_t ops;
+	expr_t* res;
+	expr_t* arg0;
+	expr_t* arg1;
+	struct irCode_t* prev;
+	struct irCode_t* next;
 } irCode_t;
-
-struct irCode_t *irList;
-struct irCode_t *last;
 
 #endif /* TYPES_H_ */

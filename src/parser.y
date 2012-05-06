@@ -13,7 +13,6 @@
 
 #define YYERROR_VERBOSE
 	
-symbol_t* curSymbol;
 	
 %}
 
@@ -54,6 +53,10 @@ symbol_t* curSymbol;
 	} typeExt;
 	exprList_t *exprList;
 	expr_t *expr;
+	stmt_t *stmt;
+	struct {
+		int instr;
+	} instr;
 }
 
 /*
@@ -101,6 +104,8 @@ symbol_t* curSymbol;
 %type <expr>expression function_call primary
 %type <typeExt>type variable_declaration
 %type <exprList>function_call_parameters
+%type <stmt>stmt stmt_conditional stmt_loop
+%type <instr>M
 
 %%
 
@@ -334,7 +339,7 @@ function_definition
  */									
 stmt_list
      : /* empty: epsilon */ { debug(120);}
-     | stmt_list { debug(121);} stmt { debug(23);}
+     | stmt_list stmt { debug(23);}
      ;
 
 /*
@@ -384,117 +389,159 @@ expression
      : expression ASSIGN expression {
      	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
      		expressionReturn($1);
-     		$$ = createIRCodeFromExpr(curSymbol,$1,OP_ASSIGN,$3);
+     		emit($1,$3,OP_ASSIGN,NULL);
+     		$$ = $1;
      	 }
      }
-     | expression LOGICAL_OR expression {
-    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+     | expression LOGICAL_OR M expression {
+    	 if(checkCompatibleTypes(@1.first_line, $1, $4)) {
     		 expressionReturn($1);
-    		 $$ = $1; // FIXME Nico do sth here
+    		 $$=malloc(sizeof(expr_t));
+			 if($$==NULL) {
+				error("expression: Could not allocate");
+			 }
+			 memcpy($$, $1, sizeof(expr_t));
+			 backpatch($1->falseList, $3.instr);
+    		 $$->trueList = merge($1->trueList, $4->trueList);
+    		 $$->falseList = $4->falseList;
 		 }
 	 }
-     | expression LOGICAL_AND expression { 
-    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+     | expression LOGICAL_AND M expression { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $4)) {
 			 expressionReturn($1);
-			 $$ = $1; // FIXME Nico do sth here
+			 
+    		 $$=malloc(sizeof(expr_t));
+			 if($$==NULL) {
+				error("expression: Could not allocate");
+			 }
+			 memcpy($$, $1, sizeof(expr_t));
+			 backpatch($1->trueList, $3.instr);
+    		 $$->trueList = $4->trueList;
+    		 $$->falseList = merge($1->falseList, $4->falseList);
 		 }
      }
-     | LOGICAL_NOT expression { debug(38); $$=$2;}
+     | LOGICAL_NOT expression { 
+    	 $$=$2;
+		 indexList_t* tmp = $$->trueList;
+    	 $$->trueList = $$->falseList;
+		 $$->falseList = tmp;
+     }
      | expression EQ expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFEQ,$3);
+			 emit(NULL,$1,OP_IFEQ,$3);
+			 $$->falseList = createList(getNextInstr());
+			 $$->trueList = createList(getNextInstr());
+			 emit(NULL, NULL, OP_GOTO, NULL);
 		 }
      }
      | expression NE expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFNE,$3);
+			 emit(NULL,$1,OP_IFNE,$3);
+			 $$->falseList = createList(getNextInstr());
+			 $$->trueList = createList(getNextInstr());
+			 emit(NULL, NULL, OP_GOTO, NULL);
 		 }
      }
      | expression LS expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFLT,$3);
+			 emit(NULL,$1,OP_IFLT,$3);
+			 $$->falseList = createList(getNextInstr());
+			 $$->trueList = createList(getNextInstr());
+			 emit(NULL, NULL, OP_GOTO, NULL);
 		 }
      }
      | expression LSEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFLE,$3);
+			 emit(NULL,$1,OP_IFLE,$3);
+			 $$->falseList = createList(getNextInstr());
+			 $$->trueList = createList(getNextInstr());
+			 emit(NULL, NULL, OP_GOTO, NULL);
 		 }
      }
      | expression GTEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFGE,$3);
+			 emit(NULL,$1,OP_IFGE,$3);
+			 $$->falseList = createList(getNextInstr());
+			 $$->trueList = createList(getNextInstr());
+			 emit(NULL, NULL, OP_GOTO, NULL);
 		 }
      }
      | expression GT expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_IFGT,$3);
+			 emit(NULL,$1,OP_IFGT,$3);
+			 $$->falseList = createList(getNextInstr());
+			 $$->trueList = createList(getNextInstr());
+			 emit(NULL, NULL, OP_GOTO, NULL);
 		 }
      }
      | expression PLUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_ADD,$3);
+			 $$ = newTmp();
+			 emit($$,$1,OP_ADD,$3);
 			 //printf("l. %d: addition: %d + %d; %d\n", @1.first_line, $1->value, $3->value, $$->type);
 		 }
      }
      | expression MINUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_SUB,$3);
+			 $$ = newTmp();
+			 emit($$,$1,OP_SUB,$3);
 		 }
      }
      | expression MUL expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_MUL,$3);
+			 $$ = newTmp();
+			 emit($$,$1,OP_MUL,$3);
 		 }
      }
      | expression DIV expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_DIV,$3);
+			 $$ = newTmp();
+			 emit($$,$1,OP_DIV,$3);
 		 }
      }
      | expression MOD expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = createIRCodeFromExpr(curSymbol,$1,OP_MOD,$3);
+			 $$ = newTmp();
+			 emit($$,$1,OP_MOD,$3);
 		 }
      }
      | MINUS expression %prec UNARY_MINUS { 
-    	 debug(50); 
     	 $$ = $2;
      }
      | ID BRACKET_OPEN primary BRACKET_CLOSE { 
-    	 debug(51); 
      	 if($3->type!=T_INT) {
      		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
      	 }
-     	 $$=$3;
+     	 $$ = $3;
      	 $$->type=T_INT;
      	 $$->lvalue=1;
      }
      | PARA_OPEN expression PARA_CLOSE { 
-    	 debug(52);
-     	 $$ = $2;}
+     	 $$ = $2;
+     }
      | function_call { 
-    	 debug(53); 
-    	 $$ = $1;}
+    	 $$ = $1;
+     }
      | primary { 
-    	 debug(54); 
 		 $$ = $1;
      }
      ;
+     
+M: /* empty */ { $$.instr = getNextInstr(); };
 
 primary
-     : NUM { 
-    	debug(55);
+     : NUM {
     	$$=malloc(sizeof(expr_t));
 		if($$==NULL) {
 			error("primary: Could not allocate");
@@ -503,11 +550,12 @@ primary
 		$$->type = T_INT;
 		$$->lvalue = 0;
 		$$->valueKind = VAL_NUM;
+		$$->trueList = NULL;
+		$$->falseList = NULL;
 //	    printf("num: %d\n", $$->value.num);
        }
      | ID {
     	 $$=malloc(sizeof(expr_t));
-    	 debug(56); 
     	 var_t* found = findVar(curSymbol, $1);
     	 if(found!=NULL) {
     		 if(found->type == T_INT_A) {
@@ -519,6 +567,8 @@ primary
     		 $$->type = found->type;
     		 //printf("%d: Type: %d \n", @1.first_line, $$.type);
     		 $$->valueKind = VAL_ID;
+			 $$->trueList = NULL;
+			 $$->falseList = NULL;
     	 } else {
     		 typeError(@1.first_line, "Parameter does not exist: %s", $1);
     	 }
