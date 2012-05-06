@@ -170,9 +170,9 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 	irCode_t *nextIrCode = irCode;
 	// for each irCode line
 	while (nextIrCode != NULL) {
-		res = getConstOrId(nextIrCode->res);
-		arg1 = getConstOrId(nextIrCode->arg1);
-		arg0 = getConstOrId(nextIrCode->arg0);
+		res = valueAsString(nextIrCode->res);
+		arg1 = valueAsString(nextIrCode->arg1);
+		arg0 = valueAsString(nextIrCode->arg0);
 
 		switch (nextIrCode->ops) {
 		case OP_ASSIGN:
@@ -249,34 +249,34 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 	}
 }
 
-/**
- * @brief Get a string representation of the given argument
- * argument can be a function, variable or constant (number)
- * @param arg irCode_arg_t
- * @return function/variable name or constant number as string
- */
-char* getConstOrId(expr_t* expr) {
-	char* res = NULL;
-	// FIXME get code from Dirk
-//	switch (expr->valueKind) {
-//	case ARG_FUNC:
-//		res = arg->arg._func->id;
-//		break;
-//	case ARG_CONST:
-//		res = malloc(11); // int has max 10 digits + end of string
-//		if (res == NULL)
-//			err(1, "Could not allocate");
-//		sprintf(res, "%d", arg->arg._constant);
-//		break;
-//	case ARG_UNKOWN:
-//	default:
-//		res = "";
-//		break;
-//	}
-//
-//	assert(res!=NULL);
-	return res;
-}
+///**
+// * @brief Get a string representation of the given argument
+// * argument can be a function, variable or constant (number)
+// * @param arg irCode_arg_t
+// * @return function/variable name or constant number as string
+// */
+//char* getConstOrId(expr_t* expr) {
+//	char* res = NULL;
+//	// FIXME get code from Dirk
+////	switch (expr->valueKind) {
+////	case ARG_FUNC:
+////		res = arg->arg._func->id;
+////		break;
+////	case ARG_CONST:
+////		res = malloc(11); // int has max 10 digits + end of string
+////		if (res == NULL)
+////			err(1, "Could not allocate");
+////		sprintf(res, "%d", arg->arg._constant);
+////		break;
+////	case ARG_UNKOWN:
+////	default:
+////		res = "";
+////		break;
+////	}
+////
+////	assert(res!=NULL);
+//	return res;
+//}
 
 /**
  * @brief get a string representation of the given operand

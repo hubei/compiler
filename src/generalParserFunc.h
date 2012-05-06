@@ -25,7 +25,8 @@
 		result = result->next; \
 	} \
 
-void expressionReturn(expr_t* children);
+void expressionReturn(expr_t*);
+char* valueAsString(expr_t*);
 
 symbol_t* curSymbol;
 

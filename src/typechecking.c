@@ -10,6 +10,7 @@
 #include "uthash.h"
 #include "symboltable.h"
 #include "typechecking.h"
+#include "generalParserFunc.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -259,26 +260,6 @@ int checkCompatibleTypes(int line, expr_t* expr1, expr_t* expr2) {
 
 int checkCompatibleTypesAssign(int line, expr_t* expr1, expr_t* expr2) {
 	return checkCompatibleTypesReal(line, expr1->type, expr2->type, 1);
-}
-
-char* valueAsString(expr_t* arg) {
-	char* res = NULL;
-	switch (arg->valueKind) {
-	case VAL_ID:
-		res = arg->value.id;
-		break;
-	case VAL_NUM:
-		res = malloc(11); // int has max 10 digits + end of string
-		if (res == NULL)
-			err(1, "Could not allocate");
-		sprintf(res, "%d", arg->value.num);
-		break;
-	default:
-		res = "";
-		break;
-	}
-	assert(res!=NULL);
-	return res;
 }
 
 int checkLValue(int line, expr_t* lvalue) {
