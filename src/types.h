@@ -21,7 +21,7 @@ typedef const char* string;
  * @brief set of possible types
  */
 typedef enum type_t {
-	T_UNKOWN, T_INT, T_VOID, T_INT_A
+	T_UNKNOWN, T_INT, T_VOID, T_INT_A
 } type_t;
 
 /**
@@ -46,6 +46,7 @@ typedef struct indexList_t {
 typedef struct expr_t {
 	type_t type;
 	int lvalue;
+	int jump; // for goto statements to set jump location
 	valueKind_t valueKind;
 	indexList_t* trueList;
 	indexList_t* falseList;

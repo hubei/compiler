@@ -17,14 +17,6 @@
 struct symbol_t* symbolTable = NULL;
 
 /**
- * @brief Simple debug function that prints the given number followed by a '-'
- * @param number The number to be printed
- */
-void debug(int number) {
-//	fprintf(stdout, "%d-", number);
-}
-
-/**
  * @brief Take a string (like "this is a string"), allocate memory for it and return the address.
  * @param source A string that should be stored in memory
  * @return A reference to the stored string
@@ -124,7 +116,7 @@ var_t* createVar(string id) {
 	strcpy(newVar->id, id);
 	newVar->offset = 0;
 	newVar->size = 0;
-	newVar->type = T_UNKOWN;
+	newVar->type = T_UNKNOWN;
 	newVar->width = 0;
 	return newVar;
 }
@@ -148,7 +140,7 @@ func_t* createFunc(string id) {
 	strcpy(newFunc->id, id);
 	newFunc->num_params = 0;
 	newFunc->param = NULL;
-	newFunc->returnType = T_UNKOWN;
+	newFunc->returnType = T_UNKNOWN;
 	newFunc->symbol = NULL;
 	return newFunc;
 }
@@ -422,7 +414,7 @@ void print_func(FILE* file, func_t* symFunc) {
  * @brief print symTab into given file or to stdout if file == NULL
  * @param file link to an open file or NULL
  */
-void test_symTab(FILE* file) {
+void print_symTab(FILE* file) {
 	// use stdout, if there is no file
 	if (file == NULL) {
 		file = stdout;
@@ -461,7 +453,7 @@ string typeToString(type_t type) {
 		break;
 	case T_VOID:
 		return setString("VOID");
-	case T_UNKOWN:
+	case T_UNKNOWN:
 		return setString("UNKOWN");
 		break;
 	}

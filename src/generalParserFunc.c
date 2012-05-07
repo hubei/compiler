@@ -34,6 +34,8 @@ char* valueAsString(expr_t* arg) {
 		res = "";
 		break;
 	}
-	assert(res!=NULL);
+	if(res == NULL) {
+		return "";
+	}
 	return res;
 }

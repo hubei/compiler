@@ -35,12 +35,11 @@ int exists(symbol_t*, string); // only in current scope
 char* setString(char*);
 string typeToString(type_t);
 void error(string);
-void debug(int);
 
 void print_param(FILE*,param_t*);
 void print_var(FILE*,var_t*);
 void print_func(FILE*,func_t*);
-void test_symTab(FILE*);
+void print_symTab(FILE*);
 
 symbol_t* getSymbolTable();
 void setSymbolTable(symbol_t*);

@@ -117,7 +117,7 @@
  * of grammar 'program'. 
  */
 program
-     : {curSymbol = getSymbolTable();} program_element_list { debug(1); }
+     : {curSymbol = getSymbolTable();} program_element_list {  }
      ;
 
 /*
@@ -126,8 +126,8 @@ program
  * least of one program element. Though, empty source files will not succeed.
  */									
 program_element_list
-     : program_element_list program_element  { debug(2);}
-     | program_element { debug(3);}
+     : program_element_list program_element  { }
+     | program_element { }
      ;
 
 /*
@@ -135,10 +135,10 @@ program_element_list
  * function prototypes and type definitions for the basic version of the compiler. 
  */									
 program_element
-     : variable_declaration SEMICOLON { debug(4);}
-     | function_declaration SEMICOLON { debug(49);}
-     | function_definition { debug(5);}
-     | SEMICOLON { debug(6);}
+     : variable_declaration SEMICOLON { }
+     | function_declaration SEMICOLON { }
+     | function_definition { }
+     | SEMICOLON { }
      ;
 									
 /* 
@@ -146,8 +146,8 @@ program_element
  * instruction.
 */
 type
-     : INT { debug(7); $$.type = T_INT; $$.width = 4; }
-     | VOID { debug(8); $$.type = T_VOID; $$.width = 0; }
+     : INT {  $$.type = T_INT; $$.width = 4; }
+     | VOID {  $$.type = T_VOID; $$.width = 0; }
      ;
 
 /*
@@ -155,7 +155,7 @@ type
  */
 variable_declaration
 	: variable_declaration COMMA identifier_declaration	 {
-		debug(100);
+		
 		$3->type = $1.type;
 		$3->width = $1.width;
 		if($3->size != 0) {
@@ -165,7 +165,7 @@ variable_declaration
 		insertVar(curSymbol, $3);
 	}
 	| type identifier_declaration {
-		debug(42);
+		
 		if($2 == NULL)
 			error("variable_declaration: $2 is NULL");
 		$2->type = $1.type;
@@ -185,7 +185,7 @@ variable_declaration
  */									
 identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
-    	 debug(13); 
+    	  
     	 var_t* newVar = createVar($1);
     	 if(newVar == NULL) {
     		 error("identifier_declaration: newVar is NULL");
@@ -194,7 +194,7 @@ identifier_declaration
 		 $$->size = $3;
      } 
      | ID {	
-    	 debug(14);
+    	 
     	 var_t* newVar = createVar($1);
     	 if(newVar == NULL) {
     		 error("identifier_declaration: newVar is NULL");
@@ -209,7 +209,7 @@ identifier_declaration
  */
 function_declaration
 	: type ID PARA_OPEN PARA_CLOSE {
-		debug(47); 
+		 
 		func_t* newFunc = createFunc($2);
 		if(newFunc==NULL) {
 			error("function_declaration: newFunc is NULL");
@@ -219,7 +219,7 @@ function_declaration
 		insertFunc(curSymbol, newFunc);
 	}
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
-		debug(44);
+		
 		func_t* newFunc = createFunc($2);
 		if(newFunc==NULL) {
 			error("function_declaration: newFunc is NULL");
@@ -237,11 +237,11 @@ function_declaration
  */
 function_parameter_list
 	: function_parameter {
-		debug(45);
+		
 		$$ = addParam(NULL, $1);
 	}
 	| function_parameter_list COMMA function_parameter {
-		debug(46);
+		
 		$$ = addParam($1, $3);
 	}
 	;
@@ -251,7 +251,7 @@ function_parameter_list
  */
 function_parameter
 	: type identifier_declaration {
-		debug(43);
+		
 		if($2==NULL) {
 			error("function_parameter: $2 is NULL");
 		}
@@ -338,8 +338,8 @@ function_definition
  * by the non-terminal 'stmt'.
  */									
 stmt_list
-     : /* empty: epsilon */ { debug(120);}
-     | stmt_list stmt { debug(23);}
+     : /* empty: epsilon */ { }
+     | stmt_list stmt { }
      ;
 
 /*
@@ -348,12 +348,18 @@ stmt_list
  */									
 stmt
      : stmt_block
-     | variable_declaration SEMICOLON { debug(24);}
-     | expression SEMICOLON { debug(25);}
-     | stmt_conditional { debug(26);}
-     | stmt_loop { debug(27);}
-     | RETURN expression SEMICOLON { debug(28);}
-     | RETURN SEMICOLON { debug(29);}
+     | variable_declaration SEMICOLON {}
+     | expression SEMICOLON {}
+     | stmt_conditional {}
+     | stmt_loop {}
+     | RETURN expression SEMICOLON { 
+    	 // TODO return not imp.
+    	 // TODO Dirk type checking
+     }
+     | RETURN SEMICOLON {
+    	 // TODO return not imp.
+		 // TODO Dirk type checking
+     }
      | SEMICOLON /* empty statement */
      ;
 
@@ -361,7 +367,7 @@ stmt
  * A statement block is just a statement list within braces.
  */									
 stmt_block
-     : BRACE_OPEN {debug(110);} stmt_list BRACE_CLOSE { debug(30); /* we could extend additional scopes here :o */}
+     : BRACE_OPEN {} stmt_list BRACE_CLOSE {  /* we could extend additional scopes here :o */}
      ;
 	
 /*
@@ -369,16 +375,18 @@ stmt_block
  * produces a SHIFT/REDUCE error which is solved by the default behavior of bison (see above).
  */									
 stmt_conditional
-     : IF PARA_OPEN expression PARA_CLOSE stmt { debug(31);}
-     | IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt { debug(32);}
+     : IF PARA_OPEN expression PARA_CLOSE stmt {
+    	 // TODO
+     }
+     | IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt { }
      ;
 									
 /*
  * The non-terminal 'stmt_loop' contains the loop statements of the language.
  */									
 stmt_loop
-     : WHILE PARA_OPEN expression PARA_CLOSE stmt { debug(33);}
-     | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON { debug(34);}
+     : WHILE PARA_OPEN expression PARA_CLOSE stmt { }
+     | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON { }
      ;
 									
 /*
@@ -433,55 +441,61 @@ expression
      | expression EQ expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 emit(NULL,$1,OP_IFEQ,$3);
-			 $$->falseList = createList(getNextInstr());
+			 $$ = newTmp();
+			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
-			 emit(NULL, NULL, OP_GOTO, NULL);
+			 emit($$,$1,OP_IFEQ,$3);
+			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
      }
      | expression NE expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 emit(NULL,$1,OP_IFNE,$3);
-			 $$->falseList = createList(getNextInstr());
+			 $$ = newTmp();
+			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
-			 emit(NULL, NULL, OP_GOTO, NULL);
+			 emit($$,$1,OP_IFNE,$3);
+			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
      }
      | expression LS expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 emit(NULL,$1,OP_IFLT,$3);
-			 $$->falseList = createList(getNextInstr());
+			 $$ = newTmp();
+			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
-			 emit(NULL, NULL, OP_GOTO, NULL);
+			 emit($$,$1,OP_IFLT,$3);
+			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
      }
      | expression LSEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 emit(NULL,$1,OP_IFLE,$3);
-			 $$->falseList = createList(getNextInstr());
+			 $$ = newTmp();
+			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
-			 emit(NULL, NULL, OP_GOTO, NULL);
+			 emit($$,$1,OP_IFLE,$3);
+			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
      }
      | expression GTEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 emit(NULL,$1,OP_IFGE,$3);
-			 $$->falseList = createList(getNextInstr());
+			 $$ = newTmp();
+			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
-			 emit(NULL, NULL, OP_GOTO, NULL);
+			 emit($$,$1,OP_IFGE,$3);
+			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
      }
      | expression GT expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 emit(NULL,$1,OP_IFGT,$3);
-			 $$->falseList = createList(getNextInstr());
+			 $$ = newTmp();
+			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
-			 emit(NULL, NULL, OP_GOTO, NULL);
+			 emit($$,$1,OP_IFGT,$3);
+			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
      }
      | expression PLUS expression { 
@@ -520,14 +534,17 @@ expression
 			 emit($$,$1,OP_MOD,$3);
 		 }
      }
-     | MINUS expression %prec UNARY_MINUS { 
-    	 $$ = $2;
+     | MINUS expression %prec UNARY_MINUS {
+    	 // TODO Dirk type checking
+    	 $$ = newTmp();
+		 emit($$,$2,OP_MINUS,NULL);
      }
-     | ID BRACKET_OPEN primary BRACKET_CLOSE { 
+     | ID BRACKET_OPEN primary BRACKET_CLOSE {
+    	 // TODO arrays not implemented in IR code yet
      	 if($3->type!=T_INT) {
      		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
      	 }
-     	 $$ = $3;
+     	 $$ = newTmp();
      	 $$->type=T_INT;
      	 $$->lvalue=1;
      }
@@ -535,6 +552,7 @@ expression
      	 $$ = $2;
      }
      | function_call { 
+    	 // TODO functions call not implemented yet
     	 $$ = $1;
      }
      | primary { 
@@ -546,20 +564,11 @@ M: /* empty */ { $$.instr = getNextInstr(); };
 
 primary
      : NUM {
-    	$$=malloc(sizeof(expr_t));
-		if($$==NULL) {
-			error("primary: Could not allocate");
-		}
-		$$->value.num = $1;
-		$$->type = T_INT;
-		$$->lvalue = 0;
-		$$->valueKind = VAL_NUM;
-		$$->trueList = NULL;
-		$$->falseList = NULL;
-//	    printf("num: %d\n", $$->value.num);
+    	 $$ = newExprNum($1, T_INT);
+    	 $$->lvalue = 0;
        }
      | ID {
-    	 $$=malloc(sizeof(expr_t));
+    	 $$ = newExpr($1, T_UNKNOWN);
     	 var_t* found = findVar(curSymbol, $1);
     	 if(found!=NULL) {
     		 if(found->type == T_INT_A) {
@@ -567,16 +576,10 @@ primary
     		 } else if(found->type == T_INT) {
     			 $$->lvalue = 1;
     		 }
-    		 $$->value.id = $1;
     		 $$->type = found->type;
-    		 //printf("%d: Type: %d \n", @1.first_line, $$.type);
-    		 $$->valueKind = VAL_ID;
-			 $$->trueList = NULL;
-			 $$->falseList = NULL;
     	 } else {
     		 typeError(@1.first_line, "Parameter does not exist: %s", $1);
     	 }
-//	     printf("id: %s\n", $$->value.id);
       }
      ;
 
@@ -585,19 +588,15 @@ primary
  */
 function_call
 	: ID PARA_OPEN PARA_CLOSE { 
-		debug(57);
-		$$=malloc(sizeof(expr_t));
-		$$->value.id = $1;
+		$$ = newExpr($1, T_UNKNOWN);
 		$$->lvalue = 0;
 	}
 	| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
-		debug(58); 
 		exprList_t* tmp1 = NULL;
 		exprList_t* tmp2 = $3;
 		GETLISTHEAD(tmp2, tmp1);
-		$3 =  tmp1;
-		$$=malloc(sizeof(expr_t));
-		//printf("function call: %d: Value: %s %d \n", @1.first_line, $3->expr->value.id, $3->expr->value.num);
+		$3 = tmp1;
+		$$ = newExpr($1, T_UNKNOWN);
 		correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
 		$$->value.id = $1;
 		$$->lvalue = 0;
@@ -609,8 +608,11 @@ function_call
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-     : function_call_parameters COMMA expression { debug(59);
+     : function_call_parameters COMMA expression { 
 	 	 $$=malloc(sizeof(exprList_t));
+    	 if($$==NULL) {
+    		 error("fcp_expression: malloc unsuccessful");
+    	 }
 	 	 $$->next = NULL;
      	 $$->expr = $3; 
      	 $$->prev = $1; 

@@ -4,6 +4,7 @@
 
 // always point to the next instruction
 int instruction = 0;
+int nextTmpVar = 0;
 
 int getNextInstr() {
 	return instruction + 1;
@@ -32,7 +33,7 @@ void backpatch(indexList_t* list, int index) {
 				if(ir->res == NULL) {
 					// TODO error
 				} else {
-					ir->res->value.num = index;
+					ir->res->jump = index;
 				}
 				break;
 			}
@@ -65,22 +66,42 @@ indexList_t* createList(int i) {
 }
 
 expr_t* newTmp() {
-	char* id = malloc(getNextInstr() + 4);
-	sprintf(id, "#V_%d", getNextInstr());
+	char* id = malloc(11 + 4);
+	sprintf(id, "#V_%d", nextTmpVar);
 	expr_t* newT = newExpr(id, T_INT);
 	insertVar(curSymbol, createVar(id));
+	nextTmpVar++;
 	return newT;
 }
 
-expr_t* newExpr(char* id, type_t type) {
+expr_t* newAnonymousExpr() {
 	expr_t* newE = malloc(sizeof(expr_t));
 	if(newE == NULL) {
 		// TODO error
 	}
-	newE->value.id = id;
-	newE->type = type;
+	newE->value.id = "";
+	newE->jump = 0;
+	newE->type = T_UNKNOWN;
 	newE->lvalue = 0; // FIXME Dirk do I have to do sth here??
 	newE->valueKind = VAL_ID;
+	newE->trueList = NULL;
+	newE->falseList = NULL;
+	return newE;
+}
+
+expr_t* newExpr(char* id, type_t type) {
+	expr_t* newE = newAnonymousExpr();
+	newE->value.id = id;
+	newE->type = type;
+	newE->valueKind = VAL_ID;
+	return newE;
+}
+
+expr_t* newExprNum(int num, type_t type) {
+	expr_t* newE = newAnonymousExpr();
+	newE->value.num = num;
+	newE->type = type;
+	newE->valueKind = VAL_NUM;
 	return newE;
 }
 
@@ -149,7 +170,7 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 		irListTail->next = newIRCode;
 	}
 	newIRCode->prev = irListTail;
-	newIRCode->row = instruction;
+	newIRCode->row = getNextInstr();
 	irListTail = newIRCode; // new tail
 	instruction++;
 }
@@ -196,11 +217,11 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		case OP_IFGE:
 		case OP_IFLT:
 		case OP_IFLE:
-			fprintf(out, "<%.4d> IF %s %s %s GOTO %s\n", nextIrCode->row, arg0,
-					opToStr(nextIrCode->ops), arg1, res);
+			fprintf(out, "<%.4d> IF %s %s %s GOTO %d\n", nextIrCode->row, arg0,
+					opToStr(nextIrCode->ops), arg1, nextIrCode->res->jump);
 			break;
 		case OP_GOTO:
-			fprintf(out, "<%.4d> GOTO %s\n", nextIrCode->row, res);
+			fprintf(out, "<%.4d> GOTO %d\n", nextIrCode->row, nextIrCode->res->jump);
 			break;
 		case OP_RETURN_VAL:
 			fprintf(out, "<%.4d> RETURN %s\n", nextIrCode->row, res);
