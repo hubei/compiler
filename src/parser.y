@@ -53,7 +53,7 @@
 	} typeExt;
 	exprList_t *exprList;
 	expr_t *expr;
-	stmt_t *stmt;
+	stmt_t *statmt;
 	struct {
 		int instr;
 	} instr;
@@ -104,7 +104,7 @@
 %type <expr>expression function_call primary
 %type <typeExt>type variable_declaration
 %type <exprList>function_call_parameters
-%type <stmt>stmt stmt_conditional stmt_loop
+%type <statmt>stmt stmt_conditional stmt_loop stmt_block
 %type <instr>M
 
 %%
@@ -347,7 +347,7 @@ stmt_list
  * 'expression' is one of the core statements.
  */									
 stmt
-     : stmt_block
+     : stmt_block {}
      | variable_declaration SEMICOLON {}
      | expression SEMICOLON {}
      | stmt_conditional {}
@@ -360,7 +360,7 @@ stmt
     	 // TODO return not imp.
 		 // TODO Dirk type checking
      }
-     | SEMICOLON /* empty statement */
+     | SEMICOLON {} /* empty statement */
      ;
 
 /*
@@ -375,10 +375,15 @@ stmt_block
  * produces a SHIFT/REDUCE error which is solved by the default behavior of bison (see above).
  */									
 stmt_conditional
-     : IF PARA_OPEN expression PARA_CLOSE stmt {
-    	 // TODO
+     : IF PARA_OPEN expression PARA_CLOSE M stmt {
+     	 backpatch($3->trueList, $5.instr);
+    	 backpatch($3->falseList, getNextInstr());
      }
-     | IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt { }
+     | IF PARA_OPEN expression PARA_CLOSE M stmt ELSE {
+    	 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
+     } M stmt {
+     	 backpatch($3->trueList, $5.instr);
+    	 backpatch($3->falseList, $9.instr);}
      ;
 									
 /*
