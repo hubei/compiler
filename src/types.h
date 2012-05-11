@@ -69,7 +69,7 @@ typedef struct exprList_t {
  * @brief statement type for parser
  */
 typedef struct stmt_t {
-	indexList_t nextList;
+	indexList_t* nextList;
 } stmt_t;
 
 /**

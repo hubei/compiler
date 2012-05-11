@@ -19,9 +19,13 @@ int func(int arr[10], int len, int threshold) {
 
 	if (sum >= i) {
 		i = 42;
+		i = 3;
+		i = 2;
 	}
 
 	if (i < sum) {
+		i = 3;
+		i = 2;
 		i = 1;
 	} else {
 		i = 2;
@@ -34,6 +38,12 @@ int func(int arr[10], int len, int threshold) {
 		i = i + 1;
 		print(i);
 	}
+
+	i = 0;
+	do {
+		print(i);
+		i = i + 1;
+	} while(i < 5);
 	return sum;
 }
 

@@ -21,6 +21,7 @@ expr_t* newTmp();
 expr_t* newExpr(char*, type_t);
 expr_t* newAnonymousExpr();
 expr_t* newExprNum(int, type_t);
+stmt_t* newStmt();
 
 void printIRCode(FILE*, irCode_t*);
 char* getConstOrId(expr_t*);

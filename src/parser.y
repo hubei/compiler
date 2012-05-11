@@ -347,20 +347,22 @@ stmt_list
  * 'expression' is one of the core statements.
  */									
 stmt
-     : stmt_block {}
-     | variable_declaration SEMICOLON {}
-     | expression SEMICOLON {}
-     | stmt_conditional {}
-     | stmt_loop {}
-     | RETURN expression SEMICOLON { 
+     : stmt_block {$$ = newStmt();}
+     | variable_declaration SEMICOLON {$$ = newStmt();}
+     | expression SEMICOLON {$$ = newStmt();}
+     | stmt_conditional {$$ = newStmt();}
+     | stmt_loop {$$ = newStmt();}
+     | RETURN expression SEMICOLON {
+    	 $$ = newStmt();
     	 // TODO return not imp.
     	 // TODO Dirk type checking
      }
      | RETURN SEMICOLON {
+    	 $$ = newStmt();
     	 // TODO return not imp.
 		 // TODO Dirk type checking
      }
-     | SEMICOLON {} /* empty statement */
+     | SEMICOLON {$$ = newStmt();} /* empty statement */
      ;
 
 /*
@@ -380,18 +382,30 @@ stmt_conditional
     	 backpatch($3->falseList, getNextInstr());
      }
      | IF PARA_OPEN expression PARA_CLOSE M stmt ELSE {
+    	 $6->nextList = merge($6->nextList, createList(getNextInstr()));
     	 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
      } M stmt {
      	 backpatch($3->trueList, $5.instr);
-    	 backpatch($3->falseList, $9.instr);}
+    	 backpatch($3->falseList, $9.instr);
+    	 backpatch($6->nextList,getNextInstr());
+     }
      ;
 									
 /*
  * The non-terminal 'stmt_loop' contains the loop statements of the language.
  */									
 stmt_loop
-     : WHILE PARA_OPEN expression PARA_CLOSE stmt { }
-     | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON { }
+     : WHILE PARA_OPEN M expression PARA_CLOSE M stmt {
+     	 backpatch($4->trueList, $6.instr);
+     	 expr_t* res = newAnonymousExpr();
+     	 res->jump = $3.instr;
+    	 emit(res, NULL, OP_GOTO, NULL);
+    	 backpatch($4->falseList, getNextInstr());
+     }
+     | DO M stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON {
+     	 backpatch($6->trueList, $2.instr);
+    	 backpatch($6->falseList, getNextInstr());
+     }
      ;
 									
 /*

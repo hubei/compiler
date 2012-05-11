@@ -16,6 +16,8 @@ int getNextInstr() {
  * @param index index to set on the elements
  */
 void backpatch(indexList_t* list, int index) {
+	if (list == NULL)
+		return;
 	indexList_t* lHead = NULL;
 	GETLISTHEAD(list, lHead);
 
@@ -26,15 +28,11 @@ void backpatch(indexList_t* list, int index) {
 	while (lHead != NULL) {
 		ir = irhead;
 		// loop through all irCode until the row was found or the list ends
-		while(ir != NULL) {
-			if(ir->row == lHead->index) {
+		while (ir != NULL) {
+			if (ir->row == lHead->index) {
 				// create new result expression to store the GOTO address
-				ir->res = malloc(sizeof(expr_t));
-				if(ir->res == NULL) {
-					// TODO error
-				} else {
-					ir->res->jump = index;
-				}
+				ir->res = newTmp();
+				ir->res->jump = index;
 				break;
 			}
 			ir = ir->next;
@@ -44,12 +42,20 @@ void backpatch(indexList_t* list, int index) {
 }
 
 indexList_t* merge(indexList_t* l1, indexList_t* l2) {
+	if (l1 == NULL)
+		return l2;
+	if (l2 == NULL)
+		return l1;
 	indexList_t* l1Tail = NULL;
 	GETLISTTAIL(l1, l1Tail);
 	indexList_t* l2Head = NULL;
 	GETLISTHEAD(l2, l2Head);
-	l1Tail->next = l2Head;
-	l2Head->prev = l1Tail;
+	if (l1Tail != NULL) {
+		l1Tail->next = l2Head;
+	}
+	if (l2Head != NULL) {
+		l2Head->prev = l1Tail;
+	}
 
 	indexList_t* l1Head = NULL;
 	GETLISTHEAD(l1, l1Head);
@@ -62,6 +68,8 @@ indexList_t* createList(int i) {
 		// TODO error
 	}
 	newList->index = i;
+	newList->next = NULL;
+	newList->prev = NULL;
 	return newList;
 }
 
@@ -76,7 +84,7 @@ expr_t* newTmp() {
 
 expr_t* newAnonymousExpr() {
 	expr_t* newE = malloc(sizeof(expr_t));
-	if(newE == NULL) {
+	if (newE == NULL) {
 		// TODO error
 	}
 	newE->value.id = "";
@@ -103,6 +111,15 @@ expr_t* newExprNum(int num, type_t type) {
 	newE->type = type;
 	newE->valueKind = VAL_NUM;
 	return newE;
+}
+
+stmt_t* newStmt() {
+	stmt_t* stmt = malloc(sizeof(stmt_t));
+	if (stmt == NULL) {
+		// TODO error
+	}
+	stmt->nextList = NULL;
+	return stmt;
 }
 
 //irCode_arg_t* argFromExpr(expr_t* expr) {
@@ -221,7 +238,8 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 					opToStr(nextIrCode->ops), arg1, nextIrCode->res->jump);
 			break;
 		case OP_GOTO:
-			fprintf(out, "<%.4d> GOTO %d\n", nextIrCode->row, nextIrCode->res->jump);
+			fprintf(out, "<%.4d> GOTO %d\n", nextIrCode->row,
+					nextIrCode->res->jump);
 			break;
 		case OP_RETURN_VAL:
 			fprintf(out, "<%.4d> RETURN %s\n", nextIrCode->row, res);
