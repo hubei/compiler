@@ -31,7 +31,7 @@ void backpatch(indexList_t* list, int index) {
 		while (ir != NULL) {
 			if (ir->row == lHead->index) {
 				// create new result expression to store the GOTO address
-				ir->res = newTmp();
+				ir->res = newAnonymousExpr();
 				ir->res->jump = index;
 				break;
 			}
@@ -269,20 +269,20 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 					arg1);
 			break;
 		default:
-			// unkown ops, should not happen...
+			// unkown ops, should not happen... :)
 			break;
 		}
 
 		// free allocated mem for string rep. of numbers
-//		if (nextIrCode->res->type == ARG_CONST) {
-//			free(res);
-//		}
-//		if (nextIrCode->arg0->type == ARG_CONST) {
-//			free(arg0);
-//		}
-//		if (nextIrCode->arg1->type == ARG_CONST) {
-//			free(arg1);
-//		}
+		if (nextIrCode->res != NULL && nextIrCode->res->valueKind == VAL_NUM) {
+			free(res);
+		}
+		if (nextIrCode->arg0 != NULL && nextIrCode->arg0->valueKind == VAL_NUM) {
+			free(arg0);
+		}
+		if (nextIrCode->arg1 != NULL && nextIrCode->arg1->valueKind == VAL_NUM) {
+			free(arg1);
+		}
 
 		nextIrCode = nextIrCode->next;
 	}

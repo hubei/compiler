@@ -419,6 +419,7 @@ expression
      		expressionReturn($1);
      		emit($1,$3,OP_ASSIGN,NULL);
      		$$ = $1;
+     		// TODO next here!! tell $3 that it is i rvalue
      		if(isAssignAllowed == 2) {
 				 //$$->
 			 }
@@ -440,12 +441,12 @@ expression
      | expression LOGICAL_AND M expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $4)) {
 			 expressionReturn($1);
-			 
+			 // FIXME terrible...
     		 $$=malloc(sizeof(expr_t));
 			 if($$==NULL) {
 				error("expression: Could not allocate");
 			 }
-			 memcpy($$, $1, sizeof(expr_t));
+			 memcpy($$, $1, sizeof(expr_t)); // no...
 			 backpatch($1->trueList, $3.instr);
     		 $$->trueList = $4->trueList;
     		 $$->falseList = merge($1->falseList, $4->falseList);
@@ -460,7 +461,7 @@ expression
      | expression EQ expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newAnonymousExpr();
 			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
 			 emit($$,$1,OP_IFEQ,$3);
@@ -470,7 +471,7 @@ expression
      | expression NE expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newAnonymousExpr();
 			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
 			 emit($$,$1,OP_IFNE,$3);
@@ -480,7 +481,7 @@ expression
      | expression LS expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newAnonymousExpr();
 			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
 			 emit($$,$1,OP_IFLT,$3);
@@ -490,7 +491,7 @@ expression
      | expression LSEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newAnonymousExpr();
 			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
 			 emit($$,$1,OP_IFLE,$3);
@@ -500,7 +501,7 @@ expression
      | expression GTEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newAnonymousExpr();
 			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
 			 emit($$,$1,OP_IFGE,$3);
@@ -510,7 +511,7 @@ expression
      | expression GT expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newAnonymousExpr();
 			 $$->falseList = createList(getNextInstr() + 1);
 			 $$->trueList = createList(getNextInstr());
 			 emit($$,$1,OP_IFGT,$3);
@@ -559,13 +560,19 @@ expression
 		 emit($$,$2,OP_MINUS,NULL);
      }
      | ID BRACKET_OPEN primary BRACKET_CLOSE {
-    	 // TODO arrays not implemented in IR code yet
+    	 // TODO where should we put OP_ARRAY_ST? (arr[i] = X)
      	 if($3->type!=T_INT) {
      		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
      	 }
      	 $$ = newTmp();
      	 $$->type=T_INT;
      	 $$->lvalue=1;
+     	 var_t* found = findVar(curSymbol,$1);
+     	 if(found == NULL) {
+     		typeError(@1.first_line, "Array does not exist: %s", $1);
+     	 } else {
+     		emit($$,newExpr($1,found->type),OP_ARRAY_LD,$3);
+     	 }
      }
      | PARA_OPEN expression PARA_CLOSE { 
      	 $$ = $2;
@@ -637,7 +644,7 @@ function_call_parameters
      	 $$->prev = $1; 
      	 $$->prev->next = $$;
      	 //printf("more than one parameter\n");
-     	 /*FIXME maybe check for nullpointers? :P*/}
+     }
      | expression { 
     	 $$=malloc(sizeof(exprList_t));
     	 if($$==NULL) {
