@@ -45,7 +45,7 @@ int mips32gen(FILE *file,irCode_t *ircode, symbol_t *symbolTable) {
 	HASH_ITER(hh, symbolTable->symFunc, f, tmp2) {
 		fprintf(file, "%s:\n",f->id);
 
-		// TODO here is the main work
+		// TODO Basti here is the main work
 		fprintf(file, "#-> function prolog <-#\n");
 
 		fprintf(file, "#-> local variables <-#\n");

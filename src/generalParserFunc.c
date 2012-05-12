@@ -25,7 +25,7 @@ char* valueAsString(expr_t* arg) {
 		res = arg->value.id;
 		break;
 	case VAL_NUM:
-		// TODO could allocate less memory by calculating length of number
+		// TODO Nico could allocate less memory by calculating length of number
 		res = malloc(11); // int has max 10 digits + end of string
 		if (res == NULL)
 			err(1, "Could not allocate");

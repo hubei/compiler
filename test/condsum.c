@@ -59,4 +59,9 @@ int main() {
 	print(scan());
 
 	exit(0);
+
+	if( 4 < 5 && 5 < 6)
+		global = 2;
+	if( 4 < 5 || 5 < 6)
+		global = 3;
 }

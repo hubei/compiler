@@ -317,7 +317,7 @@ int main(int argc, char *argv[]) {
 			// Test symbolTable
 			print_symTab(irFile);
 
-			// TODO If necessary, call any functions for IR code generation
+			// get ir code and print it into irFile
 			ircode = getIRCode();
 			printIRCode(irFile, ircode);
 

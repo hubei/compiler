@@ -359,12 +359,12 @@ stmt
      | stmt_loop {$$ = newStmt();}
      | RETURN expression SEMICOLON {
     	 $$ = newStmt();
-    	 // TODO return not imp.
+    	 emit($2,NULL,OP_RETURN_VAL,NULL);
     	 // TODO Dirk type checking
      }
      | RETURN SEMICOLON {
     	 $$ = newStmt();
-    	 // TODO return not imp.
+    	 emit(NULL,NULL,OP_RETURN_VAL,NULL);
 		 // TODO Dirk type checking
      }
      | SEMICOLON {$$ = newStmt();} /* empty statement */
@@ -446,7 +446,6 @@ expression
 			normalAssign = 0;
 		}
 		if($1->postEmit == PE_ARR) {
-			// FIXME Dirk type checking: in this case, array
 			if(tmpE == NULL) {
 				emit($1,$1->arrInd,OP_ARRAY_ST,$3);
 			} else {
@@ -473,11 +472,8 @@ expression
      | expression LOGICAL_OR M expression {
     	 if(checkCompatibleTypes(@1.first_line, $1, $4)) {
     		 expressionReturn($1);
-    		 $$=malloc(sizeof(expr_t));
-			 if($$==NULL) {
-				error("expression: Could not allocate");
-			 }
-			 memcpy($$, $1, sizeof(expr_t));
+    		 $$ = newAnonymousExpr();
+    		 $$->type = $1->type;
 			 backpatch($1->falseList, $3.instr);
     		 $$->trueList = merge($1->trueList, $4->trueList);
     		 $$->falseList = $4->falseList;
@@ -486,12 +482,8 @@ expression
      | expression LOGICAL_AND M expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $4)) {
 			 expressionReturn($1);
-			 // FIXME terrible...
-    		 $$=malloc(sizeof(expr_t));
-			 if($$==NULL) {
-				error("expression: Could not allocate");
-			 }
-			 memcpy($$, $1, sizeof(expr_t)); // no...
+    		 $$ = newAnonymousExpr();
+    		 $$->type = $1->type;
 			 backpatch($1->trueList, $3.instr);
     		 $$->trueList = $4->trueList;
     		 $$->falseList = merge($1->falseList, $4->falseList);
@@ -617,19 +609,11 @@ expression
       	 }
   		 $$->arrInd = $3;
   		 $$->postEmit = PE_ARR;
-		 
-		 
-//		 $$ = newTmp();
-//		 $$->type=T_INT;
-//		 $$->lvalue=1;
- //     		emit($$,newExpr($1,found->type),OP_ARRAY_LD,$3);
- //     	 }
 	  }
      | PARA_OPEN expression PARA_CLOSE { 
      	 $$ = $2;
      }
      | function_call { 
-    	 // TODO functions call not implemented yet
     	 $$ = $1;
      }
      | primary { 

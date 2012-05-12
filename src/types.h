@@ -41,14 +41,14 @@ typedef struct indexList_t {
 } indexList_t;
 
 /**
- *	@brief TODO Nico
+ *	@brief postEmit is for functions and arrays: They have not enough information to emit themselves
  */
 typedef enum postEmit_t {
 	PE_NONE, PE_ARR, PE_FUNCC
 } postEmit_t;
 
 /**
- * TODO Dirk documentation
+ * @brief Expressions are used to transfer information within the parser
  */
 typedef struct expr_t {
 	type_t type;
@@ -94,6 +94,9 @@ typedef struct var_t {
 	UT_hash_handle hh; /* makes this structure hashable */
 } var_t;
 
+/**
+ * @brief LinkedList of vars for parameters of functions
+ */
 typedef struct param_t {
 	var_t* var;
 	struct param_t* next;
@@ -149,34 +152,12 @@ typedef enum operation_t {
 	OP_ARRAY_ST
 } operation_t;
 
-///**
-// *  @brief	Enables the determination whether a type is a Variable, Function or constant
-// */
-//typedef enum irType_t {
-//	ARG_UNKOWN, ARG_VAR, ARG_FUNC, ARG_CONST
-//} irType_t;
-//
-///**
-// *  @brief	IrCode argument. Can be either a variable, function or constant.
-// * 	In order to determine which one is stored, a type will be assigned, based on the
-// * 	previous enum.
-// */
-//
-//typedef struct irCode_arg_t {
-//	union {
-//		var_t* _var;
-//		func_t* _func;
-//		int _constant;
-//	} arg;
-//	irType_t type;
-//} irCode_arg_t;
-
 /**
  * 	@brief One row of a IR 3-address code with references to next and previous line
  */
 typedef struct irCode_t {
 	int row;
-	char* label; // optional label FIXME not sure if needed
+	char* label; // optional label FIXME Nico not sure if needed (not used yet)
 	operation_t ops;
 	expr_t* res;
 	expr_t* arg0;
