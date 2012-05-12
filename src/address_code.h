@@ -17,7 +17,7 @@ int instruction;
 void backpatch(indexList_t*, int);
 indexList_t* merge(indexList_t*, indexList_t*);
 indexList_t* createList(int);
-expr_t* newTmp();
+expr_t* newTmp(type_t);
 expr_t* newExpr(char*, type_t);
 expr_t* newAnonymousExpr();
 expr_t* newExprNum(int, type_t);

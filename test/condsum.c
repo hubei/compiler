@@ -14,8 +14,12 @@ int func(int arr[10], int len, int threshold);
  */
 int func(int arr[10], int len, int threshold) {
 	int i, sum;
-	i = 0;
+	i = scan();
 	sum = 20;
+
+	arr[0] = scan();
+	i = arr[1];
+	arr[3] = arr[4];
 
 	if (sum >= i) {
 		i = 42;
@@ -49,8 +53,8 @@ int func(int arr[10], int len, int threshold) {
 
 int main() {
 	global = 1;
-	a = 5;
-	a = func(a, 5 + 5, 5);
+	a[1] = 5;
+	a[2] = func(a, 5 + 5, 5);
 
 	print(scan());
 

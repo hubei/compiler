@@ -349,7 +349,12 @@ stmt_list
 stmt
      : stmt_block {$$ = newStmt();}
      | variable_declaration SEMICOLON {$$ = newStmt();}
-     | expression SEMICOLON {$$ = newStmt();}
+     | expression SEMICOLON {
+    	 $$ = newStmt();
+    	 if($1->postEmit == PE_FUNCC) {
+			emit(NULL,$1,OP_CALL_VOID,NULL);
+		}
+     }
      | stmt_conditional {$$ = newStmt();}
      | stmt_loop {$$ = newStmt();}
      | RETURN expression SEMICOLON {
@@ -413,17 +418,57 @@ stmt_loop
  * assignment operators. 
  */
 expression
-     : expression ASSIGN expression {
-    	 int isAssignAllowed = checkCompatibleTypesAssign(@1.first_line, $1, $3);
-     	 if(isAssignAllowed>0 && checkLValue(@1.first_line, $1)) {
-     		expressionReturn($1);
-     		emit($1,$3,OP_ASSIGN,NULL);
-     		$$ = $1;
-     		// TODO next here!! tell $3 that it is i rvalue
-     		if(isAssignAllowed == 2) {
-				 //$$->
-			 }
-     	 }
+	: expression ASSIGN expression {
+		// check for postEmit expressions
+		int normalAssign = 1;
+		expr_t* tmpE = NULL;
+		if($3->postEmit == PE_FUNCC) {
+			if($1->lvalue == 1) {
+				// if left expr. is an lValue, we can directly assign to it
+				emit($1,$3,OP_CALL_RES,NULL);
+			} else {
+				// else we need a tmp var
+				tmpE = newTmp(T_INT);
+				tmpE->type = $1->type;
+				emit(tmpE,$3,OP_CALL_RES,NULL);
+			}
+			normalAssign = 0;
+		} else if($3->postEmit == PE_ARR) {
+			if($1->lvalue == 1) {
+				// if left expr. is an lValue, we can directly assign to it
+				emit($1,$3,OP_ARRAY_LD,$3->arrInd);
+			} else {
+				// else we need a tmp var
+				tmpE = newTmp(T_INT);
+				tmpE->type = $1->type;
+				emit(tmpE,$3,OP_ARRAY_LD,$3->arrInd);
+			}
+			normalAssign = 0;
+		}
+		if($1->postEmit == PE_ARR) {
+			// FIXME Dirk type checking: in this case, array
+			if(tmpE == NULL) {
+				emit($1,$1->arrInd,OP_ARRAY_ST,$3);
+			} else {
+				emit($1,$1->arrInd,OP_ARRAY_ST,tmpE);
+			}
+			normalAssign = 0;
+		} else {
+			if(tmpE != NULL) {
+				emit($1,tmpE,OP_ASSIGN,NULL);
+			}
+		}
+		if(normalAssign == 1) {
+			int isAssignAllowed = checkCompatibleTypesAssign(@1.first_line, $1, $3);
+			if(isAssignAllowed>0 && checkLValue(@1.first_line, $1)) {
+				expressionReturn($1);
+				emit($1,$3,OP_ASSIGN,NULL);
+				$$ = $1;
+				if(isAssignAllowed == 2) {
+					//$$->
+				}
+			}
+		}
      }
      | expression LOGICAL_OR M expression {
     	 if(checkCompatibleTypes(@1.first_line, $1, $4)) {
@@ -521,7 +566,7 @@ expression
      | expression PLUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_ADD,$3);
 			 //printf("l. %d: addition: %d + %d; %d\n", @1.first_line, $1->value, $3->value, $$->type);
 		 }
@@ -529,51 +574,57 @@ expression
      | expression MINUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_SUB,$3);
 		 }
      }
      | expression MUL expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_MUL,$3);
 		 }
      }
      | expression DIV expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_DIV,$3);
 		 }
      }
      | expression MOD expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
-			 $$ = newTmp();
+			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_MOD,$3);
 		 }
      }
      | MINUS expression %prec UNARY_MINUS {
     	 // TODO Dirk type checking
-    	 $$ = newTmp();
+    	 $$ = newTmp(T_INT);
 		 emit($$,$2,OP_MINUS,NULL);
      }
      | ID BRACKET_OPEN primary BRACKET_CLOSE {
-    	 // TODO where should we put OP_ARRAY_ST? (arr[i] = X)
-     	 if($3->type!=T_INT) {
-     		typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
-     	 }
-     	 $$ = newTmp();
-     	 $$->type=T_INT;
-     	 $$->lvalue=1;
-     	 var_t* found = findVar(curSymbol,$1);
-     	 if(found == NULL) {
-     		typeError(@1.first_line, "Array does not exist: %s", $1);
-     	 } else {
-     		emit($$,newExpr($1,found->type),OP_ARRAY_LD,$3);
-     	 }
-     }
+		 if($3->type!=T_INT) {
+			typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
+		 }
+      	 $$ = newExpr($1,T_UNKNOWN);
+      	 var_t* found = findVar(curSymbol,$1);
+      	 if(found != NULL) {
+      		$$->type = found->type;
+      	 } else {
+      		typeError(@1.first_line, "Array does not exist: %s", $1);
+      	 }
+  		 $$->arrInd = $3;
+  		 $$->postEmit = PE_ARR;
+		 
+		 
+//		 $$ = newTmp();
+//		 $$->type=T_INT;
+//		 $$->lvalue=1;
+ //     		emit($$,newExpr($1,found->type),OP_ARRAY_LD,$3);
+ //     	 }
+	  }
      | PARA_OPEN expression PARA_CLOSE { 
      	 $$ = $2;
      }
@@ -613,49 +664,62 @@ primary
  * The non-terminal 'function_call' is used by the non-terminal 'expression' for calling functions.
  */
 function_call
-	: ID PARA_OPEN PARA_CLOSE { 
-		$$ = newExpr($1, T_UNKNOWN);
-		$$->lvalue = 0;
+: ID PARA_OPEN PARA_CLOSE {
+	$$ = newExpr($1, T_UNKNOWN);
+	$$->lvalue = 0;
+	func_t* func = findFunc(curSymbol, $1);
+	if(func == NULL) {
+		// TODO Dirk type checking
+	} else {
+		$$->type = func->returnType;
 	}
-	| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
-		exprList_t* tmp1 = NULL;
-		exprList_t* tmp2 = $3;
-		GETLISTHEAD(tmp2, tmp1);
-		$3 = tmp1;
-		$$ = newExpr($1, T_UNKNOWN);
-		correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
-		$$->value.id = $1;
-		$$->lvalue = 0;
+	$$->postEmit = PE_FUNCC;
+}
+| ID PARA_OPEN function_call_parameters PARA_CLOSE { 
+	exprList_t* tmp1 = NULL;
+	exprList_t* tmp2 = $3;
+	GETLISTHEAD(tmp2, tmp1);
+	$3 = tmp1;
+	correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
+	$$ = newExpr($1, T_UNKNOWN);
+	$$->lvalue = 0;
+	func_t* func = findFunc(curSymbol, $1);
+	if(func == NULL) {
+		// TODO Dirk type checking
+	} else {
+		$$->type = func->returnType;
 	}
-	;
+	$$->postEmit = PE_FUNCC;
+}
+;
 
 /*
  * The non-terminal 'function_call_parameters' is used for the parameters of a function call 
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-     : function_call_parameters COMMA expression { 
-	 	 $$=malloc(sizeof(exprList_t));
-    	 if($$==NULL) {
-    		 error("fcp_expression: malloc unsuccessful");
-    	 }
-	 	 $$->next = NULL;
-     	 $$->expr = $3; 
-     	 $$->prev = $1; 
-     	 $$->prev->next = $$;
-     	 //printf("more than one parameter\n");
-     }
-     | expression { 
-    	 $$=malloc(sizeof(exprList_t));
-    	 if($$==NULL) {
-    		 error("fcp_expression: malloc unsuccessful");
-    	 }
-    	 $$->expr = $1;
-    	 $$->prev = NULL;
-    	 $$->next = NULL;
-    	 //printf("function call parameters: l. %d: Value: %s \n", @1.first_line, $$->expr->value);
-     }
-     ;
+	: function_call_parameters COMMA expression { 
+		$$=malloc(sizeof(exprList_t));
+		if($$==NULL) {
+		 error("fcp_expression: malloc unsuccessful");
+		}
+		$$->next = NULL;
+		$$->expr = $3; 
+		$$->prev = $1; 
+		$$->prev->next = $$;
+		//printf("more than one parameter\n");
+	}
+	| expression { 
+		$$=malloc(sizeof(exprList_t));
+		if($$==NULL) {
+			error("fcp_expression: malloc unsuccessful");
+		}
+		$$->expr = $1;
+		$$->prev = NULL;
+		$$->next = NULL;
+		//printf("function call parameters: l. %d: Value: %s \n", @1.first_line, $$->expr->value);
+	}
+	;
 
 %%
 

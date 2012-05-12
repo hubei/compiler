@@ -41,12 +41,21 @@ typedef struct indexList_t {
 } indexList_t;
 
 /**
+ *	@brief TODO Nico
+ */
+typedef enum postEmit_t {
+	PE_NONE, PE_ARR, PE_FUNCC
+} postEmit_t;
+
+/**
  * TODO Dirk documentation
  */
 typedef struct expr_t {
 	type_t type;
 	int lvalue;
+	postEmit_t* postEmit; // for array and function calls: emit later to decide if function is standalone or array is lvalue
 	int jump; // for goto statements to set jump location
+	struct expr_t* arrInd; // expression for array index
 	valueKind_t valueKind;
 	indexList_t* trueList;
 	indexList_t* falseList;

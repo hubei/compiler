@@ -73,11 +73,16 @@ indexList_t* createList(int i) {
 	return newList;
 }
 
-expr_t* newTmp() {
+expr_t* newTmp(type_t type) {
 	char* id = malloc(11 + 4);
 	sprintf(id, "#V_%d", nextTmpVar);
-	expr_t* newT = newExpr(id, T_INT);
-	insertVar(curSymbol, createVar(id));
+	expr_t* newT = newExpr(id, type);
+	var_t* var = createVar(id);
+	var->type = type;
+	if(type == T_INT) {
+		var->width = 4;
+	}
+	insertVar(curSymbol, var);
 	nextTmpVar++;
 	return newT;
 }
@@ -94,6 +99,8 @@ expr_t* newAnonymousExpr() {
 	newE->valueKind = VAL_ID;
 	newE->trueList = NULL;
 	newE->falseList = NULL;
+	newE->arrInd = NULL;
+	newE->postEmit = PE_NONE;
 	return newE;
 }
 
@@ -248,15 +255,15 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 			fprintf(out, "<%.4d> RETURN\n", nextIrCode->row);
 			break;
 		case OP_CALL_RES:
-			// TODO param list
+			// TODO param list with findFunc()!!
 			// R = CALL FUNC, (LISTE)
 			fprintf(out, "<%.4d> %s = CALL %s, (%s)\n", nextIrCode->row, res,
-					arg0, arg1);
+					arg0, "");
 			break;
 		case OP_CALL_VOID:
 			// TODO param list
 			// CALL FUNC, (LISTE)
-			fprintf(out, "<%.4d> CALL %s, (%s)\n", nextIrCode->row, arg0, arg1);
+			fprintf(out, "<%.4d> CALL %s, (%s)\n", nextIrCode->row, arg0, "");
 			break;
 		case OP_ARRAY_LD:
 			// R = ARR[IDX]
@@ -274,15 +281,15 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		}
 
 		// free allocated mem for string rep. of numbers
-		if (nextIrCode->res != NULL && nextIrCode->res->valueKind == VAL_NUM) {
-			free(res);
-		}
-		if (nextIrCode->arg0 != NULL && nextIrCode->arg0->valueKind == VAL_NUM) {
-			free(arg0);
-		}
-		if (nextIrCode->arg1 != NULL && nextIrCode->arg1->valueKind == VAL_NUM) {
-			free(arg1);
-		}
+//		if (res != NULL && nextIrCode->res != NULL && nextIrCode->res->valueKind == VAL_NUM) {
+//			free(res);
+//		}
+//		if (arg0 != NULL && nextIrCode->arg0 != NULL && nextIrCode->arg0->valueKind == VAL_NUM) {
+//			free(arg0);
+//		}
+//		if (arg1 != NULL && nextIrCode->arg1 != NULL && nextIrCode->arg1->valueKind == VAL_NUM) {
+//			free(arg1);
+//		}
 
 		nextIrCode = nextIrCode->next;
 	}
