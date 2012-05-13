@@ -31,6 +31,7 @@ void insertFunc(symbol_t*, func_t*);
 var_t* findVar(symbol_t*, string); // find in current scope or scopes above
 func_t* findFunc(symbol_t*, string);
 int exists(symbol_t*, string); // only in current scope
+void destroyVar(symbol_t*, string);
 
 char* setString(char*);
 string typeToString(type_t);

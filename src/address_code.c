@@ -195,6 +195,7 @@ void delLastInstr() {
 	if (irListTail != NULL) {
 		irCode_t* lastIR = irListTail;
 		irListTail = irListTail->prev;
+		destroyVar(curSymbol, lastIR->res->value.id);
 		free(lastIR);
 		instruction--;
 	}

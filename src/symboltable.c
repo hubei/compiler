@@ -210,6 +210,19 @@ void insertVar(symbol_t* symbol, var_t* var) {
 }
 
 /**
+ * @brief remove given var from symbolTable and delete it (free)
+ * @param id name of var
+ */
+void destroyVar(symbol_t* curSymbol, string id) {
+	assert(id != NULL);
+	var_t* var = findVar(curSymbol, id);
+	if(var != NULL) {
+		HASH_DEL(curSymbol->symVar, var);
+		free(var);
+	}
+}
+
+/**
  * @brief adds a function to an existing symbol
  * @param symbol, symbol, is a struct, containing hash tables for variables and functions
  * @param func, hash table, defining functions
