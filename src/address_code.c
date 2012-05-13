@@ -1,11 +1,18 @@
 #include "address_code.h"
 #include "generalParserFunc.h"
-#include <err.h>
 
-// always point to the next instruction
+/** @brief current instruction line */
 int instruction = 0;
+/** @brief numbering temporary variables */
 int nextTmpVar = 0;
+/** @brief Pointer to the last element of irList */
+irCode_t* irListTail = NULL;
 
+/**
+ * @brief return the next instruction
+ * The returned row number does *not* point to an existing irCode line
+ * @return row number / instruction number
+ */
 int getNextInstr() {
 	return instruction + 1;
 }
@@ -41,15 +48,27 @@ void backpatch(indexList_t* list, int index) {
 	}
 }
 
+/**
+ * @brief Merge the two given lists into one
+ * l1 and l2 can be NULL. So can the return value.
+ * @param l1 list one
+ * @param l2 list two
+ * @return new merged list
+ */
 indexList_t* merge(indexList_t* l1, indexList_t* l2) {
+	// if one of the list is NULL, just return the other
 	if (l1 == NULL)
 		return l2;
 	if (l2 == NULL)
 		return l1;
+
+	// start with getting the correct start/end of the lists
 	indexList_t* l1Tail = NULL;
 	GETLISTTAIL(l1, l1Tail);
 	indexList_t* l2Head = NULL;
 	GETLISTHEAD(l2, l2Head);
+
+	// concat the lists
 	if (l1Tail != NULL) {
 		l1Tail->next = l2Head;
 	}
@@ -57,12 +76,18 @@ indexList_t* merge(indexList_t* l1, indexList_t* l2) {
 		l2Head->prev = l1Tail;
 	}
 
+	// get the list head, before returning it
 	indexList_t* l1Head = NULL;
 	GETLISTHEAD(l1, l1Head);
 	return l1Head;
 }
 
-indexList_t* createList(int i) {
+/**
+ * @brief Create a new index list
+ * @param i initial value to insert into list
+ * @return new list
+ */
+indexList_t* newIndexList(int i) {
 	indexList_t* newList = malloc(sizeof(indexList_t));
 	if (newList == NULL) {
 		// TODO error
@@ -73,25 +98,41 @@ indexList_t* createList(int i) {
 	return newList;
 }
 
+/**
+ * @brief Create new tmp variable and insert into symTab
+ * @param type data type of var
+ * @return new tmp var
+ */
 expr_t* newTmp(type_t type) {
+	// generate new id
 	char* id = malloc(11 + 4);
 	sprintf(id, "#V_%d", nextTmpVar);
+
+	// new expr and var
 	expr_t* newT = newExpr(id, type);
 	var_t* var = createVar(id);
 	var->type = type;
-	if(type == T_INT) {
+	if (type == T_INT) {
 		var->width = 4;
 	}
+	// insert var into symTab
 	insertVar(curSymbol, var);
+	// increase number
 	nextTmpVar++;
 	return newT;
 }
 
+/**
+ * @brief Create a new expression (completely empty, without side-effects)
+ * @return new expression
+ */
 expr_t* newAnonymousExpr() {
 	expr_t* newE = malloc(sizeof(expr_t));
 	if (newE == NULL) {
 		// TODO error
 	}
+
+	// set default values
 	newE->value.id = "";
 	newE->jump = 0;
 	newE->type = T_UNKNOWN;
@@ -101,9 +142,16 @@ expr_t* newAnonymousExpr() {
 	newE->falseList = NULL;
 	newE->arrInd = NULL;
 	newE->postEmit = PE_NONE;
+	newE->params = NULL;
 	return newE;
 }
 
+/**
+ * @brief Create a new expression with given id and type
+ * @param id name of variable/expression
+ * @param type data type
+ * @return new expression
+ */
 expr_t* newExpr(char* id, type_t type) {
 	expr_t* newE = newAnonymousExpr();
 	newE->value.id = id;
@@ -112,6 +160,12 @@ expr_t* newExpr(char* id, type_t type) {
 	return newE;
 }
 
+/**
+ * @brief Create a new expression with given number and type
+ * @param num value of expr/var
+ * @param type data type
+ * @return new expression
+ */
 expr_t* newExprNum(int num, type_t type) {
 	expr_t* newE = newAnonymousExpr();
 	newE->value.num = num;
@@ -120,6 +174,11 @@ expr_t* newExprNum(int num, type_t type) {
 	return newE;
 }
 
+/**
+ * @brief Create a new empty statement
+ * currently only stores a nextList
+ * @return new Stmt
+ */
 stmt_t* newStmt() {
 	stmt_t* stmt = malloc(sizeof(stmt_t));
 	if (stmt == NULL) {
@@ -130,42 +189,38 @@ stmt_t* newStmt() {
 }
 
 /**
- * @brief Creates IRCode from parsed expressions
+ * @brief Delete last instruction line and decrease counter
+ */
+void delLastInstr() {
+	if (irListTail != NULL) {
+		irCode_t* lastIR = irListTail;
+		irListTail = irListTail->prev;
+		free(lastIR);
+		instruction--;
+	}
+}
+
+/**
+ * @brief Creates a new IRCode line with given arguments and the operator
+ * @param res
  * @param arg0
- * @param arg1
  * @param op
+ * @param arg1
  */
 void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
-
 	// create a new ircode line
 	irCode_t *newIRCode = (irCode_t*) malloc(sizeof(struct irCode_t));
 	if (newIRCode == NULL) {
-		err(1, "Could not allocate memory");
+		// TODO error
 	}
 
 	// initialize
 	newIRCode->ops = op;
 	newIRCode->next = NULL;
 	newIRCode->prev = NULL;
-	newIRCode->label = NULL;
 	newIRCode->arg0 = arg0;
 	newIRCode->arg1 = arg1;
 	newIRCode->res = res;
-
-	// TODO Nico res, arg0, arg1... expr -> arg
-
-//	// Arg 0
-//	if (arg0Expr != NULL) {
-//		newIRCode->arg0 = argFromExpr(arg0Expr);
-//	}
-//	// Arg 1
-//	if (arg1Expr != NULL) {
-//		newIRCode->arg1 = argFromExpr(arg1Expr);
-//	}
-//	// res
-//	if (resExpr != NULL) {
-//		newIRCode->res = argFromExpr(resExpr);
-//	}
 
 	// insert into list
 	if (irListTail != NULL) {
@@ -174,7 +229,7 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 	newIRCode->prev = irListTail;
 	newIRCode->row = getNextInstr();
 	irListTail = newIRCode; // new tail
-	instruction++;
+	instruction++; // one more instruction
 }
 
 /**
@@ -186,9 +241,11 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 	if (out == NULL)
 		out = stdout;
 
+	// store string representations of the args
 	char* res = NULL;
 	char* arg1 = NULL;
 	char* arg0 = NULL;
+	char* exprL = NULL;
 
 	irCode_t *nextIrCode = irCode;
 	// for each irCode line
@@ -233,15 +290,18 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 			fprintf(out, "<%.4d> RETURN\n", nextIrCode->row);
 			break;
 		case OP_CALL_RES:
-			// TODO Nico param list with findFunc()!!
 			// R = CALL FUNC, (LISTE)
+			exprL = exprListToStr(nextIrCode->arg0->params);
 			fprintf(out, "<%.4d> %s = CALL %s, (%s)\n", nextIrCode->row, res,
-					arg0, "");
+					arg0, exprL);
+			free(exprL);
 			break;
 		case OP_CALL_VOID:
-			// TODO Nico param list
 			// CALL FUNC, (LISTE)
-			fprintf(out, "<%.4d> CALL %s, (%s)\n", nextIrCode->row, arg0, "");
+			exprL = exprListToStr(nextIrCode->arg0->params);
+			fprintf(out, "<%.4d> CALL %s, (%s)\n", nextIrCode->row, arg0,
+					exprL);
+			free(exprL);
 			break;
 		case OP_ARRAY_LD:
 			// R = ARR[IDX]
@@ -259,18 +319,49 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		}
 
 		// free allocated mem for string rep. of numbers
-//		if (res != NULL && nextIrCode->res != NULL && nextIrCode->res->valueKind == VAL_NUM) {
-//			free(res);
-//		}
-//		if (arg0 != NULL && nextIrCode->arg0 != NULL && nextIrCode->arg0->valueKind == VAL_NUM) {
-//			free(arg0);
-//		}
-//		if (arg1 != NULL && nextIrCode->arg1 != NULL && nextIrCode->arg1->valueKind == VAL_NUM) {
-//			free(arg1);
-//		}
+		if (res != NULL && nextIrCode->res != NULL
+				&& nextIrCode->res->valueKind == VAL_NUM) {
+			free(res);
+		}
+		if (arg0 != NULL && nextIrCode->arg0 != NULL
+				&& nextIrCode->arg0->valueKind == VAL_NUM) {
+			free(arg0);
+		}
+		if (arg1 != NULL && nextIrCode->arg1 != NULL
+				&& nextIrCode->arg1->valueKind == VAL_NUM) {
+			free(arg1);
+		}
 
 		nextIrCode = nextIrCode->next;
 	}
+}
+
+/**
+ * @brief Convert a expression list to string (comma separated)
+ * @param el exprList
+ * @return String
+ */
+char* exprListToStr(exprList_t* el) {
+	char* result = NULL;
+	if (el == NULL) {
+		result = malloc(1);
+		strcpy(result, "");
+		return result;
+	}
+	exprList_t* tmpEl = NULL;
+	GETLISTHEAD(el, tmpEl);
+	while (tmpEl != NULL) {
+		if (result == NULL) {
+			result = valueAsString(tmpEl->expr);
+		} else {
+			char* new = valueAsString(tmpEl->expr);
+			char* old = result;
+			result = malloc(strlen(new) + strlen(old) + 2);
+			sprintf(result, "%s,%s", old, new);
+		}
+		tmpEl = tmpEl->next;
+	}
+	return result;
 }
 
 /**
@@ -334,8 +425,8 @@ char* opToStr(operation_t ops) {
 }
 
 /**
- * return list of all irCodes
- * @return
+ * @brief return list of all irCodes
+ * @return irCode HEAD
  */
 irCode_t* getIRCode() {
 	irCode_t* head = NULL;

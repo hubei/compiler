@@ -7,6 +7,9 @@
 #ifndef GENERALPARSERFUNC_H_
 #define GENERALPARSERFUNC_H_
 
+/** @brief current symbol in parser */
+symbol_t* curSymbol;
+
 /**
  * @brief Loads head of list into result
  * @param list pointer to any element in a list
@@ -19,6 +22,9 @@
 		result = result->prev; \
 	} \
 
+/**
+ * @brief Same as GETLISTHEAD, but for tail
+ */
 #define GETLISTTAIL(list, result) \
 	result = list; \
 	while(result->next != NULL) { \
@@ -28,7 +34,6 @@
 void expressionReturn(expr_t*);
 char* valueAsString(expr_t*);
 
-symbol_t* curSymbol;
 
 #endif
 

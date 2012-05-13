@@ -7,8 +7,8 @@
  *      Author: NicolaiO
  */
 
-#include "uthash.h"
 #include "symboltable.h"
+#include <uthash.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,6 +40,7 @@ char* setString(char* source) {
  * @param msg message to be printed to stderr
  */
 void error(string msg) {
+	// TODO error
 	fprintf(stderr, "\n%s\nExiting...\n", msg);
 	exit(1);
 }
@@ -80,6 +81,7 @@ symbol_t* createSymbol() {
 	symbol_t *newSymbol = NULL;
 	newSymbol = malloc(sizeof(symbol_t));
 	if (newSymbol == NULL) {
+		// TODO error
 		error("createSymbol: Could not allocate newSymbol");
 	}
 
@@ -99,21 +101,25 @@ symbol_t* createSymbol() {
 
 /**
  * @brief creates a new Variable
- * @param id, identiefys a var
+ * @param id, identifies a var
  * @return
  */
 var_t* createVar(string id) {
 	assert(id != NULL);
+
 	var_t *newVar = NULL;
 	newVar = malloc(sizeof(var_t));
 	if (newVar == NULL) {
+		// TODO error
 		error("Variable could not be created");
 	}
 	newVar->id = malloc(strlen(id) + 1);
 	if (newVar->id == NULL) {
+		// TODO error
 		error("createVar: Could not allocate id");
 	}
 	strcpy(newVar->id, id);
+
 	newVar->offset = 0;
 	newVar->size = 0;
 	newVar->type = T_UNKNOWN;
@@ -123,21 +129,25 @@ var_t* createVar(string id) {
 
 /**
  * @brief creates a new Function.
- * @param id, identiefys a function
+ * @param id, identifies a function
  * @return
  */
 func_t* createFunc(string id) {
 	assert(id != NULL);
+
 	func_t *newFunc = NULL;
 	newFunc = malloc(sizeof(struct func_t));
 	if (newFunc == NULL) {
+		// TODO error
 		error("Function could not be created");
 	}
 	newFunc->id = malloc(strlen(id) + 1);
 	if (newFunc->id == NULL) {
+		// TODO error
 		error("createFunc: Could not allocate id");
 	}
 	strcpy(newFunc->id, id);
+
 	newFunc->num_params = 0;
 	newFunc->param = NULL;
 	newFunc->returnType = T_UNKNOWN;
@@ -154,14 +164,19 @@ func_t* createFunc(string id) {
 param_t* addParam(param_t* prevParam, var_t* paramVar) {
 	assert(paramVar!=NULL);
 	assert(paramVar->id!=NULL);
+
 	struct param_t* newParam = NULL;
 	newParam = malloc(sizeof(var_t));
-	if (newParam == NULL)
-		error("addParam: newParam is NULL");
+	if (newParam == NULL) {
+		// TODO error
+	}
+
+	// initialize
 	newParam->prev = NULL;
 	newParam->next = NULL;
 	newParam->var = paramVar;
 
+	// Concatenate with prevParam
 	if (prevParam != NULL) {
 		prevParam->next = newParam;
 		newParam->prev = prevParam;
@@ -175,17 +190,13 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
  * @param symbol, is a struct, containing hash tables for variables and functions
  * @param var, hash table, defining variables
  */
-
 void insertVar(symbol_t* symbol, var_t* var) {
-//	prüfen ob übergebenen parameter nicht null sind
 	assert(symbol != NULL);
-	//assert
 	assert(var != NULL);
-	//assert
 	assert(var->id != NULL);
-	//assert
 
 	if (exists(symbol, var->id)) {
+		// TODO error
 		error("Function is already in symbol table");
 	}
 
@@ -193,8 +204,8 @@ void insertVar(symbol_t* symbol, var_t* var) {
 	var->offset = symbol->offset;
 	symbol->offset += var->width;
 
-	//einfügen in die hashmap
-	// symbol->symVar darf durchaus NULL sein.
+	// insert into hashmap
+	// symbol->symVar can be NULL! Thats not problem
 	HASH_ADD_KEYPTR( hh, symbol->symVar, var->id, strlen(var->id), var);
 }
 
@@ -209,6 +220,7 @@ void insertFunc(symbol_t* symbol, func_t* func) {
 	assert(func->id != NULL);
 
 	if (exists(symbol, func->id)) {
+		// TODO error
 		error("Function is already symbol table");
 	}
 
@@ -368,7 +380,6 @@ void print_var(FILE* file, var_t* symVar) {
  * @param file specifies the location of the file where the parameters are printed to
  * @param paramHead
  */
-
 void print_param(FILE* file, param_t* paramHead) {
 	assert(file!=NULL);
 	// paramHead can be NULL -> no params

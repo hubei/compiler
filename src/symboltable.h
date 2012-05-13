@@ -8,7 +8,7 @@
 #define SYMBOLTABLE_H_
 
 #include "types.h"
-#include <stdio.h>
+#include <stdio.h> // FILE
 
 /**
  * @brief pointer to the top of the symbol table

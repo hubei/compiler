@@ -7,7 +7,7 @@
  *      Author: DirkK
  */
 
-#include "uthash.h"
+#include <uthash.h>
 #include "symboltable.h"
 #include "typechecking.h"
 #include "generalParserFunc.h"
@@ -15,7 +15,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <err.h>
 
 void typeError(int line, const char *msg, ...) {
 	va_list fmtargs;
@@ -229,7 +228,7 @@ int correctFuncTypes(int line, symbol_t* curSymbol, string funcID,
 }
 
 /**
- *
+ * @brief TODO Dirk
  * @param line
  * @param type1
  * @param type2
@@ -250,6 +249,7 @@ int checkCompatibleTypesReal(int line, type_t type1, type_t type2, int isAssign)
 	return 1;
 }
 
+// TODO Dirk document
 int checkCompatibleTypesRaw(int line, type_t type1, type_t type2) {
 	return checkCompatibleTypesReal(line, type1, type2, 0);
 }

@@ -8,9 +8,9 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-#include "uthash.h"
-#include "utlist.h"
-typedef struct symbol_t symbol_t; // prototype
+#include <uthash.h>
+#include <utlist.h>
+typedef struct symbol_t symbol_t; // prototype need for definition
 
 /**
  * @brief string representation
@@ -25,10 +25,10 @@ typedef enum type_t {
 } type_t;
 
 /**
- * TODO Dirk documentation
+ * @brief possible kinds of values
  */
 typedef enum valueKind_t {
-	VAL_ID, VAL_NUM
+	VAL_UNKOWN, VAL_ID, VAL_NUM
 } valueKind_t;
 
 /**
@@ -48,24 +48,6 @@ typedef enum postEmit_t {
 } postEmit_t;
 
 /**
- * @brief Expressions are used to transfer information within the parser
- */
-typedef struct expr_t {
-	type_t type;
-	int lvalue;
-	postEmit_t* postEmit; // for array and function calls: emit later to decide if function is standalone or array is lvalue
-	int jump; // for goto statements to set jump location
-	struct expr_t* arrInd; // expression for array index
-	valueKind_t valueKind;
-	indexList_t* trueList;
-	indexList_t* falseList;
-	union {
-		char* id;
-		int num;
-	} value;
-} expr_t;
-
-/**
  * @brief expression list of the parser (function parameters)
  */
 typedef struct exprList_t {
@@ -73,6 +55,27 @@ typedef struct exprList_t {
 	struct exprList_t* prev;
 	struct exprList_t* next;
 } exprList_t;
+
+/**
+ * @brief Expressions are used to transfer information within the parser
+ */
+typedef struct expr_t {
+	type_t type;
+	int lvalue;
+	postEmit_t* postEmit; // for array and function calls: emit later to decide if function is standalone or array is lvalue
+	int jump; // for goto statements to set jump location
+	valueKind_t valueKind;
+	indexList_t* trueList;
+	indexList_t* falseList;
+	exprList_t* params;
+	union {
+		char* id;
+		int num;
+	} value;
+	// for arrays:
+	struct expr_t* arrInd; // expression for array index
+	char* parentId; // name of array/func in case, this is a tmpExpr that stores an arr/func value
+} expr_t;
 
 /**
  * @brief statement type for parser
@@ -127,7 +130,7 @@ struct symbol_t {
 };
 
 /**
- *	Based on the expression-rules from the parser.y
+ *	@brief Based on the expression-rules from the parser.y
  */
 typedef enum operation_t {
 	OP_ASSIGN,
@@ -157,7 +160,6 @@ typedef enum operation_t {
  */
 typedef struct irCode_t {
 	int row;
-	char* label; // optional label FIXME Nico not sure if needed (not used yet)
 	operation_t ops;
 	expr_t* res;
 	expr_t* arg0;

@@ -7,7 +7,7 @@
 #ifndef TYPECHECKING_H_
 #define TYPECHECKING_H_
 
-#include "uthash.h"
+#include <uthash.h>
 
 typedef struct parameterList_t {
 	string parameter;

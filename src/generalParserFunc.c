@@ -8,35 +8,42 @@
  */
 
 #include "types.h"
-#include <err.h>
 #include <stdio.h>
 
+/**
+ * TODO Dirk maybe remove? ^^
+ * @param children
+ */
 void expressionReturn(expr_t* children) {
 	children->lvalue = 0;
 }
 
+/**
+ * @brief Return a string representation of a value (id or num)
+ * @param arg argument to convert
+ * @return string (empty string, if sth is NULL)
+ */
 char* valueAsString(expr_t* arg) {
 	char* res = NULL;
-	if(arg == NULL) {
-		return NULL;
+	if (arg != NULL) {
+		switch (arg->valueKind) {
+		case VAL_ID:
+			res = arg->value.id;
+			break;
+		case VAL_NUM:
+			res = malloc(11); // int has max 10 digits + end of string
+			if (res == NULL) {
+				// TODO error
+			}
+			sprintf(res, "%d", arg->value.num);
+			break;
+		case VAL_UNKOWN:
+			break;
+		}
 	}
-	switch (arg->valueKind) {
-	case VAL_ID:
-		res = arg->value.id;
-		break;
-	case VAL_NUM:
-		// TODO Nico could allocate less memory by calculating length of number
-		res = malloc(11); // int has max 10 digits + end of string
-		if (res == NULL)
-			err(1, "Could not allocate");
-		sprintf(res, "%d", arg->value.num);
-		break;
-	default:
-		res = "";
-		break;
-	}
-	if(res == NULL) {
-		return "";
+	if (res == NULL) {
+		res = malloc(1);
+		strcpy(res, "");
 	}
 	return res;
 }

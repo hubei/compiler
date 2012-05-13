@@ -151,7 +151,8 @@ type
      ;
 
 /*
- * 
+ * The non-terminal 'variable_declaration' contains the type of a variable and an
+ * (optionally comma separted list of) identifier_declaration 
  */
 variable_declaration
 	: variable_declaration COMMA identifier_declaration	 {
@@ -352,7 +353,8 @@ stmt
      | expression SEMICOLON {
     	 $$ = newStmt();
     	 if($1->postEmit == PE_FUNCC) {
-			emit(NULL,$1,OP_CALL_VOID,NULL);
+    		 delLastInstr();
+			 emit(NULL,newExpr($1->parentId,T_UNKNOWN),OP_CALL_VOID,NULL);
 		}
      }
      | stmt_conditional {$$ = newStmt();}
@@ -387,7 +389,7 @@ stmt_conditional
     	 backpatch($3->falseList, getNextInstr());
      }
      | IF PARA_OPEN expression PARA_CLOSE M stmt ELSE {
-    	 $6->nextList = merge($6->nextList, createList(getNextInstr()));
+    	 $6->nextList = merge($6->nextList, newIndexList(getNextInstr()));
     	 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
      } M stmt {
      	 backpatch($3->trueList, $5.instr);
@@ -418,38 +420,51 @@ stmt_loop
  * assignment operators. 
  */
 expression
-	: expression ASSIGN expression {
+	: expression ASSIGN {if($1->postEmit == PE_ARR) delLastInstr();} expression {
 		// check for postEmit expressions
 		int normalAssign = 1;
 		expr_t* tmpE = NULL;
-		if($3->postEmit == PE_FUNCC) {
+		if($4->postEmit == PE_FUNCC && $1->postEmit == PE_ARR) {
+			// if: arr[i] = scan()
+//			delLastInstr();
+//			if($1->lvalue == 1) {
+//				// if left expr. is an lValue, we can directly assign to it
+//				// x = CALL func, ()
+//				emit($1,$3,OP_CALL_RES,NULL);
+//			} else {
+//				// else we need a tmp var
+//				// tmp = CALL func, ()
+//				tmpE = newTmp(T_INT);
+//				tmpE->type = $1->type;
+//				emit(tmpE,$3,OP_CALL_RES,NULL);
+//			}
+//			normalAssign = 0;
+		} 
+		if($4->postEmit == PE_ARR) {
+			delLastInstr();
+//			if($1->postEmit == PE_ARR) {
+//				delLastInstr();
+//			}
 			if($1->lvalue == 1) {
 				// if left expr. is an lValue, we can directly assign to it
-				emit($1,$3,OP_CALL_RES,NULL);
+				// x = arr[i]
+				emit($1,newExpr($4->parentId,T_INT),OP_ARRAY_LD,$4->arrInd);
 			} else {
 				// else we need a tmp var
+				// tmp = arr[i]
 				tmpE = newTmp(T_INT);
 				tmpE->type = $1->type;
-				emit(tmpE,$3,OP_CALL_RES,NULL);
-			}
-			normalAssign = 0;
-		} else if($3->postEmit == PE_ARR) {
-			if($1->lvalue == 1) {
-				// if left expr. is an lValue, we can directly assign to it
-				emit($1,$3,OP_ARRAY_LD,$3->arrInd);
-			} else {
-				// else we need a tmp var
-				tmpE = newTmp(T_INT);
-				tmpE->type = $1->type;
-				emit(tmpE,$3,OP_ARRAY_LD,$3->arrInd);
+				emit(tmpE,newExpr($4->parentId,T_INT),OP_ARRAY_LD,$4->arrInd);
 			}
 			normalAssign = 0;
 		}
 		if($1->postEmit == PE_ARR) {
 			if(tmpE == NULL) {
-				emit($1,$1->arrInd,OP_ARRAY_ST,$3);
+				// arr[i] = $4
+				emit(newExpr($1->parentId,T_INT),$1->arrInd,OP_ARRAY_ST,$4);
 			} else {
-				emit($1,$1->arrInd,OP_ARRAY_ST,tmpE);
+				// arr[i] = tmp
+				emit(newExpr($1->parentId,T_INT),$1->arrInd,OP_ARRAY_ST,tmpE);
 			}
 			normalAssign = 0;
 		} else {
@@ -458,10 +473,10 @@ expression
 			}
 		}
 		if(normalAssign == 1) {
-			int isAssignAllowed = checkCompatibleTypesAssign(@1.first_line, $1, $3);
+			int isAssignAllowed = checkCompatibleTypesAssign(@1.first_line, $1, $4);
 			if(isAssignAllowed>0 && checkLValue(@1.first_line, $1)) {
 				expressionReturn($1);
-				emit($1,$3,OP_ASSIGN,NULL);
+				emit($1,$4,OP_ASSIGN,NULL);
 				$$ = $1;
 				if(isAssignAllowed == 2) {
 					//$$->
@@ -499,8 +514,8 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
 			 $$ = newAnonymousExpr();
-			 $$->falseList = createList(getNextInstr() + 1);
-			 $$->trueList = createList(getNextInstr());
+			 $$->falseList = newIndexList(getNextInstr() + 1);
+			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFEQ,$3);
 			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
@@ -509,8 +524,8 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
 			 $$ = newAnonymousExpr();
-			 $$->falseList = createList(getNextInstr() + 1);
-			 $$->trueList = createList(getNextInstr());
+			 $$->falseList = newIndexList(getNextInstr() + 1);
+			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFNE,$3);
 			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
@@ -519,8 +534,8 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
 			 $$ = newAnonymousExpr();
-			 $$->falseList = createList(getNextInstr() + 1);
-			 $$->trueList = createList(getNextInstr());
+			 $$->falseList = newIndexList(getNextInstr() + 1);
+			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFLT,$3);
 			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
@@ -529,8 +544,8 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
 			 $$ = newAnonymousExpr();
-			 $$->falseList = createList(getNextInstr() + 1);
-			 $$->trueList = createList(getNextInstr());
+			 $$->falseList = newIndexList(getNextInstr() + 1);
+			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFLE,$3);
 			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
@@ -539,8 +554,8 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
 			 $$ = newAnonymousExpr();
-			 $$->falseList = createList(getNextInstr() + 1);
-			 $$->trueList = createList(getNextInstr());
+			 $$->falseList = newIndexList(getNextInstr() + 1);
+			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFGE,$3);
 			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
@@ -549,8 +564,8 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 expressionReturn($1);
 			 $$ = newAnonymousExpr();
-			 $$->falseList = createList(getNextInstr() + 1);
-			 $$->trueList = createList(getNextInstr());
+			 $$->falseList = newIndexList(getNextInstr() + 1);
+			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFGT,$3);
 			 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
 		 }
@@ -560,7 +575,6 @@ expression
 			 expressionReturn($1);
 			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_ADD,$3);
-			 //printf("l. %d: addition: %d + %d; %d\n", @1.first_line, $1->value, $3->value, $$->type);
 		 }
      }
      | expression MINUS expression { 
@@ -600,15 +614,18 @@ expression
 		 if($3->type!=T_INT) {
 			typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
 		 }
-      	 $$ = newExpr($1,T_UNKNOWN);
       	 var_t* found = findVar(curSymbol,$1);
-      	 if(found != NULL) {
-      		$$->type = found->type;
-      	 } else {
+      	 if(found == NULL) {
       		typeError(@1.first_line, "Array does not exist: %s", $1);
       	 }
+      	 
+      	 $$ = newTmp(T_INT);
   		 $$->arrInd = $3;
   		 $$->postEmit = PE_ARR;
+  		 $$->parentId = $1;
+  		 
+  		 expr_t* tmpE = newExpr($1,T_INT);
+		 emit($$,tmpE,OP_ARRAY_LD,$$->arrInd);
 	  }
      | PARA_OPEN expression PARA_CLOSE { 
      	 $$ = $2;
@@ -620,9 +637,15 @@ expression
 		 $$ = $1;
      }
      ;
-     
+
+/*
+ * The non-terminal 'M' is used as a marker for instructions
+ */
 M: /* empty */ { $$.instr = getNextInstr(); };
 
+/*
+ * The non-terminal 'primary' is used by the non-terminal 'expression' for parsing an id or a number
+ */
 primary
      : NUM {
     	 $$ = newExprNum($1, T_INT);
@@ -649,7 +672,7 @@ primary
  */
 function_call
 : ID PARA_OPEN PARA_CLOSE {
-	$$ = newExpr($1, T_UNKNOWN);
+	$$ = newTmp(T_INT);
 	$$->lvalue = 0;
 	func_t* func = findFunc(curSymbol, $1);
 	if(func == NULL) {
@@ -658,6 +681,9 @@ function_call
 		$$->type = func->returnType;
 	}
 	$$->postEmit = PE_FUNCC;
+	$$->parentId = $1;
+	
+	emit($$,newExpr($1, T_UNKNOWN),OP_CALL_RES,NULL);
 }
 | ID PARA_OPEN function_call_parameters PARA_CLOSE { 
 	exprList_t* tmp1 = NULL;
@@ -665,7 +691,7 @@ function_call
 	GETLISTHEAD(tmp2, tmp1);
 	$3 = tmp1;
 	correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
-	$$ = newExpr($1, T_UNKNOWN);
+	$$ = newTmp(T_INT);
 	$$->lvalue = 0;
 	func_t* func = findFunc(curSymbol, $1);
 	if(func == NULL) {
@@ -673,7 +699,11 @@ function_call
 	} else {
 		$$->type = func->returnType;
 	}
+	$$->params = $3;
 	$$->postEmit = PE_FUNCC;
+	$$->parentId = $1;
+	
+	emit($$,newExpr($1, T_UNKNOWN),OP_CALL_RES,NULL);
 }
 ;
 
@@ -691,7 +721,6 @@ function_call_parameters
 		$$->expr = $3; 
 		$$->prev = $1; 
 		$$->prev->next = $$;
-		//printf("more than one parameter\n");
 	}
 	| expression { 
 		$$=malloc(sizeof(exprList_t));
