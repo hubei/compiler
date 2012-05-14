@@ -387,7 +387,7 @@ expression
      		expressionReturn($1);
      		$$ = createIRCodeFromExpr(curSymbol,$1,OP_ASSIGN,$3);
      		 if(isAssignAllowed == 2) {
-				 //$$->
+				 //$$
 			 }
      	 }
      }
