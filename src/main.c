@@ -315,9 +315,9 @@ int main(int argc, char *argv[]) {
 			irFile = fopen(cc_options.ir_file, "w+");
 
 			// Test symbolTable
-			test_symTab(irFile);
+			print_symTab(irFile);
 
-			// TODO If necessary, call any functions for IR code generation
+			// get ir code and print it into irFile
 			ircode = getIRCode();
 			printIRCode(irFile, ircode);
 
@@ -340,7 +340,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	free(getSymbolTable());
-	fprintf(stdout, "Finished.");
+	fprintf(stdout, "\nFinished.");
 
 	rm_cleanup_resources(&resource_mgr);
 	return 0;

@@ -1,114 +1,259 @@
 #include "address_code.h"
-#include <err.h>
+#include "generalParserFunc.h"
+
+/** @brief current instruction line */
+int instruction = 0;
+/** @brief numbering temporary variables */
+int nextTmpVar = 0;
+/** @brief Pointer to the last element of irList */
+irCode_t* irListTail = NULL;
 
 /**
- * @brief Creates IRCode from parsed expressions
- * @param arg0
- * @param arg1
- * @param op
+ * @brief return the next instruction
+ * The returned row number does *not* point to an existing irCode line
+ * @return row number / instruction number
  */
-expr_t* createIRCodeFromExpr(symbol_t* symTab, expr_t* arg0, operations_t op,
-		expr_t* arg1) {
-	irCode_t *newIRCode = (irCode_t*) malloc(sizeof(struct irCode_t));
-	expr_t *resExpr = NULL;
-	if (newIRCode == NULL) {
-		err(1, "Could not allocate memory");
+int getNextInstr() {
+	return instruction + 1;
+}
+
+/**
+ * @brief set the index to all elements in list
+ * @param list a list of indices
+ * @param index index to set on the elements
+ */
+void backpatch(indexList_t* list, int index) {
+	if (list == NULL)
+		return;
+	indexList_t* lHead = NULL;
+	GETLISTHEAD(list, lHead);
+
+	irCode_t* irhead = NULL;
+	irCode_t* ir = NULL;
+	GETLISTHEAD(irListTail, irhead);
+	// loop through all indices in given list
+	while (lHead != NULL) {
+		ir = irhead;
+		// loop through all irCode until the row was found or the list ends
+		while (ir != NULL) {
+			if (ir->row == lHead->index) {
+				// create new result expression to store the GOTO address
+				ir->res = newAnonymousExpr();
+				ir->res->jump = index;
+				break;
+			}
+			ir = ir->next;
+		}
+		lHead = lHead->next;
 	}
+}
+
+/**
+ * @brief Merge the two given lists into one
+ * l1 and l2 can be NULL. So can the return value.
+ * @param l1 list one
+ * @param l2 list two
+ * @return new merged list
+ */
+indexList_t* merge(indexList_t* l1, indexList_t* l2) {
+	// if one of the list is NULL, just return the other
+	if (l1 == NULL)
+		return l2;
+	if (l2 == NULL)
+		return l1;
+
+	// start with getting the correct start/end of the lists
+	indexList_t* l1Tail = NULL;
+	GETLISTTAIL(l1, l1Tail);
+	indexList_t* l2Head = NULL;
+	GETLISTHEAD(l2, l2Head);
+
+	// concat the lists
+	if (l1Tail != NULL) {
+		l1Tail->next = l2Head;
+	}
+	if (l2Head != NULL) {
+		l2Head->prev = l1Tail;
+	}
+
+	// get the list head, before returning it
+	indexList_t* l1Head = NULL;
+	GETLISTHEAD(l1, l1Head);
+	return l1Head;
+}
+
+/**
+ * @brief Create a new index list
+ * @param i initial value to insert into list
+ * @return new list
+ */
+indexList_t* newIndexList(int i) {
+	indexList_t* newList = malloc(sizeof(indexList_t));
+	if (newList == NULL) {
+		// TODO error
+	}
+	newList->index = i;
+	newList->next = NULL;
+	newList->prev = NULL;
+	return newList;
+}
+
+/**
+ * @brief Create new tmp variable and insert into symTab
+ * @param type data type of var
+ * @return new tmp var
+ */
+expr_t* newTmp(type_t type) {
+	// generate new id
+	char* id = malloc(11 + 4);
+	sprintf(id, "#V_%d", nextTmpVar);
+
+	// new expr and var
+	expr_t* newT = newExpr(id, type);
+	var_t* var = createVar(id);
+	var->type = type;
+	if (type == T_INT) {
+		var->width = 4;
+	}
+	// insert var into symTab
+	insertVar(curSymbol, var);
+	// increase number
+	nextTmpVar++;
+	return newT;
+}
+
+/**
+ * @brief Create a new expression (completely empty, without side-effects)
+ * @return new expression
+ */
+expr_t* newAnonymousExpr() {
+	expr_t* newE = malloc(sizeof(expr_t));
+	if (newE == NULL) {
+		// TODO error
+	}
+
+	// set default values
+	newE->value.id = "";
+	newE->jump = 0;
+	newE->type = T_UNKNOWN;
+	newE->lvalue = 0; // FIXME Dirk do I have to do sth here??
+	newE->valueKind = VAL_ID;
+	newE->trueList = NULL;
+	newE->falseList = NULL;
+	newE->arrInd = NULL;
+	newE->postEmit = PE_NONE;
+	newE->params = NULL;
+	return newE;
+}
+
+/**
+ * @brief Create a new expression with given id and type
+ * @param id name of variable/expression
+ * @param type data type
+ * @return new expression
+ */
+expr_t* newExpr(char* id, type_t type) {
+	expr_t* newE = newAnonymousExpr();
+	newE->value.id = id;
+	newE->type = type;
+	newE->valueKind = VAL_ID;
+	return newE;
+}
+
+/**
+ * @brief Create a new expression with given number and type
+ * @param num value of expr/var
+ * @param type data type
+ * @return new expression
+ */
+expr_t* newExprNum(int num, type_t type) {
+	expr_t* newE = newAnonymousExpr();
+	newE->value.num = num;
+	newE->type = type;
+	newE->valueKind = VAL_NUM;
+	return newE;
+}
+
+/**
+ * @brief Create a new empty statement
+ * currently only stores a nextList
+ * @return new Stmt
+ */
+stmt_t* newStmt() {
+	stmt_t* stmt = malloc(sizeof(stmt_t));
+	if (stmt == NULL) {
+		// TODO error
+	}
+	stmt->nextList = NULL;
+	return stmt;
+}
+
+/**
+ * @brief Delete last instruction line and decrease counter
+ */
+void delLastInstr() {
+	if (irListTail != NULL) {
+		irCode_t* lastIR = irListTail;
+		irListTail = irListTail->prev;
+		destroyVar(curSymbol, lastIR->res->value.id);
+		free(lastIR);
+		instruction--;
+	}
+}
+
+/**
+ * @brief Creates a new IRCode line with given arguments and the operator
+ * @param res
+ * @param arg0
+ * @param op
+ * @param arg1
+ */
+void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
+	// create a new ircode line
+	irCode_t *newIRCode = (irCode_t*) malloc(sizeof(struct irCode_t));
+	if (newIRCode == NULL) {
+		// TODO error
+	}
+
+	// initialize
 	newIRCode->ops = op;
 	newIRCode->next = NULL;
 	newIRCode->prev = NULL;
-	if (arg0->valueKind == VAL_ID) {
-		newIRCode->arg0.type = ARG_VAR;
-		var_t* var = findVar(symTab, arg0->value.id);
-		if (var != NULL) {
-			newIRCode->arg0.arg._var = var;
-		} else {
-			printf("OH MANN, KEINE VARIABLE GEFUNDEN MIT DEM NAMEN %s!\n",
-					arg0->value.id);
-		}
-	} else {
-		newIRCode->arg0.type = ARG_CONST;
-		newIRCode->arg0.arg._constant = arg0->value.num;
+	newIRCode->arg0 = arg0;
+	newIRCode->arg1 = arg1;
+	newIRCode->res = res;
+
+	// insert into list
+	if (irListTail != NULL) {
+		irListTail->next = newIRCode;
 	}
-
-	//Arg 1
-	if (arg1->valueKind == VAL_ID) {
-		newIRCode->arg1.type = ARG_VAR;
-		if (findVar(symTab, arg1->value.id) != NULL) {
-			//printf("VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n", arg0.value.id);
-			newIRCode->arg1.arg._var = findVar(symTab, arg1->value.id);
-		} else {
-			printf("OH MANN, KEINE VARIABLE(2) GEFUNDEN MIT DEM NAMEN %s!\n",
-					arg1->value.id);
-		}
-		//printf("%s = %i\n\n", arg0.value.id, arg1.value.id);
-	} else {
-		newIRCode->arg1.type = ARG_CONST;
-		newIRCode->arg1.arg._constant = arg1->value.num;
-	}
-	//if irList was not assigned yet
-	//--> irList = first node
-
-	if (!irList) {
-		irList = newIRCode;
-		newIRCode->row = 0;
-	} else {
-		if (irList->next == NULL) {
-			irList->next = newIRCode;
-			newIRCode->prev = irList;
-			newIRCode->row = 1;
-			last = newIRCode;
-		} else { //irList != NULL && irList->next != null
-			newIRCode->prev = last;
-			last->next = newIRCode;
-			newIRCode->row = last->row + 1;
-			last = newIRCode;
-		}
-	}
-
-	//unless VAR = ....;
-	//we'll create tmp-vars for each step
-	//i.e. 	t0 = 1 + 1;
-	//		a = t0;
-	//
-	// ---> res.arg._var = arg0.arg._const + arg1.arg._const;
-	// ---> res.arg._var = this->prev->res.arg._var;
-	if (op != OP_ASSIGN) {
-		newIRCode->res.type = ARG_VAR;
-		char tmp[0x10]; //16-stellen dürften mal dicke reichen! :D
-		sprintf(tmp, "#V_%d", newIRCode->row);
-		newIRCode->res.arg._var = createVar(tmp);
-		newIRCode->res.arg._var->type = arg0->type;
-		insertVar(symTab, newIRCode->res.arg._var);
-
-		resExpr = malloc(sizeof(expr_t));
-
-		resExpr->value.id = newIRCode->res.arg._var->id;
-		resExpr->type = newIRCode->res.arg._var->type;
-		resExpr->lvalue = 0; // FIXME Dirk do I have to do sth here??
-		resExpr->valueKind = VAL_ID;
-	} else {
-		newIRCode->res = newIRCode->arg0;
-		newIRCode->arg0 = newIRCode->arg1;
-		resExpr = arg0;
-	}
-
-	return resExpr;
+	newIRCode->prev = irListTail;
+	newIRCode->row = getNextInstr();
+	irListTail = newIRCode; // new tail
+	instruction++; // one more instruction
 }
 
+/**
+ * @brief print the given irCode list into given file or to stdout, if file is NULL
+ * @param out an opened file or NULL for stdout
+ * @param irCode an irCode list HEAD
+ */
 void printIRCode(FILE *out, irCode_t *irCode) {
 	if (out == NULL)
 		out = stdout;
 
+	// store string representations of the args
 	char* res = NULL;
 	char* arg1 = NULL;
 	char* arg0 = NULL;
+	char* exprL = NULL;
 
 	irCode_t *nextIrCode = irCode;
+	// for each irCode line
 	while (nextIrCode != NULL) {
-		res = getConstOrId(&nextIrCode->res);
-		arg1 = getConstOrId(&nextIrCode->arg1);
-		arg0 = getConstOrId(&nextIrCode->arg0);
+		res = valueAsString(nextIrCode->res);
+		arg1 = valueAsString(nextIrCode->arg1);
+		arg0 = valueAsString(nextIrCode->arg0);
 
 		switch (nextIrCode->ops) {
 		case OP_ASSIGN:
@@ -132,11 +277,12 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		case OP_IFGE:
 		case OP_IFLT:
 		case OP_IFLE:
-			fprintf(out, "<%.4d> IF %s %s %s GOTO %s\n", nextIrCode->row, arg0,
-					opToStr(nextIrCode->ops), arg1, res);
+			fprintf(out, "<%.4d> IF %s %s %s GOTO %d\n", nextIrCode->row, arg0,
+					opToStr(nextIrCode->ops), arg1, nextIrCode->res->jump);
 			break;
 		case OP_GOTO:
-			fprintf(out, "<%.4d> GOTO %s\n", nextIrCode->row, res);
+			fprintf(out, "<%.4d> GOTO %d\n", nextIrCode->row,
+					nextIrCode->res->jump);
 			break;
 		case OP_RETURN_VAL:
 			fprintf(out, "<%.4d> RETURN %s\n", nextIrCode->row, res);
@@ -145,15 +291,18 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 			fprintf(out, "<%.4d> RETURN\n", nextIrCode->row);
 			break;
 		case OP_CALL_RES:
-			// TODO param list
 			// R = CALL FUNC, (LISTE)
+			exprL = exprListToStr(nextIrCode->arg0->params);
 			fprintf(out, "<%.4d> %s = CALL %s, (%s)\n", nextIrCode->row, res,
-					arg0, arg1);
+					arg0, exprL);
+			free(exprL);
 			break;
 		case OP_CALL_VOID:
-			// TODO param list
 			// CALL FUNC, (LISTE)
-			fprintf(out, "<%.4d> CALL %s, (%s)\n", nextIrCode->row, arg0, arg1);
+			exprL = exprListToStr(nextIrCode->arg0->params);
+			fprintf(out, "<%.4d> CALL %s, (%s)\n", nextIrCode->row, arg0,
+					exprL);
+			free(exprL);
 			break;
 		case OP_ARRAY_LD:
 			// R = ARR[IDX]
@@ -166,18 +315,21 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 					arg1);
 			break;
 		default:
-			// unkown ops, should not happen...
+			// unkown ops, should not happen... :)
 			break;
 		}
 
-
-		if(nextIrCode->res.type == ARG_CONST) {
+		// free allocated mem for string rep. of numbers
+		if (res != NULL && nextIrCode->res != NULL
+				&& nextIrCode->res->valueKind == VAL_NUM) {
 			free(res);
 		}
-		if(nextIrCode->arg0.type == ARG_CONST) {
+		if (arg0 != NULL && nextIrCode->arg0 != NULL
+				&& nextIrCode->arg0->valueKind == VAL_NUM) {
 			free(arg0);
 		}
-		if(nextIrCode->arg1.type == ARG_CONST) {
+		if (arg1 != NULL && nextIrCode->arg1 != NULL
+				&& nextIrCode->arg1->valueKind == VAL_NUM) {
 			free(arg1);
 		}
 
@@ -185,32 +337,40 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 	}
 }
 
-char* getConstOrId(irCode_arg_t* arg) {
-	char* res = NULL;
-	switch (arg->type) {
-	case ARG_VAR:
-		res = arg->arg._var->id;
-		break;
-	case ARG_FUNC:
-		res = arg->arg._func->id;
-		break;
-	case ARG_CONST:
-		res = malloc(11); // int has max 10 digits + end of string
-		if (res == NULL)
-			err(1, "Could not allocate");
-		sprintf(res, "%d", arg->arg._constant);
-		break;
-	case ARG_UNKOWN:
-	default:
-		res = "";
-		break;
+/**
+ * @brief Convert a expression list to string (comma separated)
+ * @param el exprList
+ * @return String
+ */
+char* exprListToStr(exprList_t* el) {
+	char* result = NULL;
+	if (el == NULL) {
+		result = malloc(1);
+		strcpy(result, "");
+		return result;
 	}
-
-	assert(res!=NULL);
-	return res;
+	exprList_t* tmpEl = NULL;
+	GETLISTHEAD(el, tmpEl);
+	while (tmpEl != NULL) {
+		if (result == NULL) {
+			result = valueAsString(tmpEl->expr);
+		} else {
+			char* new = valueAsString(tmpEl->expr);
+			char* old = result;
+			result = malloc(strlen(new) + strlen(old) + 2);
+			sprintf(result, "%s,%s", old, new);
+		}
+		tmpEl = tmpEl->next;
+	}
+	return result;
 }
 
-char* opToStr(operations_t ops) {
+/**
+ * @brief get a string representation of the given operand
+ * @param ops operation
+ * @return string
+ */
+char* opToStr(operation_t ops) {
 	char* op = "";
 	switch (ops) {
 	case OP_ASSIGN:
@@ -265,317 +425,12 @@ char* opToStr(operations_t ops) {
 	return op;
 }
 
+/**
+ * @brief return list of all irCodes
+ * @return irCode HEAD
+ */
 irCode_t* getIRCode() {
-	return irList;
+	irCode_t* head = NULL;
+	GETLISTHEAD(irListTail, head);
+	return head;
 }
-
-///**
-// * @Brief Prints current argument (FOR TESTING PURPOSE ONLY)
-// * @param line
-// * @return
-// */
-//void printParam(irCode_t *x) {
-//	if (!x)
-//		return;
-//	char const_str[100] = "Values: ";
-//	if (x->arg0.type == ARG_CONST) {
-//		strcat(const_str, "%d, ");
-//	} else {
-//		strcat(const_str, "%s, ");
-//	}
-//
-//	if (x->arg1.type == ARG_CONST) {
-//		strcat(const_str, "%d ");
-//	} else {
-//		strcat(const_str, "%s ");
-//	}
-////	printf(const_str,x->arg0.type==ARG_CONST?x->arg0.arg._constant:(x->arg0.type==ARG_VAR?x->arg0.arg._var:x->arg0.arg._func));
-//}
-
-///**
-// * @brief Returns IRCode to String
-// * @param line
-// * @return
-// */
-//string IRtoString(irCode_t *line) {
-//	char* result = (char*) malloc(1);
-//	if (!line)
-//		return "";
-//	result = lineToString(result, line);
-//	return (string) result;
-//}
-
-///**
-// * @brief automatically extends dest if size is too small and appends chars.
-// * @param dest
-// * @param source
-// * @return
-// */
-//char* concat(char* dest, char *source) {
-//	assert(dest!=NULL);
-//	assert(source!=NULL);
-//	int newlen = strlen(dest) + strlen(source);
-//	int maxsize = sizeof(dest);
-//	if (newlen >= maxsize) {
-//		char *tmp = NULL;
-//		if (strlen(dest) > 0) {
-//			char *tmp = (char*) malloc(maxsize); //temp-buffer for *dest*
-//			strcpy(tmp, dest); //Copy content from dest to *tmp*
-//		}
-//		dest = (char*) realloc(dest, newlen + 1); //Reallocate dest
-//		if (!dest) {
-//			err(1, "Could not allocate memory");
-//		}
-//		if (strlen(dest) > 0 && tmp != NULL) {
-//			strcpy(dest, tmp); //re-move from temp-buffer to *dest*
-//			free(tmp); //free tmp and NULL it
-//			tmp = NULL;
-//		}
-//	}
-//	strcat(dest, source); //Append new source
-//	return dest;
-//}
-//
-///**
-// * @brief Chooses Operation and converts it into a string
-// * @param result
-// * @param line
-// * @param op
-// * @return
-// */
-//char* lineToString(char *result, irCode_t *line) {
-//	// alternative:
-////	result = malloc(100);
-////	sprintf(result, "<%.4d> %s = %s\n", line->row, line->res.arg._var->id,
-////			line->arg0.arg._var->id);
-//	//Result
-//	//X = a operator b
-//	char cur_line[12] = "";
-//	//sprintf(cur_line,"%s",line->row);
-//
-//	switch (line->ops) {
-//	case OP_ASSIGN: {
-//		//Format: X = ....
-//		if (line->res.arg._var != NULL || line->arg0.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, line->res.arg._var->id);
-//			concat(result, " = ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, ";");
-//		}
-//	}
-//		break;
-//	case OP_ADD: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			//<LINE>: a = 1	+ 2;
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, line->res.arg._var->id);
-//			concat(result, " = ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " + ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, ";");
-//		}
-//	}
-//		break;
-//	case OP_SUB: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, line->res.arg._var->id);
-//			concat(result, " = ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " - ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, ";");
-//		}
-//	}
-//		break;
-//	case OP_MUL: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, line->res.arg._var->id);
-//			concat(result, " = ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " * ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, ";");
-//		}
-//	}
-//		break;
-//	case OP_DIV: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, line->res.arg._var->id);
-//			concat(result, " = ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " * ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, ";");
-//		}
-//	}
-//		break;
-//	case OP_MINUS: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, line->res.arg._var->id);
-//			concat(result, " = -");
-//			concat(result, line->arg0.arg._var->id);
-//		}
-//	}
-//		break;
-//	case OP_IFEQ: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, "IF ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " == ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, " GOTO ");
-//			concat(result, line->res.arg._var->id);
-//		}
-//	}
-//		break;
-//	case OP_IFNE: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, "IF ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " != ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, " GOTO ");
-//			concat(result, line->res.arg._var->id);
-//		}
-//	}
-//		break;
-//	case OP_IFGT: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, "IF ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " > ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, " GOTO ");
-//			concat(result, line->res.arg._var->id);
-//		}
-//	}
-//		break;
-//	case OP_IFGE: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, "IF ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " >= ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, " GOTO ");
-//			concat(result, line->res.arg._var->id);
-//		}
-//	}
-//		break;
-//	case OP_IFLT: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, "IF ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " < ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, " GOTO ");
-//			concat(result, line->res.arg._var->id);
-//		}
-//	}
-//		break;
-//	case OP_IFLE: {
-//		if (line->res.arg._var == NULL || line->arg0.arg._var == NULL
-//				|| line->arg1.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, "IF ");
-//			concat(result, line->arg0.arg._var->id);
-//			concat(result, " <= ");
-//			concat(result, line->arg1.arg._var->id);
-//			concat(result, " GOTO ");
-//			concat(result, line->res.arg._var->id);
-//		}
-//	}
-//		break;
-//	case OP_GOTO: {
-//		if (line->res.arg._var == NULL)
-//			return "";
-//		if (line->res.arg._var->id != NULL && line->arg0.arg._var->id != NULL
-//				&& line->arg1.arg._var->id != NULL) {
-//			concat(result, "<");
-//			concat(result, cur_line);
-//			concat(result, ">: ");
-//			concat(result, "GOTO ");
-//			concat(result, line->res.arg._var->id);
-//		}
-//	}
-//		break;
-//	}
-//	return result;
-//}

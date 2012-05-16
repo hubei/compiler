@@ -13,7 +13,7 @@ VALGRIND = valgrind
 
 # Compiler Flags
 STANDARDS = -std=c99 -D_POSIX_C_SOURCE=200809L
-INCLUDES = -I$(SRCDIR) -I$(OBJDIR) -I$(SRCDIR)/include
+INCLUDES = -I$(SRCDIR) -I$(OBJDIR) -Iinclude
 CFLAGS = -O0 -Wall -Wextra -pedantic -g $(INCLUDES) $(STANDARDS) -Wno-unused-parameter
 CFLAGS_GEN = -O2 -g -I$(OBJDIR) -w $(INCLUDES) $(STANDARDS)
 FLEXFLAGS = 

@@ -11,9 +11,9 @@ int mips32gen(FILE *file,irCode_t *ircode, symbol_t *symbolTable) {
 	if(file == NULL) {
 		return 1;
 	}
-//	if(ircode == NULL) {
-//		return 2;
-//	}
+	if(ircode == NULL) {
+		return 2;
+	}
 	if(symbolTable == NULL) {
 		return 3;
 	}
@@ -35,7 +35,7 @@ int mips32gen(FILE *file,irCode_t *ircode, symbol_t *symbolTable) {
 
 	// global text section
 	fprintf(file, ".text\n\n");
-	// TODO do not know what to do here yet...
+	// do not know what to do here yet...
 
 	// define start point
 	fprintf(file, "_start:\n\tJAL main\n\n");
@@ -45,7 +45,7 @@ int mips32gen(FILE *file,irCode_t *ircode, symbol_t *symbolTable) {
 	HASH_ITER(hh, symbolTable->symFunc, f, tmp2) {
 		fprintf(file, "%s:\n",f->id);
 
-		// TODO here is the main work
+		// TODO Basti here is the main work
 		fprintf(file, "#-> function prolog <-#\n");
 
 		fprintf(file, "#-> local variables <-#\n");

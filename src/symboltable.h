@@ -8,7 +8,7 @@
 #define SYMBOLTABLE_H_
 
 #include "types.h"
-#include <stdio.h>
+#include <stdio.h> // FILE
 
 /**
  * @brief pointer to the top of the symbol table
@@ -31,16 +31,16 @@ void insertFunc(symbol_t*, func_t*);
 var_t* findVar(symbol_t*, string); // find in current scope or scopes above
 func_t* findFunc(symbol_t*, string);
 int exists(symbol_t*, string); // only in current scope
+void destroyVar(symbol_t*, string);
 
 char* setString(char*);
 string typeToString(type_t);
 void error(string);
-void debug(int);
 
 void print_param(FILE*,param_t*);
 void print_var(FILE*,var_t*);
 void print_func(FILE*,func_t*);
-void test_symTab(FILE*);
+void print_symTab(FILE*);
 
 symbol_t* getSymbolTable();
 void setSymbolTable(symbol_t*);

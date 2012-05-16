@@ -8,9 +8,9 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-#include "uthash.h"
-#include "utlist.h"
-typedef struct symbol_t symbol_t; // prototype
+#include <uthash.h>
+#include <utlist.h>
+typedef struct symbol_t symbol_t; // prototype need for definition
 
 /**
  * @brief string representation
@@ -21,28 +21,31 @@ typedef const char* string;
  * @brief set of possible types
  */
 typedef enum type_t {
-	T_UNKOWN, T_INT, T_VOID, T_INT_A
+	T_UNKNOWN, T_INT, T_VOID, T_INT_A
 } type_t;
 
 /**
- * TODO Dirk documentation
+ * @brief possible kinds of values
  */
 typedef enum valueKind_t {
-	VAL_ID, VAL_NUM
+	VAL_UNKOWN, VAL_ID, VAL_NUM
 } valueKind_t;
 
 /**
- * TODO Dirk documentation
+ * @brief list of indices
  */
-typedef struct expr_t {
-	type_t type;
-	int lvalue;
-	valueKind_t valueKind;
-	union {
-		char* id;
-		int num;
-	} value;
-} expr_t;
+typedef struct indexList_t {
+	int index;
+	struct indexList_t* next;
+	struct indexList_t* prev;
+} indexList_t;
+
+/**
+ *	@brief postEmit is for functions and arrays: They have not enough information to emit themselves
+ */
+typedef enum postEmit_t {
+	PE_NONE, PE_ARR, PE_FUNCC
+} postEmit_t;
 
 /**
  * @brief expression list of the parser (function parameters)
@@ -52,6 +55,34 @@ typedef struct exprList_t {
 	struct exprList_t* prev;
 	struct exprList_t* next;
 } exprList_t;
+
+/**
+ * @brief Expressions are used to transfer information within the parser
+ */
+typedef struct expr_t {
+	type_t type;
+	int lvalue;
+	postEmit_t* postEmit; // for array and function calls: emit later to decide if function is standalone or array is lvalue
+	int jump; // for goto statements to set jump location
+	valueKind_t valueKind;
+	indexList_t* trueList;
+	indexList_t* falseList;
+	exprList_t* params;
+	union {
+		char* id;
+		int num;
+	} value;
+	// for arrays:
+	struct expr_t* arrInd; // expression for array index
+	char* parentId; // name of array/func in case, this is a tmpExpr that stores an arr/func value
+} expr_t;
+
+/**
+ * @brief statement type for parser
+ */
+typedef struct stmt_t {
+	indexList_t* nextList;
+} stmt_t;
 
 /**
  * @brief symbol representation of a variable
@@ -66,6 +97,9 @@ typedef struct var_t {
 	UT_hash_handle hh; /* makes this structure hashable */
 } var_t;
 
+/**
+ * @brief LinkedList of vars for parameters of functions
+ */
 typedef struct param_t {
 	var_t* var;
 	struct param_t* next;
@@ -96,9 +130,9 @@ struct symbol_t {
 };
 
 /**
- *	Based on the expression-rules from the parser.y
+ *	@brief Based on the expression-rules from the parser.y
  */
-typedef enum operations_t {
+typedef enum operation_t {
 	OP_ASSIGN,
 	OP_ADD,
 	OP_SUB,
@@ -119,45 +153,18 @@ typedef enum operations_t {
 	OP_CALL_VOID,
 	OP_ARRAY_LD,
 	OP_ARRAY_ST
-} operations_t;
-
-/**
- *  @brief	Enables the determination whether a type is a Variable, Function or constant
- */
-typedef enum irType_t {
-	ARG_UNKOWN, ARG_VAR, ARG_FUNC, ARG_CONST
-} irType_t;
-
-/**
- *  @brief	IrCode argument. Can be either a variable, function or constant.
- * 	In order to determine which one is stored, a type will be assigned, based on the
- * 	previous enum.
- */
-
-typedef struct irCode_arg_t {
-	union {
-		var_t* _var;
-		func_t* _func;
-		int _constant;
-	} arg;
-	irType_t type;
-} irCode_arg_t;
+} operation_t;
 
 /**
  * 	@brief One row of a IR 3-address code with references to next and previous line
  */
 typedef struct irCode_t {
 	int row;
-	char* label; // optional label
-	operations_t ops;
-	irCode_arg_t res;
-	irCode_arg_t arg0;
-	irCode_arg_t arg1;
-	struct irCode_t *prev;
-	struct irCode_t *next; //Next operation until NULL
+	operation_t ops;
+	expr_t* res;
+	expr_t* arg0;
+	expr_t* arg1;
+	struct irCode_t *prev, *next;
 } irCode_t;
-
-struct irCode_t *irList;
-struct irCode_t *last;
 
 #endif /* TYPES_H_ */
