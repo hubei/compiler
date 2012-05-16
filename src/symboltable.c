@@ -156,7 +156,7 @@ func_t* createFunc(string id) {
 }
 
 /**
- * @brief create a new param from given paramVar and at it to the end of other params
+ * @brief create a new param from given paramVar and add it to the end of other params
  * @param prevParam end of list of all previouse params
  * @param paramVar var object that represents the param
  * @return reference to new param

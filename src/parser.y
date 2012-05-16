@@ -286,8 +286,7 @@ function_definition
 				checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
 			} else {
 				// function was already defined!
-				// TODO Dirk create better error functions...
-				yyerror("Function already defined!");
+				typeError(@1.first_line, "Function already defined: %s", $2);
 			}
 		} else {
 			insertFunc(curSymbol, newFunc);
@@ -309,13 +308,14 @@ function_definition
 			if(existingFunc == NULL) {
 				error("function_definition: could not find function, but it should exist...");
 			} else if(existingFunc->symbol==NULL) {
-				// check if function definition and prototype are equal (no params)
+				// check if function definition and prototype are equal (with params)
+				param_t* head;
+				GETLISTHEAD($4, head);
 				checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
-				correctFuncTypesParam(@1.first_line, curSymbol, $2, $4);
+				correctFuncTypesParam(@1.first_line, curSymbol, $2, head);
 			} else {
 				// function was already defined!
-				// TODO Dirk create better error functions...
-				yyerror("Function already defined!");
+				typeError(@1.first_line, "Function already defined: %s", $2);
 			}
 		} else {
 			insertFunc(curSymbol, newFunc);
@@ -676,7 +676,7 @@ function_call
 	$$->lvalue = 0;
 	func_t* func = findFunc(curSymbol, $1);
 	if(func == NULL) {
-		// TODO Dirk type checking
+		typeError(@1.first_line, "Function does not exist: %s", $1);
 	} else {
 		$$->type = func->returnType;
 	}
@@ -695,7 +695,7 @@ function_call
 	$$->lvalue = 0;
 	func_t* func = findFunc(curSymbol, $1);
 	if(func == NULL) {
-		// TODO Dirk type checking
+		typeError(@1.first_line, "Function does not exist: %s", $1);
 	} else {
 		$$->type = func->returnType;
 	}
@@ -712,15 +712,15 @@ function_call
  * by the non-terminal 'function_call'.
  */ 									
 function_call_parameters
-	: function_call_parameters COMMA expression { 
+	: expression COMMA function_call_parameters { 
 		$$=malloc(sizeof(exprList_t));
 		if($$==NULL) {
 		 error("fcp_expression: malloc unsuccessful");
 		}
-		$$->next = NULL;
-		$$->expr = $3; 
-		$$->prev = $1; 
-		$$->prev->next = $$;
+		$$->next = $3;
+		$$->expr = $1; 
+		$$->prev = NULL; 
+		$$->next->prev = $$;
 	}
 	| expression { 
 		$$=malloc(sizeof(exprList_t));

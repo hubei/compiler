@@ -177,6 +177,7 @@ int correctFuncTypesReal(int line, symbol_t* curSymbol, string funcID,
 			string strType = typeToString(s->var->type);
 			string strTypeExpr = typeToString(paraExprType);
 			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",i,function->id,strType,strTypeExpr);
+			printExpectedFound(line, parametersHash, expressionsOrg, parametersOrg, isExpressionList);
 			free((char*)strType);
 			free((char*)strTypeExpr);
 			return 0;

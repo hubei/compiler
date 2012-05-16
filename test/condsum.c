@@ -3,7 +3,7 @@ int test;
 int scan();
 void print(int i);
 void exit(int i);
-int func(int arr[10], int len, int threshold);
+int func(int len, int threshold, int arr[10]);
 
 /**
  *
@@ -12,7 +12,7 @@ int func(int arr[10], int len, int threshold);
  * @param threshold
  * @return
  */
-int func(int arr[10], int len, int threshold) {
+int func(int len, int threshold, int arr[10]) {
 	int i, sum;
 	i = scan();
 	sum = 20;
@@ -63,7 +63,7 @@ void error() {
 int main() {
 	global = 1;
 	a[1] = 5;
-	a[2] = func(a, 5 + 5, 5);
+	a[2] = func(5, 5 + 5, a);
 
 	print(scan());
 
