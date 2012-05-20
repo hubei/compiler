@@ -81,6 +81,7 @@ typedef struct expr_t {
  * @brief statement type for parser
  */
 typedef struct stmt_t {
+	type_t returnType;
 	indexList_t* nextList;
 } stmt_t;
 

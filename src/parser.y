@@ -104,7 +104,7 @@
 %type <expr>expression function_call primary
 %type <typeExt>type variable_declaration
 %type <exprList>function_call_parameters
-%type <statmt>stmt stmt_conditional stmt_loop stmt_block
+%type <statmt>stmt stmt_conditional stmt_loop stmt_block stmt_list
 %type <instr>M
 
 %%
@@ -326,21 +326,34 @@ function_definition
 		  curSymbol = push(curSymbol,findFunc(curSymbol, $2));
 //		  if(ex) {
 //			  // TODO Dirk check if params are correct
+		  	  // TODO Nico hier checken? Das wurde doch schon weiter oben gemacht
 //		  } else {
 			  insertParams(findFunc(curSymbol, $2),$4);
 //		  }
 	  } stmt_list {
 		  curSymbol = pop(curSymbol);
+		  checkReturnTypes(@1.first_line, $1, $7->returnType);
 	  } BRACE_CLOSE
 	;
 									
 /*
- * The non-terminal 'stmt_list' is list of statements containing any number (including zero) of statements represented 
+ * The non-terminal 'stmt_list' is a list of statements containing any number (including zero) of statements represented 
  * by the non-terminal 'stmt'.
  */									
 stmt_list
-     : /* empty: epsilon */ { }
-     | stmt_list stmt { }
+     : /* empty: epsilon */ { $$ = newStmt(); }
+     | stmt_list stmt {
+    	 if($1->returnType!=$2->returnType &&
+    			 $1->returnType!=T_UNKNOWN &&
+    			 $2->returnType!=T_UNKNOWN) {
+    		 typeError(@1.first_line, "Two differnt return types (%s, %s) in function ",$1, $2);
+    	 } else {
+    		 if ( $2->returnType==T_UNKNOWN)
+    			 $$ = $1;
+    		 else
+    			 $$ = $2;
+    	 }
+    	 }
      ;
 
 /*
@@ -363,11 +376,13 @@ stmt
     	 $$ = newStmt();
     	 emit($2,NULL,OP_RETURN_VAL,NULL);
     	 // TODO Dirk type checking
+    	 $$->returnType = $2->type;
      }
      | RETURN SEMICOLON {
     	 $$ = newStmt();
     	 emit(NULL,NULL,OP_RETURN_VAL,NULL);
 		 // TODO Dirk type checking
+    	 $$->returnType = T_VOID;
      }
      | SEMICOLON {$$ = newStmt();} /* empty statement */
      ;

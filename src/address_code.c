@@ -185,6 +185,7 @@ stmt_t* newStmt() {
 		// TODO error
 	}
 	stmt->nextList = NULL;
+	stmt->returnType = T_UNKNOWN;
 	return stmt;
 }
 

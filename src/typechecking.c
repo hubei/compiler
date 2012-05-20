@@ -271,6 +271,12 @@ int checkLValue(int line, expr_t* lvalue) {
 	return 1;
 }
 
+void checkReturnTypes(int line, type_t returnType, type_t returned) {
+	if (type1 != type2) {
+		typeError(line, "return type %s expected, but %s found", typeToString(returnType), typeToString(returned));
+	}
+}
+
 //void checkCompatibleTypes(int line, expr expr1, expr expr2){
 //	checkCompatibleTypesInfo(line, expr1, expr2, "");
 //}

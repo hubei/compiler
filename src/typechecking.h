@@ -20,6 +20,8 @@ int checkCompatibleTypes(int line, expr_t* expr1, expr_t* expr2);
 int checkCompatibleTypesAssign(int line, expr_t* expr1, expr_t* expr2);
 int checkCompatibleTypesRaw(int line, type_t type1, type_t type2);
 
+void checkReturnTypes(int line, type_t returnType, type_t returned);
+
 int correctFuncTypes(int line, symbol_t*, string funcID, exprList_t* parameters);
 int correctFuncTypesParam(int line, symbol_t*, string funcID, param_t* parameters);
 
