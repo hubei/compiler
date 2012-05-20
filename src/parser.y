@@ -332,7 +332,8 @@ function_definition
 //		  }
 	  } stmt_list {
 		  curSymbol = pop(curSymbol);
-		  checkReturnTypes(@1.first_line, $1, $7->returnType);
+		  // FIXME Dirk fixed this, but does this make sense?
+		  checkReturnTypes(@1.first_line, $1.type, $9->returnType);
 	  } BRACE_CLOSE
 	;
 									
