@@ -1,5 +1,6 @@
 /**
  * @file generalParserFunc.h
+ * @brief Contains some functions that are used in different modules
  *
  *  Created on: Apr 10, 2012
  *      Author: DirkK
@@ -31,7 +32,6 @@ symbol_t* curSymbol;
 		result = result->next; \
 	} \
 
-void expressionReturn(expr_t*);
 char* valueAsString(expr_t*);
 
 

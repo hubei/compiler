@@ -1,5 +1,6 @@
-/*
- * address_code.h
+/**
+ * @file address_code.h
+ * @brief Contains functions for generating the intermediate code
  *
  *  Created on: Mar 27, 2012
  *      Author: SebastianN

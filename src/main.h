@@ -1,3 +1,17 @@
+/**
+ * @file main.h
+ * @brief Contains the main functions and some resource handling
+ */
+/**
+ * @mainpage DHBW compilerbau Praktikum
+ *
+ * This is the documentation of the compiler developed for the lecture compilerbau - Praktikum by Andi Hellmund in the 4th semester at DHBW Mannheim.
+ *
+ * @author Ulrich Ahrendt
+ * @author Sebastian Nickel
+ * @author Dirk Klostermann
+ * @author Nicolai Ommer
+ */
 #ifndef _DHBWCC_MAIN_H
 #define _DHBWCC_MAIN_H
 

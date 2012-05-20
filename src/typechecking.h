@@ -1,5 +1,6 @@
 /**
  * @file typechecking.h
+ * @brief Contains functions for type checking
  *
  *  Created on: Mar 31, 2012
  *      Author: DirkK
@@ -9,6 +10,10 @@
 
 #include <uthash.h>
 
+/**
+ * @brief List of parameters represented as strings
+ * TODO Dirk explain what this type is for
+ */
 typedef struct parameterList_t {
 	string parameter;
 	struct parameterList_t* prev;

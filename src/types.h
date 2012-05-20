@@ -1,5 +1,6 @@
-/*
- * types.h
+/**
+ * @file types.h
+ * @brief Contains all global types that are used within the compiler
  *
  *  Created on: Mar 31, 2012
  *      Author: NicolaiO

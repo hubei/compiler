@@ -1,5 +1,6 @@
 /**
- * @file symboltable.c
+ * @file symboltable.h
+ * @brief Contains functions for generating, accessing and printing the symbol table
  *
  *  Created on: Mar 6, 2012
  *      Author: NicolaiO
