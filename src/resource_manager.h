@@ -1,3 +1,7 @@
+/**
+ * @file resource_manager.h
+ * @brief Resource handling
+ */
 #ifndef _DHBWCC_RESOURCE_MANAGER_H
 #define _DHBWCC_RESOURCE_MANAGER_H
 

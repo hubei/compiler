@@ -1,4 +1,4 @@
-/*
+/**
  * @file generalParserFunc.c
  *
  * http://uthash.sourceforge.net/
@@ -9,14 +9,6 @@
 
 #include "types.h"
 #include <stdio.h>
-
-/**
- * TODO Dirk maybe remove? ^^
- * @param children
- */
-void expressionReturn(expr_t* children) {
-	children->lvalue = 0;
-}
 
 /**
  * @brief Return a string representation of a value (id or num)

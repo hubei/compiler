@@ -1,5 +1,6 @@
-/*
- * mips32gen.h
+/**
+ * @file mips32gen.h
+ * @brief Contains functions for generating assambler code
  *
  *  Created on: Mar 31, 2012
  *      Author: NicolaiO
