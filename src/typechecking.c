@@ -272,7 +272,7 @@ int checkLValue(int line, expr_t* lvalue) {
 }
 
 void checkReturnTypes(int line, type_t returnType, type_t returned) {
-	if (type1 != type2) {
+	if (returnType != returned) {
 		typeError(line, "return type %s expected, but %s found", typeToString(returnType), typeToString(returned));
 	}
 }
