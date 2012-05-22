@@ -11,8 +11,8 @@
 #include <uthash.h>
 
 /**
- * @brief List of parameters represented as strings
- * TODO Dirk explain what this type is for
+ * @brief List of parameters represented as strings, only used for error messages
+ * If a function is called with a wrong amount of types, you can print out all the types, which are expected and which are found
  */
 typedef struct parameterList_t {
 	string parameter;

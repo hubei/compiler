@@ -58,6 +58,7 @@ void error() {
 //	scan(2);
 //	print();
 //	func(a,a,1);
+	return;
 }
 
 int main() {

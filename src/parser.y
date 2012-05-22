@@ -296,6 +296,7 @@ function_definition
 		  curSymbol = push(curSymbol,findFunc(curSymbol, $2)); 
 	  } stmt_list {
 		  curSymbol = pop(curSymbol);
+		  checkReturnTypes(@1.first_line, $1.type, $8->returnType);
 	  } BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		func_t* newFunc = createFunc($2);
@@ -332,7 +333,6 @@ function_definition
 //		  }
 	  } stmt_list {
 		  curSymbol = pop(curSymbol);
-		  // FIXME Dirk fixed this, but does this make sense?
 		  checkReturnTypes(@1.first_line, $1.type, $9->returnType);
 	  } BRACE_CLOSE
 	;
@@ -349,7 +349,7 @@ stmt_list
     			 $2->returnType!=T_UNKNOWN) {
     		 typeError(@1.first_line, "Two differnt return types (%s, %s) in function ",$1, $2);
     	 } else {
-    		 if ( $2->returnType==T_UNKNOWN)
+    		 if ($2->returnType==T_UNKNOWN)
     			 $$ = $1;
     		 else
     			 $$ = $2;
@@ -376,13 +376,11 @@ stmt
      | RETURN expression SEMICOLON {
     	 $$ = newStmt();
     	 emit($2,NULL,OP_RETURN_VAL,NULL);
-    	 // TODO Dirk type checking
     	 $$->returnType = $2->type;
      }
      | RETURN SEMICOLON {
     	 $$ = newStmt();
     	 emit(NULL,NULL,OP_RETURN_VAL,NULL);
-		 // TODO Dirk type checking
     	 $$->returnType = T_VOID;
      }
      | SEMICOLON {$$ = newStmt();} /* empty statement */
