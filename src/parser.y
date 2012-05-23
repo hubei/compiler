@@ -461,14 +461,19 @@ expression
 		if($1->postEmit == PE_ARR) {
 			if(tmpE == NULL) {
 				// arr[i] = $4
-				emit(newExpr($1->parentId,T_INT),$1->arrInd,OP_ARRAY_ST,$4);
+				expr_t *newEx = newExpr($1->parentId,T_INT);
+				checkCompatibleTypes(@1.first_line, $4, newEx);
+				emit(newEx,$1->arrInd,OP_ARRAY_ST,$4);
 			} else {
 				// arr[i] = tmpE
-				emit(newExpr($1->parentId,T_INT),$1->arrInd,OP_ARRAY_ST,tmpE);
+				expr_t *newEx = newExpr($1->parentId,T_INT);
+				checkCompatibleTypes(@1.first_line, tmpE, newEx);
+				emit(newEx,$1->arrInd,OP_ARRAY_ST,tmpE);
 			}
 			normalAssign = 0;
 		} else {
 			if(tmpE != NULL) {
+				// if a temp expr was needed, assign it to $1
 				emit($1,tmpE,OP_ASSIGN,NULL);
 			}
 		}
