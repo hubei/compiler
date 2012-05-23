@@ -1,0 +1,9 @@
+#!/bin/bash
+cd success
+for c in $(ls); do
+	s=$(echo $c | sed 's/c$/s/')
+	if [[ $c == *.c ]]
+	then
+   		./../../bin/dhbwcc -p -o $s -t $c
+	fi
+done

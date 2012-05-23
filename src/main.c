@@ -193,6 +193,7 @@ void free_options(void *data) {
  * The following options are supported:
  *  -h: print help
  *  -p: print the IR to a file
+ *  -t: test modus, only success/failure log
  *  -o: the output file name (different from 'input'.o)
  */
 int process_options(int argc, char *argv[]) {
@@ -208,6 +209,10 @@ int process_options(int argc, char *argv[]) {
 		case 'p':
 			cc_options.print_ir = 1;
 			break;
+		case 't':
+			/* fewer logs, for automated testing */
+			cc_options.print_only_errors = 1;
+			break;
 		case 'o':
 			/* output file */
 			cc_options.output_file = strdup(optarg);
@@ -222,6 +227,7 @@ int process_options(int argc, char *argv[]) {
 			print_usage(argv[0]);
 			rm_cleanup_resources(&resource_mgr);
 			exit(EXIT_SUCCESS);
+
 		default: /* '?' */
 			/* print usage */
 			fprintf(stderr, "ERROR: unkown parameter: %s\n", argv[optind]);
@@ -295,9 +301,11 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("\nInput: %s\n", cc_options.input_file);
-	printf("Output: %s\n", cc_options.output_file);
-	printf("IR: %s\n", cc_options.ir_file);
+	if(cc_options.print_only_errors != 1) {
+		printf("\nInput: %s\n", cc_options.input_file);
+		printf("Output: %s\n", cc_options.output_file);
+		printf("IR: %s\n", cc_options.ir_file);
+	}
 
 	yyin = fopen(cc_options.input_file, "r");
 	if (!yyin) {
@@ -340,7 +348,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	free(getSymbolTable());
-	fprintf(stdout, "\nFinished.");
+	if(cc_options.print_only_errors != 1) {
+		fprintf(stdout, "\nFinished.");
+	} else {
+		printf("Finished: %s\n", cc_options.input_file);
+	}
 
 	rm_cleanup_resources(&resource_mgr);
 	return 0;

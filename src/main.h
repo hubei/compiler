@@ -31,6 +31,8 @@ typedef struct cc_options
 
   char *input_file;             /**< The name of the input file */
   char *output_file;            /**< The name of the output file */
+
+  int print_only_errors;
 } cc_options_t;
 
 extern cc_options_t cc_options; 

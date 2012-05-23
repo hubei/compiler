@@ -1,0 +1,16 @@
+################### global scope ###################
+func main
+	returntype: INT - num_params: 0
+################### scope for main ###################
+var i
+	type: INT - size: 0 - width: 4 - offset: 0
+var #V_0
+	type: INT - size: 0 - width: 4 - offset: 4
+<0001> i = 0
+<0002> IF i < 10 GOTO 4
+<0003> GOTO 7
+<0004> #V_0 = i + 1
+<0005> i = #V_0
+<0006> GOTO 2
+<0007> i = 0
+<0008> RETURN i
