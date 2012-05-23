@@ -248,7 +248,13 @@ int checkCompatibleTypesReal(int line, type_t type1, type_t type2, int isAssign)
 	return 1;
 }
 
-// TODO Dirk document
+/**
+ * differnt methods to compare types, do the same, but take raw types or whole expressions
+ * @param line
+ * @param type1
+ * @param type2
+ * @return
+ */
 int checkCompatibleTypesRaw(int line, type_t type1, type_t type2) {
 	return checkCompatibleTypesReal(line, type1, type2, 0);
 }
@@ -257,20 +263,41 @@ int checkCompatibleTypes(int line, expr_t* expr1, expr_t* expr2) {
 	return checkCompatibleTypesReal(line, expr1->type, expr2->type, 0);
 }
 
+/**
+ * check compatible types in an assign statement (needed because INT and INT array is allowed)
+ * @param line
+ * @param expr1
+ * @param expr2
+ * @return
+ */
 int checkCompatibleTypesAssign(int line, expr_t* expr1, expr_t* expr2) {
 	return checkCompatibleTypesReal(line, expr1->type, expr2->type, 1);
 }
 
+/**
+ * checks if an expression can be a lvalue
+ * An error will be thrown if it is not allowed to be a lvalue
+ * @param line
+ * @param lvalue the expression which shall be checked
+ * @return 0-> no possible lvalue, 1-> possible lvalue
+ */
 int checkLValue(int line, expr_t* lvalue) {
 	if(lvalue->lvalue == 0) {
-		typeError(line, "it is not possible to assign a value to %s", valueAsString(lvalue));
+		typeError(line, "It is not possible to assign a value to %s", valueAsString(lvalue));
 		return 0;
 	}
 	return 1;
 }
 
+/**
+ * checks whether the type used in the return statements of a function matches with the type of the function
+ * throws an error if it does not
+ * @param line
+ * @param returnType the return type of the function
+ * @param returned the returned value
+ */
 void checkReturnTypes(int line, type_t returnType, type_t returned) {
-	if (returnType != returned) {
+	if (returnType != returned && returned !=  T_UNKNOWN) {
 		typeError(line, "return type %s expected, but %s found", typeToString(returnType), typeToString(returned));
 	}
 }
