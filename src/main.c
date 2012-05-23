@@ -340,7 +340,7 @@ int main(int argc, char *argv[]) {
 		} else {
 			int ret = mips32gen(yyout,ircode,getSymbolTable());
 			if(ret!=0) {
-//				fprintf(stderr, "Error generating mips32 code with code: %d\n", ret);
+				fprintf(stderr, "Error generating mips32 code with code: %d\n", ret);
 			}
 			fclose(yyout);
 		}
