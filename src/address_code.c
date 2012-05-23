@@ -264,7 +264,9 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		case OP_SUB:
 		case OP_MUL:
 		case OP_DIV:
-		case OP_MOD: {
+		case OP_MOD:
+		case OP_SHL:
+		case OP_SHR: {
 			fprintf(out, "<%.4d> %s = %s %s %s\n", nextIrCode->row, res, arg0,
 					opToStr(nextIrCode->ops), arg1);
 		}
@@ -387,6 +389,12 @@ char* opToStr(operation_t ops) {
 		break;
 	case OP_DIV:
 		op = "/";
+		break;
+	case OP_SHL:
+		op = "<<";
+		break;
+	case OP_SHR:
+		op = ">>";
 		break;
 	case OP_MOD:
 		op = "%";

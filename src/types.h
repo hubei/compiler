@@ -141,6 +141,8 @@ typedef enum operation_t {
 	OP_MUL,
 	OP_DIV,
 	OP_MOD,
+	OP_SHR, // shift right
+	OP_SHL, // shift left
 	OP_MINUS,
 	OP_IFEQ,
 	OP_IFNE,

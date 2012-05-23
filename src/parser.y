@@ -619,6 +619,20 @@ expression
 			 emit($$,$1,OP_MOD,$3);
 		 }
      }
+     | expression SHIFT_LEFT expression  { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $1->lvalue = 0;
+			 $$ = newTmp(T_INT);
+			 emit($$,$1,OP_MOD,$3);
+		 }
+     }
+     | expression SHIFT_RIGHT expression  { 
+    	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
+			 $1->lvalue = 0;
+			 $$ = newTmp(T_INT);
+			 emit($$,$1,OP_MOD,$3);
+		 }
+     }
      | MINUS expression %prec UNARY_MINUS {
     	 // TODO Dirk type checking
     	 $$ = newTmp(T_INT);
@@ -752,7 +766,7 @@ function_call_parameters
 
 void yyerror (const char *msg)
 {
-	fprintf(stderr, "Syntax Error: %s",msg);
+	fprintf(stderr, "Syntax Error: %s\n",msg);
 	exit(1);
 } 
 
