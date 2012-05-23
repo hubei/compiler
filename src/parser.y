@@ -438,37 +438,23 @@ expression
 		// check for postEmit expressions
 		int normalAssign = 1;
 		expr_t* tmpE = NULL;
-		if($4->postEmit == PE_FUNCC && $1->postEmit == PE_ARR) {
-			// if: arr[i] = scan()
-//			delLastInstr();
-//			if($1->lvalue == 1) {
-//				// if left expr. is an lValue, we can directly assign to it
-//				// x = CALL func, ()
-//				emit($1,$3,OP_CALL_RES,NULL);
-//			} else {
-//				// else we need a tmp var
-//				// tmp = CALL func, ()
-//				tmpE = newTmp(T_INT);
-//				tmpE->type = $1->type;
-//				emit(tmpE,$3,OP_CALL_RES,NULL);
-//			}
-//			normalAssign = 0;
-		} 
 		if($4->postEmit == PE_ARR) {
+			// we do not need the last instruction
 			delLastInstr();
-//			if($1->postEmit == PE_ARR) {
-//				delLastInstr();
-//			}
+
 			if($1->lvalue == 1) {
 				// if left expr. is an lValue, we can directly assign to it
 				// x = arr[i]
-				emit($1,newExpr($4->parentId,T_INT),OP_ARRAY_LD,$4->arrInd);
+				expr_t *newEx = newExpr($4->parentId,T_INT);
+				checkCompatibleTypes(@1.first_line, $1, newEx);
+				emit($1,newEx,OP_ARRAY_LD,$4->arrInd);
 			} else {
 				// else we need a tmp var
 				// tmp = arr[i]
-				tmpE = newTmp(T_INT);
-				tmpE->type = $1->type;
-				emit(tmpE,newExpr($4->parentId,T_INT),OP_ARRAY_LD,$4->arrInd);
+				tmpE = newTmp($1->type);
+				expr_t *newEx = newExpr($4->parentId,T_INT);
+				checkCompatibleTypes(@1.first_line, tmpE, newEx);
+				emit(tmpE,newEx,OP_ARRAY_LD,$4->arrInd);
 			}
 			normalAssign = 0;
 		}
@@ -477,7 +463,7 @@ expression
 				// arr[i] = $4
 				emit(newExpr($1->parentId,T_INT),$1->arrInd,OP_ARRAY_ST,$4);
 			} else {
-				// arr[i] = tmp
+				// arr[i] = tmpE
 				emit(newExpr($1->parentId,T_INT),$1->arrInd,OP_ARRAY_ST,tmpE);
 			}
 			normalAssign = 0;
@@ -528,6 +514,7 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
+			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
 			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFEQ,$3);
@@ -538,6 +525,7 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
+			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
 			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFNE,$3);
@@ -548,6 +536,7 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
+			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
 			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFLT,$3);
@@ -558,6 +547,7 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
+			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
 			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFLE,$3);
@@ -568,6 +558,7 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
+			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
 			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFGE,$3);
@@ -578,6 +569,7 @@ expression
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
 			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
+			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
 			 $$->trueList = newIndexList(getNextInstr());
 			 emit($$,$1,OP_IFGT,$3);
