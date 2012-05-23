@@ -474,19 +474,19 @@ expression
 		}
 		if(normalAssign == 1) {
 			int isAssignAllowed = checkCompatibleTypesAssign(@1.first_line, $1, $4);
+			//types are compatible and the left value is an assignable expression
 			if(isAssignAllowed>0 && checkLValue(@1.first_line, $1)) {
-				$1->lvalue = 0;
 				emit($1,$4,OP_ASSIGN,NULL);
-				$$ = $1;
+				$$ = newAnonymousExpr();
+				$$->type = $1->type;
 				if(isAssignAllowed == 2) {
-					//$$->
+					//TODO the int on the left need the value of the array on the right, but how?
 				}
 			}
 		}
      }
      | expression LOGICAL_OR M expression {
     	 if(checkCompatibleTypes(@1.first_line, $1, $4)) {
-    		 $1->lvalue = 0;
     		 $$ = newAnonymousExpr();
     		 $$->type = $1->type;
 			 backpatch($1->falseList, $3.instr);
@@ -496,7 +496,6 @@ expression
 	 }
      | expression LOGICAL_AND M expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $4)) {
-			 $1->lvalue = 0;
     		 $$ = newAnonymousExpr();
     		 $$->type = $1->type;
 			 backpatch($1->trueList, $3.instr);
@@ -512,7 +511,6 @@ expression
      }
      | expression EQ expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
 			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
@@ -523,7 +521,6 @@ expression
      }
      | expression NE expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
 			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
@@ -534,7 +531,6 @@ expression
      }
      | expression LS expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
 			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
@@ -545,7 +541,6 @@ expression
      }
      | expression LSEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
 			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
@@ -556,7 +551,6 @@ expression
      }
      | expression GTEQ expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
 			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
@@ -567,7 +561,6 @@ expression
      }
      | expression GT expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newAnonymousExpr();
 			 $$->type = T_INT;
 			 $$->falseList = newIndexList(getNextInstr() + 1);
@@ -578,49 +571,42 @@ expression
      }
      | expression PLUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_ADD,$3);
 		 }
      }
      | expression MINUS expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_SUB,$3);
 		 }
      }
      | expression MUL expression { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_MUL,$3);
 		 }
      }
      | expression DIV expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_DIV,$3);
 		 }
      }
      | expression MOD expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_MOD,$3);
 		 }
      }
      | expression SHIFT_LEFT expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_MOD,$3);
 		 }
      }
      | expression SHIFT_RIGHT expression  { 
     	 if(checkCompatibleTypes(@1.first_line, $1, $3)) {
-			 $1->lvalue = 0;
 			 $$ = newTmp(T_INT);
 			 emit($$,$1,OP_MOD,$3);
 		 }
