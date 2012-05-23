@@ -1,4 +1,10 @@
 #!/bin/bash
+if [ "$1" == "-c" ]; then
+	rm */*.ir
+	rm */*.s
+	echo "Cleaned"
+	exit 0
+fi
 if [ ! -d "$1" ]; then
 	echo "Need a dir as argument"
 	exit 1
