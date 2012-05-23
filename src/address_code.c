@@ -242,6 +242,8 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 void printIRCode(FILE *out, irCode_t *irCode) {
 	if (out == NULL)
 		out = stdout;
+	if(irCode == NULL)
+		return;
 
 	// store string representations of the args
 	char* res = NULL;
@@ -440,6 +442,8 @@ char* opToStr(operation_t ops) {
  */
 irCode_t* getIRCode() {
 	irCode_t* head = NULL;
-	GETLISTHEAD(irListTail, head);
+	if (irListTail) {
+		GETLISTHEAD(irListTail, head);
+	}
 	return head;
 }

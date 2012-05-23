@@ -9,13 +9,10 @@
 
 int mips32gen(FILE *file,irCode_t *ircode, symbol_t *symbolTable) {
 	if(file == NULL) {
-		return 1;
-	}
-	if(ircode == NULL) {
-		return 2;
+		file = stdout;
 	}
 	if(symbolTable == NULL) {
-		return 3;
+		return 1;
 	}
 
 	// global data section
@@ -56,7 +53,7 @@ int mips32gen(FILE *file,irCode_t *ircode, symbol_t *symbolTable) {
 	}
 
 
-	return 42;
+	return 0;
 }
 
 char* generate(irCode_t* ircode) {

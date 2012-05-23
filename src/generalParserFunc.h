@@ -32,8 +32,8 @@ symbol_t* curSymbol;
 		result = result->next; \
 	} \
 
-char* valueAsString(expr_t*);
 
+char* valueAsString(expr_t*);
 
 #endif
 
