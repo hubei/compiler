@@ -1,9 +1,13 @@
 #!/bin/bash
-cd success
+if [ ! -d "$1" ]; then
+	echo "Need a dir as argument"
+	exit 1
+fi
+cd $1
 for c in $(ls); do
 	s=$(echo $c | sed 's/c$/s/')
 	if [[ $c == *.c ]]
 	then
-   		./../../bin/dhbwcc -p -o $s -t $c
+   		./../../bin/dhbwcc -p -t -o $s $c
 	fi
 done

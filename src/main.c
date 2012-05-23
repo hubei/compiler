@@ -204,7 +204,7 @@ int process_options(int argc, char *argv[]) {
 	 * in the case of an error during option processing */
 	rm_register_handler(&resource_mgr, free_options, NULL);
 
-	while ((opt = getopt(argc, argv, "hpo:")) != -1) {
+	while ((opt = getopt(argc, argv, "hpto:")) != -1) {
 		switch (opt) {
 		case 'p':
 			cc_options.print_ir = 1;
@@ -230,7 +230,7 @@ int process_options(int argc, char *argv[]) {
 
 		default: /* '?' */
 			/* print usage */
-			fprintf(stderr, "ERROR: unkown parameter: %s\n", argv[optind]);
+			fprintf(stderr, "ERROR: unknown parameter: %s\n", argv[optind]);
 			print_usage(argv[0]);
 			return 1;
 		}
@@ -340,7 +340,7 @@ int main(int argc, char *argv[]) {
 		} else {
 			int ret = mips32gen(yyout,ircode,getSymbolTable());
 			if(ret!=0) {
-				fprintf(stderr, "Error generating mips32 code with code: %d", ret);
+//				fprintf(stderr, "Error generating mips32 code with code: %d\n", ret);
 			}
 			fclose(yyout);
 		}
