@@ -1,0 +1,27 @@
+################### global scope ###################
+func main
+	returntype: INT - num_params: 0
+################### scope for main ###################
+var i
+	type: INT - size: 0 - width: 4 - offset: 0
+var b
+	type: INT - size: 0 - width: 4 - offset: 4
+var a
+	type: INT - size: 0 - width: 4 - offset: 8
+var #V_0
+	type: INT - size: 0 - width: 4 - offset: 12
+var #V_1
+	type: INT - size: 0 - width: 4 - offset: 16
+var #V_2
+	type: INT - size: 0 - width: 4 - offset: 20
+var #V_3
+	type: INT - size: 0 - width: 4 - offset: 24
+<0001> a = 12
+<0002> b = 13
+<0003> #V_0 = a + a
+<0004> #V_1 = #V_0 + b
+<0005> #V_2 = b * a
+<0006> #V_3 = #V_1 + #V_2
+<0007> b = #V_3
+<0008> i = 
+<0009> RETURN i
