@@ -12,8 +12,17 @@ fi
 cd $1
 for c in $(ls); do
 	s=$(echo $c | sed 's/c$/s/')
+	e=$(echo $c | sed 's/c$/e/')
 	if [[ $c == *.c ]]
 	then
+		echo "-----------------"
+		echo "------"$c"------"
+		echo "-----------------"
    		./../../bin/dhbwcc -p -t -o $s $c
+		if [ -e $e ]
+		then
+			echo "Expected: "
+			cat $e 
+		fi
 	fi
 done
