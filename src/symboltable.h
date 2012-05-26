@@ -29,6 +29,7 @@ int getParamCount(param_t*);
 
 void insertVar(symbol_t*, var_t*);
 void insertFunc(symbol_t*, func_t*);
+
 var_t* findVar(symbol_t*, string); // find in current scope or scopes above
 func_t* findFunc(symbol_t*, string);
 int exists(symbol_t*, string); // only in current scope
@@ -36,7 +37,10 @@ void destroyVar(symbol_t*, string);
 
 char* setString(char*);
 string typeToString(type_t);
-void error(string);
+
+void errorFuncDeclared(int line, string id);
+void errorVarDeclared(int line, string id);
+void errorIdDeclared(int line, string id);
 
 void print_param(FILE*,param_t*);
 void print_var(FILE*,var_t*);

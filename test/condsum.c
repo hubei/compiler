@@ -1,10 +1,5 @@
-int i;
-int main () {
-  int i;
-}
-int func () {
-  int i;
-}
+int global;
+int global;
 //int global, a[42];
 //int test;
 //int scan();

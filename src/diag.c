@@ -30,3 +30,23 @@ void fatal_os_error (os_error_t err, int errno, const char *fn, const int line, 
   vfprintf(stderr, msg, list);
   va_end(list);
 }
+
+/**
+ * error function for type checking
+ * @param line
+ * @param exiting 0: do not exit, >0: exit program with value
+ * @param msg error message
+ * @param ... list of parameters used in the string
+ */
+void compilerError(int line, int exiting, const char *msg, ...) {
+	va_list fmtargs;
+	char buffer[1024];
+	va_start(fmtargs, msg);
+	vsnprintf(buffer, sizeof(buffer) - 1, msg, fmtargs);
+	va_end(fmtargs);
+	fprintf(stderr, "line %d: %s\n", line, buffer);
+
+	if(exiting>0) {
+		exit(exiting);
+	}
+}

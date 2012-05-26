@@ -13,36 +13,36 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "diag.h"
 
 struct symbol_t* symbolTable = NULL;
 
 /**
- * @brief Take a string (like "this is a string"), allocate memory for it and return the address.
- * @param source A string that should be stored in memory
- * @return A reference to the stored string
+ * @brief Throw error
+ * @param line where error occurred
+ * @param id The name of the function
  */
-char* setString(char* source) {
-	char* target = NULL;
-	if (source != NULL) {
-		target = malloc(strlen(source) + 1);
-		if (target == NULL) {
-			// TODO error
-		}
-		strcpy(target, source);
-	} else {
-		error("setString: Source is not initialized!");
-	}
-	return target;
+void errorFuncDeclared(int line, string id) {
+	compilerError(line, 1, "Function \"%s\" is already declared.", id);
 }
 
 /**
- * @brief Output given message and exit program
- * @param msg message to be printed to stderr
+ * @brief Throw error
+ * @param line where error occurred
+ * @param id The name of the variable
  */
-void error(string msg) {
-	// TODO error
-	fprintf(stderr, "\n%s\nExiting...\n", msg);
-	exit(1);
+void errorVarDeclared(int line, string id) {
+	compilerError(line, 2, "Variable \"%s\" is already declared.", id);
+}
+
+/**
+ * @brief Throw error - if id was declared, but is not equal to the type of the declared
+ * So, if declared is var and new is func or vice versa
+ * @param line where error occurred
+ * @param id The name of the identifier
+ */
+void errorIdDeclared(int line, string id) {
+	compilerError(line, 3, "Identifier \"%s\" is already declared.", id);
 }
 
 /**
@@ -81,8 +81,7 @@ symbol_t* createSymbol() {
 	symbol_t *newSymbol = NULL;
 	newSymbol = malloc(sizeof(symbol_t));
 	if (newSymbol == NULL) {
-		// TODO error
-		error("createSymbol: Could not allocate newSymbol");
+		// TODO error memory
 	}
 
 	/* initialize all pointers to NULL
@@ -110,13 +109,11 @@ var_t* createVar(string id) {
 	var_t *newVar = NULL;
 	newVar = malloc(sizeof(var_t));
 	if (newVar == NULL) {
-		// TODO error
-		error("Variable could not be created");
+		// TODO error memory
 	}
 	newVar->id = malloc(strlen(id) + 1);
 	if (newVar->id == NULL) {
-		// TODO error
-		error("createVar: Could not allocate id");
+		// TODO error memory
 	}
 	strcpy(newVar->id, id);
 
@@ -138,13 +135,11 @@ func_t* createFunc(string id) {
 	func_t *newFunc = NULL;
 	newFunc = malloc(sizeof(struct func_t));
 	if (newFunc == NULL) {
-		// TODO error
-		error("Function could not be created");
+		// TODO error memory
 	}
 	newFunc->id = malloc(strlen(id) + 1);
 	if (newFunc->id == NULL) {
-		// TODO error
-		error("createFunc: Could not allocate id");
+		// TODO error memory
 	}
 	strcpy(newFunc->id, id);
 
@@ -195,10 +190,8 @@ void insertVar(symbol_t* symbol, var_t* var) {
 	assert(var != NULL);
 	assert(var->id != NULL);
 
-	if (exists(symbol, var->id)) {
-		// TODO error
-		error("Function is already in symbol table");
-	}
+	// existing functions/variables should be catched earlier
+	assert(!exists(symbol, var->id));
 
 	// offset
 	var->offset = symbol->offset;
@@ -216,7 +209,7 @@ void insertVar(symbol_t* symbol, var_t* var) {
 void destroyVar(symbol_t* curSymbol, string id) {
 	assert(id != NULL);
 	var_t* var = findVar(curSymbol, id);
-	if(var != NULL) {
+	if (var != NULL) {
 		HASH_DEL(curSymbol->symVar, var);
 		free(var);
 	}
@@ -232,10 +225,8 @@ void insertFunc(symbol_t* symbol, func_t* func) {
 	assert(func != NULL);
 	assert(func->id != NULL);
 
-	if (exists(symbol, func->id)) {
-		// TODO error
-		error("Function is already symbol table");
-	}
+	// existing functions/variables should be catched earlier
+	assert(!exists(symbol, func->id));
 
 	//einfügen in die hashmap
 	HASH_ADD_KEYPTR( hh, symbol->symFunc, func->id, strlen(func->id), func);
@@ -380,11 +371,9 @@ void print_var(FILE* file, var_t* symVar) {
 	struct var_t *k = NULL, *tmp = NULL;
 	HASH_ITER(hh, symVar, k, tmp) {
 		assert(k->id != NULL);
-		string strType = typeToString(k->type);
 		fprintf(file,
 				"var %s\n\ttype: %s - size: %d - width: %d - offset: %d\n",
-				k->id, strType, k->size, k->width, k->offset);
-		free((char*)strType);
+				k->id, typeToString(k->type), k->size, k->width, k->offset);
 	}
 }
 
@@ -402,12 +391,9 @@ void print_param(FILE* file, param_t* paramHead) {
 	while (param != NULL) {
 		var = param->var;
 		assert(var!=NULL);
-		string strType = typeToString(var->type);
 		fprintf(file,
 				"\tparam %s\n\t\ttype: %s - size: %d - width: %d - offset: %d\n",
-				var->id, strType, var->size, var->width,
-				var->offset);
-		free((char*)strType);
+				var->id, typeToString(var->type), var->size, var->width, var->offset);
 		param = param->next;
 	}
 }
@@ -424,10 +410,8 @@ void print_func(FILE* file, func_t* symFunc) {
 	struct func_t *func, *tmp;
 	HASH_ITER(hh, symFunc, func, tmp) {
 		assert(func->id != NULL);
-		string strType = typeToString(func->returnType);
 		fprintf(file, "func %s\n\treturntype: %s - num_params: %d\n", func->id,
-				strType, func->num_params);
-		free((char*)strType);
+				typeToString(func->returnType), func->num_params);
 
 		// print params, if there are any
 		print_param(file, func->param);
@@ -470,17 +454,17 @@ void print_symTab(FILE* file) {
 string typeToString(type_t type) {
 	switch (type) {
 	case T_INT:
-		return setString("INT");
+		return "INT";
 		break;
 	case T_INT_A:
-		return setString("INT array");
+		return "INT array";
 		break;
 	case T_VOID:
-		return setString("VOID");
+		return "VOID";
 	case T_UNKNOWN:
-		return setString("UNKOWN");
+		return "UNKOWN";
 		break;
 	}
-	return setString("no valid type");
+	return "no valid type";
 }
 

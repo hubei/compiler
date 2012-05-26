@@ -72,7 +72,7 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 		for (exprList_t* s = expressions; s != NULL; s = s->next) {
 			paList_t* paraListItem = malloc(sizeof(paList_t));
 			if (paraListItem == NULL) {
-				error("Could not allocate paraListItem");
+				// TODO error memory
 			}
 			paraListItem->parameter = typeToString(s->expr->type);
 			paraList = setToNextReference(paraList, paraListItem);
@@ -82,7 +82,7 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 		for (param_t* s = parameters; s != NULL; s = s->next) {
 			paList_t* paraListItem = malloc(sizeof(paList_t));
 			if (paraListItem == NULL) {
-				error("Could not allocate paraListItem");
+				// TODO error memory
 			}
 			paraListItem->parameter = typeToString(s->var->type);
 			paraList = setToNextReference(paraList, paraListItem);
@@ -168,12 +168,8 @@ int correctFuncTypesReal(int line, symbol_t* curSymbol, string funcID,
 
 		//check if the found and expected types are the same, if not throws an error
 		if(s->var->type != paraExprType) {
-			string strType = typeToString(s->var->type);
-			string strTypeExpr = typeToString(paraExprType);
-			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",count,function->id,strType,strTypeExpr);
+			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",count,function->id,typeToString(s->var->type),typeToString(paraExprType));
 			printExpectedFound(line, parametersHash, expressionsOrg, parametersOrg, isExpressionList);
-			free((char*)strType);
-			free((char*)strTypeExpr);
 			return 0;
 		}
 

@@ -156,7 +156,7 @@ type
  */
 variable_declaration
 	: variable_declaration COMMA identifier_declaration	 {
-		
+		if(findVar(curSymbol, $3))
 		$3->type = $1.type;
 		$3->width = $1.width;
 		if($3->size != 0) {
@@ -166,9 +166,7 @@ variable_declaration
 		insertVar(curSymbol, $3);
 	}
 	| type identifier_declaration {
-		
-		if($2 == NULL)
-			error("variable_declaration: $2 is NULL");
+		assert($2 != NULL);
 		$2->type = $1.type;
 		$2->width = $1.width;
 		if($2->size != 0) {
@@ -185,25 +183,40 @@ variable_declaration
  * the type definition like arrays, pointers and initial (default) values.
  */									
 identifier_declaration
-     : ID BRACKET_OPEN NUM BRACKET_CLOSE { /* BRACKET = [] !!! */
-    	  
-    	 var_t* newVar = createVar($1);
-    	 if(newVar == NULL) {
-    		 error("identifier_declaration: newVar is NULL");
-    	 }
-    	 $$ = newVar;
-		 $$->size = $3;
-     } 
-     | ID {	
-    	 
-    	 var_t* newVar = createVar($1);
-    	 if(newVar == NULL) {
-    		 error("identifier_declaration: newVar is NULL");
-    	 }
-    	 $$ = newVar;
-    	 $$->size=0; 
-     }
-     ;
+	: ID BRACKET_OPEN NUM BRACKET_CLOSE { // array
+		if(exists(curSymbol, $1)) {
+			// TODO error identifier exists
+			var_t* var = findVar(curSymbol, $1);
+			if(var == NULL) {
+				errorIdDeclared(@1.first_line, $1);
+			} else {
+				errorVarDeclared(@1.first_line, $1);
+			}
+		} else {
+			var_t* newVar = createVar($1);
+			if(newVar == NULL) {
+				// TODO error memory
+			}
+			$$ = newVar;
+			$$->size = $3;
+		}
+	} 
+	| ID {	
+		if(exists(curSymbol, $1)) {
+			// TODO error identifier exists
+			var_t* var = findVar(curSymbol, $1);
+			if(var == NULL) {
+				errorIdDeclared(@1.first_line, $1);
+			} else {
+				errorVarDeclared(@1.first_line, $1);
+			}
+		} else {
+			var_t* newVar = createVar($1);
+			$$ = newVar;
+			$$->size=0; 
+		}
+	}
+	;
  	
  /*
  * 
@@ -212,9 +225,6 @@ function_declaration
 	: type ID PARA_OPEN PARA_CLOSE {
 		 
 		func_t* newFunc = createFunc($2);
-		if(newFunc==NULL) {
-			error("function_declaration: newFunc is NULL");
-		}
 		newFunc->returnType = $1.type;
 		newFunc->param = NULL;
 		insertFunc(curSymbol, newFunc);
@@ -222,9 +232,6 @@ function_declaration
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		
 		func_t* newFunc = createFunc($2);
-		if(newFunc==NULL) {
-			error("function_declaration: newFunc is NULL");
-		}
 		newFunc->returnType = $1.type;
 		GETLISTHEAD($4, newFunc->param);
 		newFunc->param = newFunc->param;
@@ -252,10 +259,7 @@ function_parameter_list
  */
 function_parameter
 	: type identifier_declaration {
-		
-		if($2==NULL) {
-			error("function_parameter: $2 is NULL");
-		}
+		assert($2 != NULL);
 		$2->type = $1.type;
 		$2->width = $1.width;
 		if($2->size != 0) {
@@ -272,21 +276,18 @@ function_parameter
 function_definition
 	: type ID PARA_OPEN PARA_CLOSE {
 		func_t* newFunc = createFunc($2);
-		if(newFunc==NULL) {
-			error("function_definition: newFunc is NULL");
-		}
 		newFunc->returnType = $1.type;
 		newFunc->param = NULL;
 		if(exists(curSymbol,$2)) {
 			func_t* existingFunc = findFunc(curSymbol, $2);
 			if(existingFunc == NULL) {
-				error("function_definition: could not find function, but it should exist...");
+				errorIdDeclared(@2.first_line, $2);
 			} else if(existingFunc->symbol==NULL) {
 				// check if function definition and prototype are equal (no params)
 				checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
 			} else {
 				// function was already defined!
-				typeError(@1.first_line, "Function already defined: %s", $2);
+				errorFuncDeclared(@2.first_line, $2);
 			}
 		} else {
 			insertFunc(curSymbol, newFunc);
@@ -300,14 +301,11 @@ function_definition
 	  } BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		func_t* newFunc = createFunc($2);
-		if(newFunc==NULL) {
-			error("function_definition: newFunc is NULL");
-		}
 		newFunc->returnType = $1.type;
 		if(exists(curSymbol,$2)) {
 			func_t* existingFunc = findFunc(curSymbol, $2);
 			if(existingFunc == NULL) {
-				error("function_definition: could not find function, but it should exist...");
+				errorIdDeclared(@2.first_line, $2);
 			} else if(existingFunc->symbol==NULL) {
 				// check if function definition and prototype are equal (with params)
 				param_t* head;
@@ -316,7 +314,7 @@ function_definition
 				correctFuncTypesParam(@1.first_line, curSymbol, $2, head);
 			} else {
 				// function was already defined!
-				typeError(@1.first_line, "Function already defined: %s", $2);
+				errorFuncDeclared(@2.first_line, $2);
 			}
 		} else {
 			insertFunc(curSymbol, newFunc);
@@ -726,7 +724,7 @@ function_call_parameters
 	: expression COMMA function_call_parameters { 
 		$$=malloc(sizeof(exprList_t));
 		if($$==NULL) {
-		 error("fcp_expression: malloc unsuccessful");
+			// TODO error memory
 		}
 		$$->next = $3;
 		$$->expr = $1; 
@@ -736,7 +734,7 @@ function_call_parameters
 	| expression { 
 		$$=malloc(sizeof(exprList_t));
 		if($$==NULL) {
-			error("fcp_expression: malloc unsuccessful");
+			// TODO error memory
 		}
 		$$->expr = $1;
 		$$->prev = NULL;
@@ -749,7 +747,7 @@ function_call_parameters
 
 void yyerror (const char *msg)
 {
-	fprintf(stderr, "Syntax Error: %s\n",msg);
-	exit(1);
+	fprintf(stderr, "%s\n",msg);
+	exit(42);
 } 
 
