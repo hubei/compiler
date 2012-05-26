@@ -344,10 +344,10 @@ int main(int argc, char *argv[]) {
 			}
 			fclose(yyout);
 		}
-		free(ircode);
 	}
 
-	free(getSymbolTable());
+	clean_symbol(getSymbolTable());
+	clean_all_expr();
 	if(cc_options.print_only_errors != 1) {
 		fprintf(stdout, "\nFinished.");
 	} else {

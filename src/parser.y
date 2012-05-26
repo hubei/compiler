@@ -198,6 +198,7 @@ identifier_declaration
 			$$ = newVar;
 			$$->size = $3;
 		}
+		free($1);
 	} 
 	| ID {	
 		if(exists(curSymbol, $1)) {
@@ -208,10 +209,10 @@ identifier_declaration
 				errorVarDeclared(@1.first_line, $1);
 			}
 		} else {
-			var_t* newVar = createVar($1);
-			$$ = newVar;
+			$$ = createVar($1);
 			$$->size=0; 
 		}
+		free($1);
 	}
 	;
  	
@@ -233,6 +234,7 @@ function_declaration
 			newFunc->param = NULL;
 			insertFunc(curSymbol, newFunc);
 		}
+		free($2);
 	}
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
 		if(exists(curSymbol, $2)) {
@@ -246,10 +248,10 @@ function_declaration
 			func_t* newFunc = createFunc($2);
 			newFunc->returnType = $1.type;
 			GETLISTHEAD($4, newFunc->param);
-			newFunc->param = newFunc->param;
 			newFunc->num_params = getParamCount(newFunc->param);
 			insertFunc(curSymbol, newFunc);
 		}
+		free($2);
 	}
 	;
 
@@ -288,21 +290,21 @@ function_parameter
  */
 function_definition
 	: type ID PARA_OPEN PARA_CLOSE {
-		func_t* newFunc = createFunc($2);
-		newFunc->returnType = $1.type;
-		newFunc->param = NULL;
 		if(exists(curSymbol,$2)) {
 			func_t* existingFunc = findFunc(curSymbol, $2);
 			if(existingFunc == NULL) {
 				errorIdDeclared(@2.first_line, $2);
 			} else if(existingFunc->symbol==NULL) {
 				// check if function definition and prototype are equal (no params)
-				checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
+				checkCompatibleTypesRaw(@1.first_line, $1.type, existingFunc->returnType);
 			} else {
 				// function was already defined!
 				errorFuncDeclared(@2.first_line, $2);
 			}
 		} else {
+			func_t* newFunc = createFunc($2);
+			newFunc->returnType = $1.type;
+			newFunc->param = NULL;
 			insertFunc(curSymbol, newFunc);
 		}
 	  }
@@ -311,10 +313,10 @@ function_definition
 	  } stmt_list {
 		  curSymbol = pop(curSymbol);
 		  checkReturnTypes(@1.first_line, $1.type, $8->returnType);
+		  clean_stmt($8);
+		  free($2);
 	  } BRACE_CLOSE
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
-		func_t* newFunc = createFunc($2);
-		newFunc->returnType = $1.type;
 		if(exists(curSymbol,$2)) {
 			func_t* existingFunc = findFunc(curSymbol, $2);
 			if(existingFunc == NULL) {
@@ -323,28 +325,27 @@ function_definition
 				// check if function definition and prototype are equal (with params)
 				param_t* head;
 				GETLISTHEAD($4, head);
-				checkCompatibleTypesRaw(@1.first_line, $1.type, findFunc(curSymbol,$2)->returnType);
+				checkCompatibleTypesRaw(@1.first_line, $1.type, existingFunc->returnType);
 				correctFuncTypesParam(@1.first_line, curSymbol, $2, head);
 			} else {
 				// function was already defined!
 				errorFuncDeclared(@2.first_line, $2);
 			}
 		} else {
+			func_t* newFunc = createFunc($2);
+			newFunc->returnType = $1.type;
 			insertFunc(curSymbol, newFunc);
 		}
 	  }	
 	  BRACE_OPEN {
 		  int ex = exists(curSymbol,$2);
 		  curSymbol = push(curSymbol,findFunc(curSymbol, $2));
-//		  if(ex) {
-//			  // TODO Dirk check if params are correct
-		  	  // TODO Nico hier checken? Das wurde doch schon weiter oben gemacht
-//		  } else {
-			  insertParams(findFunc(curSymbol, $2),$4);
-//		  }
+		  insertParams(findFunc(curSymbol, $2),$4);
 	  } stmt_list {
 		  curSymbol = pop(curSymbol);
 		  checkReturnTypes(@1.first_line, $1.type, $9->returnType);
+		  clean_stmt($9);
+		  free($2);
 	  } BRACE_CLOSE
 	;
 									
@@ -360,12 +361,14 @@ stmt_list
     			 $2->returnType!=T_UNKNOWN) {
     		 typeError(@1.first_line, "Two differnt return types (%s, %s) in function ",$1, $2);
     	 } else {
-    		 if ($2->returnType==T_UNKNOWN)
+    		 if ($2->returnType==T_UNKNOWN) {
     			 $$ = $1;
+         	 	 clean_stmt($2);
+    		 }
     		 else
     			 $$ = $2;
     	 }
-    	 }
+     }
      ;
 
 /*
@@ -373,7 +376,7 @@ stmt_list
  * 'expression' is one of the core statements.
  */									
 stmt
-     : stmt_block {$$ = newStmt();}
+     : stmt_block {$$ = $1;}
      | variable_declaration SEMICOLON {$$ = newStmt();}
      | expression SEMICOLON {
     	 $$ = newStmt();
@@ -401,7 +404,7 @@ stmt
  * A statement block is just a statement list within braces.
  */									
 stmt_block
-     : BRACE_OPEN {} stmt_list BRACE_CLOSE {  /* we could extend additional scopes here :o */}
+     : BRACE_OPEN stmt_list BRACE_CLOSE {  $$ = $2; /* we could extend additional scopes here :o */}
      ;
 	
 /*
@@ -412,6 +415,7 @@ stmt_conditional
      : IF PARA_OPEN expression PARA_CLOSE M stmt {
      	 backpatch($3->trueList, $5.instr);
     	 backpatch($3->falseList, getNextInstr());
+    	 clean_stmt($6);
      }
      | IF PARA_OPEN expression PARA_CLOSE M stmt ELSE {
     	 $6->nextList = merge($6->nextList, newIndexList(getNextInstr()));
@@ -420,6 +424,8 @@ stmt_conditional
      	 backpatch($3->trueList, $5.instr);
     	 backpatch($3->falseList, $9.instr);
     	 backpatch($6->nextList,getNextInstr());
+    	 clean_stmt($6);
+    	 clean_stmt($10);
      }
      ;
 									
@@ -433,10 +439,12 @@ stmt_loop
      	 res->jump = $3.instr;
     	 emit(res, NULL, OP_GOTO, NULL);
     	 backpatch($4->falseList, getNextInstr());
+    	 clean_stmt($7);
      }
      | DO M stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON {
      	 backpatch($6->trueList, $2.instr);
     	 backpatch($6->falseList, getNextInstr());
+    	 clean_stmt($3);
      }
      ;
 									
@@ -639,15 +647,16 @@ expression
       	 var_t* found = findVar(curSymbol,$1);
       	 if(found == NULL) {
       		typeError(@1.first_line, "Array does not exist: %s", $1);
+      	 } else {
+          	 $$ = newTmp(T_INT);
+      		 $$->arrInd = $3;
+      		 $$->postEmit = PE_ARR;
+      		 $$->parentId = found->id;
       	 }
-      	 
-      	 $$ = newTmp(T_INT);
-  		 $$->arrInd = $3;
-  		 $$->postEmit = PE_ARR;
-  		 $$->parentId = $1;
   		 
   		 expr_t* tmpE = newExpr($1,T_INT);
 		 emit($$,tmpE,OP_ARRAY_LD,$$->arrInd);
+		 free($1);
 	  }
      | PARA_OPEN expression PARA_CLOSE { 
      	 $$ = $2;
@@ -686,6 +695,7 @@ primary
     	 } else {
     		 typeError(@1.first_line, "Parameter does not exist: %s", $1);
     	 }
+ 		free($1);
       }
      ;
 
@@ -694,38 +704,42 @@ primary
  */
 function_call
 : ID PARA_OPEN PARA_CLOSE {
-	$$ = newTmp(T_INT);
-	$$->lvalue = 0;
 	func_t* func = findFunc(curSymbol, $1);
 	if(func == NULL) {
-		typeError(@1.first_line, "Function does not exist: %s", $1);
-	} else {
-		$$->type = func->returnType;
+		errorFuncCall(@1.first_line, $1);
 	}
+	$$ = newTmp(T_INT);
+	$$->type = func->returnType;
+	$$->lvalue = 0;
 	$$->postEmit = PE_FUNCC;
 	$$->parentId = $1;
 	
 	emit($$,newExpr($1, T_UNKNOWN),OP_CALL_RES,NULL);
+
+	free($1);
 }
 | ID PARA_OPEN function_call_parameters PARA_CLOSE { 
-	exprList_t* tmp1 = NULL;
-	exprList_t* tmp2 = $3;
-	GETLISTHEAD(tmp2, tmp1);
-	$3 = tmp1;
-	correctFuncTypes(@3.first_line, curSymbol,$1,$3); 
-	$$ = newTmp(T_INT);
-	$$->lvalue = 0;
 	func_t* func = findFunc(curSymbol, $1);
 	if(func == NULL) {
-		typeError(@1.first_line, "Function does not exist: %s", $1);
+		errorFuncCall(@1.first_line, $1);
 	} else {
+		// set $3 to HEAD
+		exprList_t* tmp1 = NULL;
+		GETLISTHEAD($3, tmp1);
+		// check types
+		correctFuncTypes(@3.first_line, curSymbol,func->id,tmp1);
+		// create new tmp for function call
+		$$ = newTmp(T_INT);
+		$$->lvalue = 0;
+		$$->params = tmp1;
+		$$->postEmit = PE_FUNCC;
+		$$->parentId = func->id;
 		$$->type = func->returnType;
+		
+		emit($$,newExpr(func->id, T_UNKNOWN),OP_CALL_RES,NULL);
 	}
-	$$->params = $3;
-	$$->postEmit = PE_FUNCC;
-	$$->parentId = $1;
 	
-	emit($$,newExpr($1, T_UNKNOWN),OP_CALL_RES,NULL);
+	free($1);
 }
 ;
 
@@ -735,24 +749,13 @@ function_call
  */ 									
 function_call_parameters
 	: expression COMMA function_call_parameters { 
-		$$=malloc(sizeof(exprList_t));
-		if($$==NULL) {
-			// TODO error memory
-		}
+		$$=newExprList($1);
 		$$->next = $3;
 		$$->expr = $1; 
-		$$->prev = NULL; 
 		$$->next->prev = $$;
 	}
 	| expression { 
-		$$=malloc(sizeof(exprList_t));
-		if($$==NULL) {
-			// TODO error memory
-		}
-		$$->expr = $1;
-		$$->prev = NULL;
-		$$->next = NULL;
-		//printf("function call parameters: l. %d: Value: %s \n", @1.first_line, $$->expr->value);
+		$$=newExprList($1);
 	}
 	;
 

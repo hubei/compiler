@@ -1,5 +1,6 @@
 #include "address_code.h"
 #include "generalParserFunc.h"
+#include "symboltable.h"
 
 /** @brief current instruction line */
 int instruction = 0;
@@ -7,6 +8,8 @@ int instruction = 0;
 int nextTmpVar = 0;
 /** @brief Pointer to the last element of irList */
 irCode_t* irListTail = NULL;
+/** @brief A list of all expressions */
+exprList_t* allExpr = NULL;
 
 /**
  * @brief return the next instruction
@@ -46,6 +49,9 @@ void backpatch(indexList_t* list, int index) {
 		}
 		lHead = lHead->next;
 	}
+
+	// clean up
+	clean_indexList(list);
 }
 
 /**
@@ -108,6 +114,8 @@ expr_t* newTmp(type_t type) {
 	char* id = malloc(11 + 4);
 	sprintf(id, "#V_%d", nextTmpVar);
 
+	printf("%s\n", id);
+
 	// new expr and var
 	expr_t* newT = newExpr(id, type);
 	var_t* var = createVar(id);
@@ -119,6 +127,8 @@ expr_t* newTmp(type_t type) {
 	insertVar(curSymbol, var);
 	// increase number
 	nextTmpVar++;
+	// clean
+	free(id);
 	return newT;
 }
 
@@ -133,17 +143,36 @@ expr_t* newAnonymousExpr() {
 	}
 
 	// set default values
-	newE->value.id = "";
+	newE->value.id = NULL;
 	newE->jump = 0;
 	newE->type = T_UNKNOWN;
-	newE->lvalue = 0; // FIXME Dirk do I have to do sth here??
-	newE->valueKind = VAL_ID;
+	newE->lvalue = 0;
+	newE->valueKind = VAL_UNKOWN;
 	newE->trueList = NULL;
 	newE->falseList = NULL;
 	newE->arrInd = NULL;
 	newE->postEmit = PE_NONE;
 	newE->params = NULL;
+
+	// add expr to allExpr list
+	if (allExpr == NULL) {
+		allExpr = newExprList(newE);
+	} else {
+		exprList_t* tmp = allExpr;
+		while (tmp->next != NULL) {
+			tmp = tmp->next;
+		}
+		tmp->next = newExprList(newE);
+	}
 	return newE;
+}
+
+exprList_t* newExprList(expr_t* expr) {
+	exprList_t* newEL = malloc(sizeof(expr_t));
+	newEL->expr = expr;
+	newEL->next = NULL;
+	newEL->prev = NULL;
+	return newEL;
 }
 
 /**
@@ -152,9 +181,11 @@ expr_t* newAnonymousExpr() {
  * @param type data type
  * @return new expression
  */
-expr_t* newExpr(char* id, type_t type) {
+expr_t* newExpr(const char* id, type_t type) {
 	expr_t* newE = newAnonymousExpr();
-	newE->value.id = id;
+	char* newId = malloc(strlen(id) + 1);
+	strcpy(newId, id);
+	newE->value.id = newId;
 	newE->type = type;
 	newE->valueKind = VAL_ID;
 	return newE;
@@ -242,7 +273,7 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 void printIRCode(FILE *out, irCode_t *irCode) {
 	if (out == NULL)
 		out = stdout;
-	if(irCode == NULL)
+	if (irCode == NULL)
 		return;
 
 	// store string representations of the args
@@ -325,18 +356,21 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 		}
 
 		// free allocated mem for string rep. of numbers
-		if (res != NULL && nextIrCode->res != NULL
-				&& nextIrCode->res->valueKind == VAL_NUM) {
-			free(res);
-		}
-		if (arg0 != NULL && nextIrCode->arg0 != NULL
-				&& nextIrCode->arg0->valueKind == VAL_NUM) {
-			free(arg0);
-		}
-		if (arg1 != NULL && nextIrCode->arg1 != NULL
-				&& nextIrCode->arg1->valueKind == VAL_NUM) {
-			free(arg1);
-		}
+//		if (res != NULL && nextIrCode->res != NULL
+//				&& nextIrCode->res->valueKind == VAL_NUM) {
+//			free(res);
+//		}
+//		if (arg0 != NULL && nextIrCode->arg0 != NULL
+//				&& nextIrCode->arg0->valueKind == VAL_NUM) {
+//			free(arg0);
+//		}
+//		if (arg1 != NULL && nextIrCode->arg1 != NULL
+//				&& nextIrCode->arg1->valueKind == VAL_NUM) {
+//			free(arg1);
+//		}
+		free(res);
+		free(arg0);
+		free(arg1);
 
 		nextIrCode = nextIrCode->next;
 	}
@@ -442,8 +476,51 @@ char* opToStr(operation_t ops) {
  */
 irCode_t* getIRCode() {
 	irCode_t* head = NULL;
-	if (irListTail) {
+	if (irListTail != NULL) {
 		GETLISTHEAD(irListTail, head);
 	}
 	return head;
+}
+
+void clean_ircode() {
+	irCode_t* irc = getIRCode();
+	irCode_t* tmp = NULL;
+	while (irc != NULL) {
+		tmp = irc;
+		irc = irc->next;
+		clean_expr(tmp->arg0);
+		clean_expr(tmp->arg1);
+		clean_expr(tmp->res);
+		free(tmp);
+	}
+}
+
+void clean_all_expr() {
+	while (allExpr != NULL) {
+		exprList_t* tmp = allExpr;
+		allExpr = allExpr->next;
+		clean_expr(tmp->expr);
+		free(tmp);
+	}
+}
+
+void clean_exprList(exprList_t* exprList) {
+	while (exprList != NULL) {
+		exprList_t* tmp = exprList;
+		exprList = exprList->next;
+		free(tmp);
+	}
+}
+
+void clean_expr(expr_t* expr) {
+	if (expr == NULL)
+		return;
+//	free(expr->parentId); parentId is a reference to id of parent -> do not free
+	if (expr->valueKind == VAL_ID) {
+		if (expr->value.id != NULL) {
+			free(expr->value.id);
+		}
+	}
+	clean_exprList(expr->params);
+	free(expr);
 }

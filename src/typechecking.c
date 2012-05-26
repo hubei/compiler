@@ -143,6 +143,9 @@ int correctFuncTypesReal(int line, symbol_t* curSymbol, string funcID,
 	param_t* parametersOrg = parameters;
 
 	func_t* function = findFunc(curSymbol, funcID);
+
+	assert(function != NULL);
+
 	param_t* parametersHash = function->param;
 	int count = 1;
 	for (param_t* s = parametersHash; s != NULL; s = s->next) {

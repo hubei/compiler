@@ -5,6 +5,7 @@
 
 #include "diag.h"
 #include "resource_manager.h"
+#include "symboltable.h"
 
 const char *os_err_msgs[] = {
   [OUT_OF_MEMORY] = "out of memory",
@@ -47,6 +48,7 @@ void compilerError(int line, int exiting, const char *msg, ...) {
 	fprintf(stderr, "line %d: %s\n", line, buffer);
 
 	if(exiting>0) {
+		clean_symbol(getSymbolTable());
 		exit(exiting);
 	}
 }

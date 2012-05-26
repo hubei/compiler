@@ -14,6 +14,7 @@
 #include <string.h>
 #include <assert.h>
 #include "diag.h"
+#include "generalParserFunc.h"
 
 struct symbol_t* symbolTable = NULL;
 
@@ -43,6 +44,10 @@ void errorVarDeclared(int line, string id) {
  */
 void errorIdDeclared(int line, string id) {
 	compilerError(line, 3, "Identifier \"%s\" is already declared.", id);
+}
+
+void errorFuncCall(int line, string id) {
+	compilerError(line, 4, "Function \"%s\" does not exist", id);
 }
 
 /**
@@ -106,8 +111,7 @@ symbol_t* createSymbol() {
 var_t* createVar(string id) {
 	assert(id != NULL);
 
-	var_t *newVar = NULL;
-	newVar = malloc(sizeof(var_t));
+	var_t *newVar = malloc(sizeof(var_t));
 	if (newVar == NULL) {
 		// TODO error memory
 	}
@@ -152,7 +156,7 @@ func_t* createFunc(string id) {
 
 /**
  * @brief create a new param from given paramVar and add it to the end of other params
- * @param prevParam end of list of all previouse params
+ * @param prevParam end of list of all previous params
  * @param paramVar var object that represents the param
  * @return reference to new param
  */
@@ -161,7 +165,7 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
 	assert(paramVar->id!=NULL);
 
 	struct param_t* newParam = NULL;
-	newParam = malloc(sizeof(var_t));
+	newParam = malloc(sizeof(param_t));
 	if (newParam == NULL) {
 		// TODO error
 	}
@@ -211,7 +215,7 @@ void destroyVar(symbol_t* curSymbol, string id) {
 	var_t* var = findVar(curSymbol, id);
 	if (var != NULL) {
 		HASH_DEL(curSymbol->symVar, var);
-		free(var);
+		clean_var(var);
 	}
 }
 
@@ -393,7 +397,8 @@ void print_param(FILE* file, param_t* paramHead) {
 		assert(var!=NULL);
 		fprintf(file,
 				"\tparam %s\n\t\ttype: %s - size: %d - width: %d - offset: %d\n",
-				var->id, typeToString(var->type), var->size, var->width, var->offset);
+				var->id, typeToString(var->type), var->size, var->width,
+				var->offset);
 		param = param->next;
 	}
 }
@@ -466,5 +471,64 @@ string typeToString(type_t type) {
 		break;
 	}
 	return "no valid type";
+}
+
+void clean_var(var_t* var) {
+	if (var == NULL)
+		return;
+	printf("freeing %s\n", var->id);
+	free(var->id);
+	free(var);
+}
+
+void clean_func(func_t* func) {
+	if (func == NULL)
+		return;
+	printf("freeing %s\n", func->id);
+	free(func->id);
+	clean_symbol(func->symbol);
+	clean_paramList(func->param);
+	free(func);
+}
+
+void clean_paramList(param_t* paramList) {
+	if (paramList == NULL)
+			return;
+	param_t* tmp = paramList;
+	GETLISTHEAD(paramList, tmp);
+	while(tmp != NULL) {
+		paramList = tmp;
+		tmp = tmp->next;
+		free(paramList);
+	}
+}
+
+void clean_varList(var_t* varList) {
+	if (varList == NULL)
+		return;
+	struct var_t *var, *tmp;
+	HASH_ITER(hh, varList, var, tmp) {
+		HASH_DEL(varList, var);
+		clean_var(var);
+	}
+}
+
+void clean_funcList(func_t* funcList) {
+	if (funcList == NULL)
+		return;
+	struct func_t *func, *tmp;
+	HASH_ITER(hh, funcList, func, tmp) {
+		HASH_DEL(funcList, func);
+		clean_func(func);
+	}
+}
+
+void clean_symbol(symbol_t* symbol) {
+	if (symbol == NULL) {
+		return;
+	}
+	clean_varList(symbol->symVar);
+	clean_funcList(symbol->symFunc);
+	free(symbol);
 }
 

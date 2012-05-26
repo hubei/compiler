@@ -34,6 +34,8 @@ symbol_t* curSymbol;
 
 
 char* valueAsString(expr_t*);
+void clean_stmt(stmt_t* stmt);
+void clean_indexList(indexList_t* il);
 
 #endif
 

@@ -50,4 +50,11 @@ void print_symTab(FILE*);
 symbol_t* getSymbolTable();
 void setSymbolTable(symbol_t*);
 
+void clean_func(func_t* func);
+void clean_var(var_t* var);
+void clean_symbol(symbol_t* symbol);
+void clean_varList(var_t* varList);
+void clean_funcList(func_t* funcList);
+void clean_paramList(param_t* paramList);
+
 #endif

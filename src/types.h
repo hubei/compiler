@@ -63,7 +63,7 @@ typedef struct exprList_t {
 typedef struct expr_t {
 	type_t type;
 	int lvalue;
-	postEmit_t* postEmit; // for array and function calls: emit later to decide if function is standalone or array is lvalue
+	postEmit_t postEmit; // for array and function calls: emit later to decide if function is standalone or array is lvalue
 	int jump; // for goto statements to set jump location
 	valueKind_t valueKind;
 	indexList_t* trueList;
