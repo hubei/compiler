@@ -21,8 +21,9 @@ for c in $(ls); do
    		./../../bin/dhbwcc -p -t -o $s $c
 		if [ -e $e ]
 		then
-			echo "Expected: "
-			cat $e 
+			echo "*** Expected: "
+			cat $e | sed 's/^/*** /'
+			echo
 		fi
 	fi
 done

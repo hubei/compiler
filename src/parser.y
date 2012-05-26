@@ -156,7 +156,6 @@ type
  */
 variable_declaration
 	: variable_declaration COMMA identifier_declaration	 {
-		if(findVar(curSymbol, $3))
 		$3->type = $1.type;
 		$3->width = $1.width;
 		if($3->size != 0) {
@@ -185,7 +184,6 @@ variable_declaration
 identifier_declaration
 	: ID BRACKET_OPEN NUM BRACKET_CLOSE { // array
 		if(exists(curSymbol, $1)) {
-			// TODO error identifier exists
 			var_t* var = findVar(curSymbol, $1);
 			if(var == NULL) {
 				errorIdDeclared(@1.first_line, $1);
@@ -203,7 +201,6 @@ identifier_declaration
 	} 
 	| ID {	
 		if(exists(curSymbol, $1)) {
-			// TODO error identifier exists
 			var_t* var = findVar(curSymbol, $1);
 			if(var == NULL) {
 				errorIdDeclared(@1.first_line, $1);
@@ -223,20 +220,36 @@ identifier_declaration
  */
 function_declaration
 	: type ID PARA_OPEN PARA_CLOSE {
-		 
-		func_t* newFunc = createFunc($2);
-		newFunc->returnType = $1.type;
-		newFunc->param = NULL;
-		insertFunc(curSymbol, newFunc);
+		if(exists(curSymbol, $2)) {
+			func_t* func = findFunc(curSymbol, $2);
+			if(func == NULL) {
+				errorIdDeclared(@2.first_line, $2);
+			} else {
+				errorFuncDeclared(@2.first_line, $2);
+			}
+		} else {
+			func_t* newFunc = createFunc($2);
+			newFunc->returnType = $1.type;
+			newFunc->param = NULL;
+			insertFunc(curSymbol, newFunc);
+		}
 	}
 	| type ID PARA_OPEN function_parameter_list PARA_CLOSE {
-		
-		func_t* newFunc = createFunc($2);
-		newFunc->returnType = $1.type;
-		GETLISTHEAD($4, newFunc->param);
-		newFunc->param = newFunc->param;
-		newFunc->num_params = getParamCount(newFunc->param);
-		insertFunc(curSymbol, newFunc);
+		if(exists(curSymbol, $2)) {
+			func_t* func = findFunc(curSymbol, $2);
+			if(func == NULL) {
+				errorIdDeclared(@2.first_line, $2);
+			} else {
+				errorFuncDeclared(@2.first_line, $2);
+			}
+		} else {
+			func_t* newFunc = createFunc($2);
+			newFunc->returnType = $1.type;
+			GETLISTHEAD($4, newFunc->param);
+			newFunc->param = newFunc->param;
+			newFunc->num_params = getParamCount(newFunc->param);
+			insertFunc(curSymbol, newFunc);
+		}
 	}
 	;
 
