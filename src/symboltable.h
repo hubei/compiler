@@ -56,5 +56,6 @@ void clean_symbol(symbol_t* symbol);
 void clean_varList(var_t* varList);
 void clean_funcList(func_t* funcList);
 void clean_paramList(param_t* paramList);
+void clean_paramList2(param_t* paramList, int rmVars);
 
 #endif

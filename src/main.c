@@ -19,6 +19,9 @@ void yyparse();
 extern FILE *yyin;
 extern FILE *yyout;
 
+// default return code is 0 (success)
+int errorCode = 0;
+
 
 /* Constants */
 static const char *C_EXT = ".c";
@@ -302,7 +305,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if(cc_options.print_only_errors != 1) {
-		printf("\nInput: %s\n", cc_options.input_file);
+		printf("Input: %s\n", cc_options.input_file);
 		printf("Output: %s\n", cc_options.output_file);
 		printf("IR: %s\n", cc_options.ir_file);
 	}
@@ -355,6 +358,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	rm_cleanup_resources(&resource_mgr);
-	return 0;
+	return errorCode;
 }
 

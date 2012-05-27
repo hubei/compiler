@@ -10,15 +10,29 @@ if [ ! -d "$1" ]; then
 	exit 1
 fi
 cd $1
+valgrindErr=0
+sum=0
+failed=0
 for c in $(ls); do
 	s=$(echo $c | sed 's/c$/s/')
 	e=$(echo $c | sed 's/c$/e/')
 	if [[ $c == *.c ]]
 	then
+		sum=`expr $sum + 1`
 		echo "-----------------"
-		echo "------"$c"------"
+		echo "-----$c-----"
 		echo "-----------------"
-   		./../../bin/dhbwcc -p -t -o $s $c
+		cat $c
+		echo "-----------------"
+   		valgrind -q --error-exitcode=21 --leak-check=yes ./../../bin/dhbwcc -p -t -o $s $c
+		errCode=$?
+		if [ $errCode -eq 21 ]; then
+			echo "!!! Valgrind reported an error"
+			valgrindErr=`expr $valgrindErr + 1`
+		fi
+		if [ $errCode -ne 0 ]; then
+			failed=`expr $failed + 1`
+		fi
 		if [ -e $e ]
 		then
 			echo "*** Expected: "
@@ -27,3 +41,6 @@ for c in $(ls); do
 		fi
 	fi
 done
+
+echo "$failed of $sum programs failed"
+echo "$valgrindErr programs failed valgrind"

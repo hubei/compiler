@@ -49,8 +49,6 @@ void backpatch(indexList_t* list, int index) {
 		}
 		lHead = lHead->next;
 	}
-
-	// clean up
 	clean_indexList(list);
 }
 
@@ -113,8 +111,6 @@ expr_t* newTmp(type_t type) {
 	// generate new id
 	char* id = malloc(11 + 4);
 	sprintf(id, "#V_%d", nextTmpVar);
-
-	printf("%s\n", id);
 
 	// new expr and var
 	expr_t* newT = newExpr(id, type);
@@ -482,19 +478,6 @@ irCode_t* getIRCode() {
 	return head;
 }
 
-void clean_ircode() {
-	irCode_t* irc = getIRCode();
-	irCode_t* tmp = NULL;
-	while (irc != NULL) {
-		tmp = irc;
-		irc = irc->next;
-		clean_expr(tmp->arg0);
-		clean_expr(tmp->arg1);
-		clean_expr(tmp->res);
-		free(tmp);
-	}
-}
-
 void clean_all_expr() {
 	while (allExpr != NULL) {
 		exprList_t* tmp = allExpr;
@@ -522,5 +505,7 @@ void clean_expr(expr_t* expr) {
 		}
 	}
 	clean_exprList(expr->params);
+//	clean_indexList(expr->falseList);
+//	clean_indexList(expr->trueList);
 	free(expr);
 }

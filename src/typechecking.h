@@ -34,4 +34,6 @@ int checkLValue(int line, expr_t* lvalue);
 
 void typeError (int line, const char *msg, ...);
 
+void clean_paList(paList_t* paList);
+
 #endif

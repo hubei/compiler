@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern int errorCode;
+
 /**
  * error function for type checking
  * @param line
@@ -29,6 +31,7 @@ void typeError(int line, const char *msg, ...) {
 	vsnprintf(buffer, sizeof(buffer) - 1, msg, fmtargs);
 	va_end(fmtargs);
 	fprintf(stderr, "line %d: %s\n", line, buffer);
+	errorCode = 2;
 }
 
 /**
@@ -52,6 +55,9 @@ paList_t* setToNextReference(paList_t* list, paList_t* newItem) {
  * @return pointer to the first item
  */
 paList_t* reverseParametersList(paList_t* paList) {
+	if(paList == NULL) {
+		return NULL;
+	}
 	while(paList->prev != NULL) {
 		paList = paList->prev;
 	}
@@ -75,6 +81,8 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 				// TODO error memory
 			}
 			paraListItem->parameter = typeToString(s->expr->type);
+			paraListItem->next = NULL;
+			paraListItem->prev = NULL;
 			paraList = setToNextReference(paraList, paraListItem);
 		}
 	}
@@ -85,6 +93,8 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 				// TODO error memory
 			}
 			paraListItem->parameter = typeToString(s->var->type);
+			paraListItem->next = NULL;
+			paraListItem->prev = NULL;
 			paraList = setToNextReference(paraList, paraListItem);
 		}
 	}
@@ -99,10 +109,12 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
  */
 void printPaList(exprList_t* expressions, param_t* parameters,
 		int isExpressionList) {
-	for (paList_t* s = getTypesOfAllParameters(expressions, parameters, isExpressionList);
+	paList_t* paList = getTypesOfAllParameters(expressions, parameters, isExpressionList);
+	for (paList_t* s = paList;
 			s != NULL; s = s->next) {
 		fprintf(stderr, "%s, ", s->parameter);
 	}
+	clean_paList(paList);
 }
 
 /**
@@ -301,4 +313,12 @@ void checkReturnTypes(int line, type_t returnType, type_t returned) {
 	}
 }
 
-
+void clean_paList(paList_t* paList) {
+	paList_t* tmp = NULL;
+	GETLISTHEAD(paList, tmp);
+	while(tmp != NULL) {
+		paList = tmp;
+		tmp = tmp->next;
+		free(paList);
+	}
+}

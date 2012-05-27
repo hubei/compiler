@@ -247,8 +247,17 @@ void insertParams(func_t* func, param_t* lastParam) {
 	assert(func!=NULL);
 	assert(func->symbol != NULL);
 	param_t* param = lastParam;
+	GETLISTTAIL(lastParam, param);
 	var_t* var = NULL;
 	int paramCount = 0;
+
+	if(func->param != NULL) {
+		// params were defined before
+		// this is the case, if there was a prototype
+		// lets just clean the list and apply the new one :)
+		clean_paramList2(func->param, 1);
+	}
+
 	while (param != NULL) {
 		var = param->var;
 		assert(var!=NULL);
@@ -476,7 +485,6 @@ string typeToString(type_t type) {
 void clean_var(var_t* var) {
 	if (var == NULL)
 		return;
-	printf("freeing %s\n", var->id);
 	free(var->id);
 	free(var);
 }
@@ -484,14 +492,22 @@ void clean_var(var_t* var) {
 void clean_func(func_t* func) {
 	if (func == NULL)
 		return;
-	printf("freeing %s\n", func->id);
 	free(func->id);
 	clean_symbol(func->symbol);
-	clean_paramList(func->param);
+	clean_paramList2(func->param, func->symbol == NULL?1:0);
 	free(func);
 }
 
 void clean_paramList(param_t* paramList) {
+	clean_paramList2(paramList, 0);
+}
+
+/**
+ * Be carefull with deleting vars. They might already be free'd
+ * @param paramList
+ * @param rmVars also delete corresponding vars for params
+ */
+void clean_paramList2(param_t* paramList, int rmVars) {
 	if (paramList == NULL)
 			return;
 	param_t* tmp = paramList;
@@ -499,6 +515,9 @@ void clean_paramList(param_t* paramList) {
 	while(tmp != NULL) {
 		paramList = tmp;
 		tmp = tmp->next;
+		if(rmVars) {
+			clean_var(paramList->var);
+		}
 		free(paramList);
 	}
 }

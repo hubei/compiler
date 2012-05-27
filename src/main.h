@@ -18,6 +18,9 @@
 #include "diag.h"
 #include "resource_manager.h"
 
+// return code of this program
+int errorCode;
+
 /** 
  * \struct cc_options
  * \brief Compiler options for DHBWCC.
