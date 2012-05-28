@@ -513,13 +513,16 @@ expression
 			//types are compatible and the left value is an assignable expression
 			if(isAssignAllowed>0 && checkLValue(@1.first_line, $1)) {
 				emit($1,$4,OP_ASSIGN,NULL);
-				$$ = newAnonymousExpr();
-				$$->type = $1->type;
+				// TODO Dirk review
+//				$$ = newAnonymousExpr();
+//				$$->type = $1->type;
+				$$ = $1;
 			}
 		}
 		if($$ == NULL) {
-			$$ = newAnonymousExpr();
-			$$->type = T_INT;
+//			$$ = newAnonymousExpr();
+//			$$->type = T_INT;
+			$$ = $1;
 		}
      }
      | expression LOGICAL_OR M expression {
