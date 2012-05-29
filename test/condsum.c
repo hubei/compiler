@@ -4,7 +4,7 @@ int main () {
   a = b = 1;
   i = (a == 1) || (b == 1);
   int zwei4zig[42];
-
+  a = (zwei4zig[13] = zwei4zig[37]) == 42;
   return i;
 
   if(a == 1)
