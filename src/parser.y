@@ -166,6 +166,9 @@ variable_declaration
 	}
 	| type identifier_declaration {
 		assert($2 != NULL);
+		if($2->type == T_INT_A && $1.type!=T_INT) {
+			typeError(@1.first_line, "The syntax of %s cannot be used to declare %s. Only int is possible.",$2->id, typeToString($1.type));
+		}
 		$2->type = $1.type;
 		$2->width = $1.width;
 		if($2->size != 0) {
@@ -196,6 +199,7 @@ identifier_declaration
 				// TODO error memory
 			}
 			$$ = newVar;
+			$$->type = T_INT_A;
 			$$->size = $3;
 		}
 		free($1);
