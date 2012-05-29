@@ -16,6 +16,7 @@
 #include "diag.h"
 #include "generalParserFunc.h"
 
+/** reference to the global scope of the symbol table */
 struct symbol_t* symbolTable = NULL;
 
 /**
@@ -461,9 +462,9 @@ void print_symTab(FILE* file) {
 }
 
 /**
- *
- * @param type
- * @return
+ * @brief Return a string representation of the given data type
+ * @param type a data type
+ * @return string representation of type
  */
 string typeToString(type_t type) {
 	switch (type) {
@@ -482,6 +483,10 @@ string typeToString(type_t type) {
 	return "no valid type";
 }
 
+/**
+ * @brief free memory for a simple var and its id
+ * @param var
+ */
 void clean_var(var_t* var) {
 	if (var == NULL)
 		return;
@@ -489,23 +494,35 @@ void clean_var(var_t* var) {
 	free(var);
 }
 
+/**
+ * @brief free memory for a simple function, its id, symbol and params
+ * @param func
+ */
 void clean_func(func_t* func) {
 	if (func == NULL)
 		return;
 	free(func->id);
 	clean_symbol(func->symbol);
+	// if there is no symbol, this function was a prototype only
+	// this means, there are vars, that are not in the symTab and
+	// should be free'd now
 	clean_paramList2(func->param, func->symbol == NULL?1:0);
 	free(func);
 }
 
+/**
+ * @brief free memory for a paramList without freeing the vars
+ * @param paramList
+ */
 void clean_paramList(param_t* paramList) {
 	clean_paramList2(paramList, 0);
 }
 
 /**
- * Be carefull with deleting vars. They might already be free'd
+ * @brief free memory for a paramList
+ * Hint: Be carefull with deleting vars. They might already be free'd
  * @param paramList
- * @param rmVars also delete corresponding vars for params
+ * @param rmVars bool: also delete corresponding vars for params
  */
 void clean_paramList2(param_t* paramList, int rmVars) {
 	if (paramList == NULL)
@@ -522,6 +539,10 @@ void clean_paramList2(param_t* paramList, int rmVars) {
 	}
 }
 
+/**
+ * @brief free a complete var list
+ * @param varList
+ */
 void clean_varList(var_t* varList) {
 	if (varList == NULL)
 		return;
@@ -532,6 +553,10 @@ void clean_varList(var_t* varList) {
 	}
 }
 
+/**
+ * @brief free a complete func list
+ * @param funcList
+ */
 void clean_funcList(func_t* funcList) {
 	if (funcList == NULL)
 		return;
@@ -542,6 +567,10 @@ void clean_funcList(func_t* funcList) {
 	}
 }
 
+/**
+ * @brief free the var and func lists and the symbol itself
+ * @param symbol
+ */
 void clean_symbol(symbol_t* symbol) {
 	if (symbol == NULL) {
 		return;

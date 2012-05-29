@@ -11,7 +11,9 @@
 
 #include <uthash.h>
 #include <utlist.h>
-typedef struct symbol_t symbol_t; // prototype need for definition
+
+/** prototype needed for definition of func_t and symbol_t (they reference to each other) */
+typedef struct symbol_t symbol_t;
 
 /**
  * @brief string representation
@@ -19,7 +21,7 @@ typedef struct symbol_t symbol_t; // prototype need for definition
 typedef const char* string;
 
 /**
- * @brief set of possible types
+ * @brief set of possible data types
  */
 typedef enum type_t {
 	T_UNKNOWN, T_INT, T_VOID, T_INT_A
@@ -36,6 +38,7 @@ typedef enum valueKind_t {
  * @brief list of indices
  */
 typedef struct indexList_t {
+	/** a simple int index representing a reference to a line */
 	int index;
 	struct indexList_t* next;
 	struct indexList_t* prev;
@@ -43,6 +46,7 @@ typedef struct indexList_t {
 
 /**
  *	@brief postEmit is for functions and arrays: They have not enough information to emit themselves
+ *	See also {@link: expr_t}
  */
 typedef enum postEmit_t {
 	PE_NONE, PE_ARR, PE_FUNCC
@@ -59,30 +63,43 @@ typedef struct exprList_t {
 
 /**
  * @brief Expressions are used to transfer information within the parser
+ * It holds data for type checking and IR code generation
  */
 typedef struct expr_t {
+	/** data type */
 	type_t type;
+	/** bool: whether the expression can stand on the left side of an assignment */
 	int lvalue;
-	postEmit_t postEmit; // for array and function calls: emit later to decide if function is standalone or array is lvalue
-	int jump; // for goto statements to set jump location
+	/** for array and function calls: emit later to decide if function is standalone or array is lvalue */
+	postEmit_t postEmit;
+	/** for goto statements to set jump location */
+	int jump;
+	/** to decide, if expression value is id or num */
 	valueKind_t valueKind;
+	/** for backpatching: collect all indices (rows) that need to be packpatched */
 	indexList_t* trueList;
+	/** for backpatching: collect all indices (rows) that need to be packpatched */
 	indexList_t* falseList;
+	/** list of expressions. Used for function call parameters in parser */
 	exprList_t* params;
+	/** name of variable or int value */
 	union {
 		char* id;
 		int num;
 	} value;
-	// for arrays:
-	struct expr_t* arrInd; // expression for array index
-	char* parentId; // name of array/func in case, this is a tmpExpr that stores an arr/func value
+	/** for arrays: reference to expression that represents the indes */
+	struct expr_t* arrInd;
+	/** name of array/func in case, this is a tmpExpr that stores an arr/func value */
+	char* parentId;
 } expr_t;
 
 /**
  * @brief statement type for parser
  */
 typedef struct stmt_t {
+	/** return type of a function for typechecking */
 	type_t returnType;
+	/** for backpatching: list if indices */
 	indexList_t* nextList;
 } stmt_t;
 
@@ -91,16 +108,22 @@ typedef struct stmt_t {
  * This is a hash table. Its key is `id`, the rest are values.
  */
 typedef struct var_t {
+	/** name of variable - key of hash table */
 	char* id; // key
+	/** data type */
 	type_t type;
-	int size; // array size
-	int width; // amount of space in memory
-	int offset; // memory location relative to scope
-	UT_hash_handle hh; /* makes this structure hashable */
+	/** array size */
+	int size;
+	/** amount of space in memory */
+	int width;
+	/** memory location relative to scope */
+	int offset;
+	/** makes this structure hashable */
+	UT_hash_handle hh;
 } var_t;
 
 /**
- * @brief LinkedList of vars for parameters of functions
+ * @brief Doubly LinkedList of vars for parameters of functions
  */
 typedef struct param_t {
 	var_t* var;
@@ -113,35 +136,39 @@ typedef struct param_t {
  * This is a hash table. Its key is `id`, the rest are values.
  */
 typedef struct func_t {
+	/** name of function - key of hash table */
 	char* id; // key
+	/** returned data type */
 	type_t returnType;
-	param_t* param; // hash table of variables, that are parameters
+	/** list of parameters */
+	param_t* param;
+	/** number of parameters for faster access */
 	int num_params;
+	/** reference to the corresponding scope of the function */
 	symbol_t* symbol;
-	UT_hash_handle hh; /* makes this structure hashable */
+	/** makes this structure hashable */
+	UT_hash_handle hh;
 } func_t;
 
 /**
  * @brief Symbol structure of the symbol table, implemented as a doubly linked list
  */
 struct symbol_t {
+	/** list of all containing variables */
 	var_t* symVar;
+	/** list of all containing functions. Does only apply to the global scope */
 	func_t* symFunc;
-	int offset; // offset of variable declaration (for new vars)
-	struct symbol_t* next; // overlying scope, should always be the global scope, as there are only two layers
+	/** offset (next free memory location) of variable declaration (for new vars) */
+	int offset;
+	/** overlying scope, should always be the global scope, as there are only two layers */
+	struct symbol_t* next;
 };
 
 /**
- *	@brief Based on the expression-rules from the parser.y
+ *	@brief Possible operations, based on the expression-rules from the parser.y
  */
 typedef enum operation_t {
-	OP_ASSIGN,
-	OP_ADD,
-	OP_SUB,
-	OP_MUL,
-	OP_DIV,
-	OP_MOD,
-	OP_SHR, // shift right
+	OP_ASSIGN, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_SHR, // shift right
 	OP_SHL, // shift left
 	OP_MINUS,
 	OP_IFEQ,
@@ -163,10 +190,15 @@ typedef enum operation_t {
  * 	@brief One row of a IR 3-address code with references to next and previous line
  */
 typedef struct irCode_t {
+	/** row/index of current line */
 	int row;
+	/** kind of address code operation */
 	operation_t ops;
+	/** result (depending on ops) */
 	expr_t* res;
+	/** first argument (depending on ops) */
 	expr_t* arg0;
+	/** second argument (depending on ops) */
 	expr_t* arg1;
 	struct irCode_t *prev, *next;
 } irCode_t;

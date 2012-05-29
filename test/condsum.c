@@ -3,6 +3,8 @@ int main () {
   int a,b;
   a = b = 1;
   i = (a == 1) || (b == 1);
+  int zwei4zig[42];
+
   return i;
 
   if(a == 1)

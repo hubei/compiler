@@ -7,6 +7,7 @@
 #include "resource_manager.h"
 #include "symboltable.h"
 
+/** String representation of the error messages */
 const char *os_err_msgs[] = {
   [OUT_OF_MEMORY] = "out of memory",
   [FILE_ACCESS] = "file access"
@@ -33,7 +34,7 @@ void fatal_os_error (os_error_t err, int errno, const char *fn, const int line, 
 }
 
 /**
- * error function for type checking
+ * @brief error function for type checking
  * @param line
  * @param exiting 0: do not exit, >0: exit program with value
  * @param msg error message
