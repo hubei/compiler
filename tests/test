@@ -20,7 +20,7 @@ for c in $(ls); do
 	then
 		sum=`expr $sum + 1`
 		echo "-----------------"
-		echo "-----$c-----"
+		echo "------$c------"
 		echo "-----------------"
 		cat $c
 		echo "-----------------"

@@ -11,6 +11,7 @@
 #include "symboltable.h"
 #include "typechecking.h"
 #include "generalParserFunc.h"
+#include "diag.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -25,12 +26,16 @@ extern int errorCode;
  * @param ... list of parameters used in the string
  */
 void typeError(int line, const char *msg, ...) {
+
 	va_list fmtargs;
 	char buffer[1024];
 	va_start(fmtargs, msg);
 	vsnprintf(buffer, sizeof(buffer) - 1, msg, fmtargs);
 	va_end(fmtargs);
-	fprintf(stderr, "line %d: %s\n", line, buffer);
+	//fprintf(stderr, "line %d: %s\n", line, buffer);
+	compilerError(line, 0, buffer);
+	//fatal_os_error (TYPE, 0, "typechecking.c", line, const char *msg, ...)
+
 	errorCode = 2;
 }
 
