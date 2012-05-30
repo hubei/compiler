@@ -2,13 +2,10 @@
 #include "generalParserFunc.h"
 #include "symboltable.h"
 
-/** @brief current instruction line */
+
 int instruction = 0;
-/** @brief numbering temporary variables */
 int nextTmpVar = 0;
-/** @brief Pointer to the last element of irList */
 irCode_t* irListTail = NULL;
-/** @brief A list of all expressions */
 exprList_t* allExpr = NULL;
 
 /**
@@ -163,6 +160,11 @@ expr_t* newAnonymousExpr() {
 	return newE;
 }
 
+/**
+ * @brief Create a new expression list with the given single entry
+ * @param expr first initial entry
+ * @return list of expression with one entry
+ */
 exprList_t* newExprList(expr_t* expr) {
 	exprList_t* newEL = malloc(sizeof(expr_t));
 	newEL->expr = expr;
@@ -351,19 +353,7 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 			break;
 		}
 
-		// free allocated mem for string rep. of numbers
-//		if (res != NULL && nextIrCode->res != NULL
-//				&& nextIrCode->res->valueKind == VAL_NUM) {
-//			free(res);
-//		}
-//		if (arg0 != NULL && nextIrCode->arg0 != NULL
-//				&& nextIrCode->arg0->valueKind == VAL_NUM) {
-//			free(arg0);
-//		}
-//		if (arg1 != NULL && nextIrCode->arg1 != NULL
-//				&& nextIrCode->arg1->valueKind == VAL_NUM) {
-//			free(arg1);
-//		}
+		// we do not need the strings anymore
 		free(res);
 		free(arg0);
 		free(arg1);
@@ -380,6 +370,8 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 char* exprListToStr(exprList_t* el) {
 	char* result = NULL;
 	if (el == NULL) {
+		// we return an empty string, but we'll allocate memory
+		// so that it can be free'd without a special case
 		result = malloc(1);
 		strcpy(result, "");
 		return result;
@@ -478,6 +470,9 @@ irCode_t* getIRCode() {
 	return head;
 }
 
+/**
+ * @brief loop through the list of all expression and clean each one
+ */
 void clean_all_expr() {
 	while (allExpr != NULL) {
 		exprList_t* tmp = allExpr;
@@ -487,6 +482,10 @@ void clean_all_expr() {
 	}
 }
 
+/**
+ * @brief clean a complete expression list
+ * @param exprList
+ */
 void clean_exprList(exprList_t* exprList) {
 	while (exprList != NULL) {
 		exprList_t* tmp = exprList;
@@ -495,17 +494,20 @@ void clean_exprList(exprList_t* exprList) {
 	}
 }
 
+/**
+ * @brief free memory of a expression
+ * Hint: Most containing data is free'd elsewhere<br>
+ * e.g. parentId is a reference to id of parent -> do not free
+ * @param expr
+ */
 void clean_expr(expr_t* expr) {
 	if (expr == NULL)
 		return;
-//	free(expr->parentId); parentId is a reference to id of parent -> do not free
 	if (expr->valueKind == VAL_ID) {
 		if (expr->value.id != NULL) {
 			free(expr->value.id);
 		}
 	}
 	clean_exprList(expr->params);
-//	clean_indexList(expr->falseList);
-//	clean_indexList(expr->trueList);
 	free(expr);
 }

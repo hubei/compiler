@@ -19,8 +19,10 @@ symbol_t* curSymbol;
  */
 #define GETLISTHEAD(list, result) \
 	result = list; \
-	while(result->prev != NULL) { \
-		result = result->prev; \
+	if(result != NULL) { \
+		while(result->prev != NULL) { \
+			result = result->prev; \
+		} \
 	} \
 
 /**
@@ -28,8 +30,10 @@ symbol_t* curSymbol;
  */
 #define GETLISTTAIL(list, result) \
 	result = list; \
-	while(result->next != NULL) { \
-		result = result->next; \
+	if(result != NULL) { \
+		while(result->next != NULL) { \
+			result = result->next; \
+		} \
 	} \
 
 

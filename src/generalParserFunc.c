@@ -13,6 +13,7 @@
 
 /**
  * @brief Return a string representation of a value (id or num)
+ * Hint: You should free the string later!!
  * @param arg argument to convert
  * @return string (empty string, if sth is NULL)
  */
@@ -36,16 +37,26 @@ char* valueAsString(expr_t* arg) {
 		}
 	}
 	if (res == NULL) {
+		// lets reserve memory for an empty string so that we can free
+		// it without problems later :)
 		res = malloc(1);
 		strcpy(res, "");
 	}
 	return res;
 }
 
+/**
+ * @brief free a statement. Not very spectacular yet ;)
+ * @param stmt
+ */
 void clean_stmt(stmt_t* stmt) {
 	free(stmt);
 }
 
+/**
+ * @brief loop through index list a free each entry
+ * @param il
+ */
 void clean_indexList(indexList_t* il) {
 	if(il == NULL)
 		return;

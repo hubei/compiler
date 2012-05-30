@@ -12,14 +12,14 @@
 
 #include "main.h"
 
-// define yyparse function, which is defined by bison, but not included and thus causes a warning
+/** define yyparse function, which is defined by bison, but not included and thus causes a warning */
 void yyparse();
 
-// get a reference to the yyin und yyout variables for flex
+/** get a reference to the yyin und yyout variables for flex */
 extern FILE *yyin;
 extern FILE *yyout;
 
-// default return code is 0 (success)
+/** default return code is 0 (success) */
 int errorCode = 0;
 
 
