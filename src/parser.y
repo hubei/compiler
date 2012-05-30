@@ -300,7 +300,7 @@ function_definition
 				errorIdDeclared(@2.first_line, $2);
 			} else if(existingFunc->symbol==NULL) {
 				// check if function definition and prototype are equal (no params)
-				checkCompatibleTypesRaw(@1.first_line, $1.type, existingFunc->returnType);
+				checkCompatibleTypesRaw(@2.first_line, $1.type, existingFunc->returnType);
 			} else {
 				// function was already defined!
 				errorFuncDeclared(@2.first_line, $2);
@@ -330,7 +330,7 @@ function_definition
 				param_t* head;
 				GETLISTHEAD($4, head);
 				checkCompatibleTypesRaw(@1.first_line, $1.type, existingFunc->returnType);
-				correctFuncTypesParam(@1.first_line, curSymbol, $2, head);
+				correctFuncTypesParam(@4.first_line, curSymbol, $2, head);
 			} else {
 				// function was already defined!
 				errorFuncDeclared(@2.first_line, $2);
@@ -363,7 +363,7 @@ stmt_list
     	 if($1->returnType!=$2->returnType &&
     			 $1->returnType!=T_UNKNOWN &&
     			 $2->returnType!=T_UNKNOWN) {
-    		 typeError(@1.first_line, "Two differnt return types (%s, %s) in function ",$1, $2);
+    		 typeError(@2.first_line, "Two differnt return types (%s, %s) in function ",$1, $2);
     	 } else {
     		 if ($2->returnType==T_UNKNOWN) {
     			 $$ = $1;
@@ -713,6 +713,7 @@ function_call
 	if(func == NULL) {
 		errorFuncCall(@1.first_line, $1);
 	} else {
+		correctFuncTypes(@1.first_line, curSymbol,func->id,NULL);
 		$$ = newTmp(T_INT);
 		$$->type = func->returnType;
 		$$->lvalue = 0;

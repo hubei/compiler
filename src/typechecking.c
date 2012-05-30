@@ -314,11 +314,13 @@ int checkLValue(int line, expr_t* lvalue) {
  */
 void checkReturnTypes(int line, type_t returnType, type_t returned) {
 	if (returnType != returned && returned !=  T_UNKNOWN) {
-		typeError(line, "return type %s expected, but %s found", typeToString(returnType), typeToString(returned));
+		typeError(line, "return type %s expected, but %s was returned", typeToString(returnType), typeToString(returned));
 	}
 }
 
 void clean_paList(paList_t* paList) {
+	if(paList == NULL)
+		return;
 	paList_t* tmp = NULL;
 	GETLISTHEAD(paList, tmp);
 	while(tmp != NULL) {
