@@ -203,4 +203,17 @@ typedef struct irCode_t {
 	struct irCode_t *prev, *next;
 } irCode_t;
 
+/**
+ * @brief List of parameters represented as strings, only used for error messages
+ * If a function is called with a wrong amount of types, you can print out all the types, which are expected and which are found
+ */
+typedef struct parameterList_t {
+	/** type stored as string */
+	string parameter;
+	/** pointer to the previous type */
+	struct parameterList_t* prev;
+	/** pointer to the next type */
+	struct parameterList_t* next;
+} paList_t;
+
 #endif /* TYPES_H_ */

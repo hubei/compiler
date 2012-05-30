@@ -10,15 +10,7 @@
 
 #include <uthash.h>
 
-/**
- * @brief List of parameters represented as strings, only used for error messages
- * If a function is called with a wrong amount of types, you can print out all the types, which are expected and which are found
- */
-typedef struct parameterList_t {
-	string parameter; // type
-	struct parameterList_t* prev;
-	struct parameterList_t* next;
-} paList_t;
+
 
 
 int checkCompatibleTypes(int line, expr_t* expr1, expr_t* expr2);
