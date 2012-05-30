@@ -11,8 +11,6 @@
 #include "types.h"
 #include "symboltable.h"
 
-/** @brief Pointer to the last element of irList */
-irCode_t* irListTail;
 /** @brief current instruction line */
 int instruction;
 /** @brief numbering temporary variables */

@@ -101,6 +101,7 @@ symbol_t* createSymbol() {
 	newSymbol->symFunc = NULL;
 	newSymbol->next = NULL;
 	newSymbol->offset = 0;
+	newSymbol->ircode = NULL;
 	return newSymbol;
 }
 
@@ -577,6 +578,17 @@ void clean_symbol(symbol_t* symbol) {
 	}
 	clean_varList(symbol->symVar);
 	clean_funcList(symbol->symFunc);
+	clean_ircode(symbol->ircode);
 	free(symbol);
+}
+
+void clean_ircode(irCode_t* ircode) {
+	irCode_t* tmp = NULL;
+	GETLISTHEAD(ircode, tmp);
+	while(tmp != NULL) {
+		ircode = tmp;
+		tmp = tmp->next;
+		free(ircode);
+	}
 }
 

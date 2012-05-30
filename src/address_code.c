@@ -5,7 +5,6 @@
 
 int instruction = 0;
 int nextTmpVar = 0;
-irCode_t* irListTail = NULL;
 exprList_t* allExpr = NULL;
 
 /**
@@ -25,12 +24,14 @@ int getNextInstr() {
 void backpatch(indexList_t* list, int index) {
 	if (list == NULL)
 		return;
+
 	indexList_t* lHead = NULL;
 	GETLISTHEAD(list, lHead);
 
 	irCode_t* irhead = NULL;
 	irCode_t* ir = NULL;
-	GETLISTHEAD(irListTail, irhead);
+
+	GETLISTHEAD(curSymbol->ircode, irhead);
 	// loop through all indices in given list
 	while (lHead != NULL) {
 		ir = irhead;
@@ -222,9 +223,9 @@ stmt_t* newStmt() {
  * @brief Delete last instruction line and decrease counter
  */
 void delLastInstr() {
-	if (irListTail != NULL) {
-		irCode_t* lastIR = irListTail;
-		irListTail = irListTail->prev;
+	if (curSymbol->ircode != NULL) {
+		irCode_t* lastIR = curSymbol->ircode;
+		curSymbol->ircode = curSymbol->ircode->prev;
 		destroyVar(curSymbol, lastIR->res->value.id);
 		free(lastIR);
 		instruction--;
@@ -239,6 +240,7 @@ void delLastInstr() {
  * @param arg1
  */
 void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
+
 	// create a new ircode line
 	irCode_t *newIRCode = (irCode_t*) malloc(sizeof(struct irCode_t));
 	if (newIRCode == NULL) {
@@ -254,12 +256,12 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 	newIRCode->res = res;
 
 	// insert into list
-	if (irListTail != NULL) {
-		irListTail->next = newIRCode;
+	if (curSymbol->ircode != NULL) {
+		curSymbol->ircode->next = newIRCode;
 	}
-	newIRCode->prev = irListTail;
+	newIRCode->prev = curSymbol->ircode;
 	newIRCode->row = getNextInstr();
-	irListTail = newIRCode; // new tail
+	curSymbol->ircode = newIRCode; // new tail
 	instruction++; // one more instruction
 }
 
@@ -280,7 +282,8 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 	char* arg0 = NULL;
 	char* exprL = NULL;
 
-	irCode_t *nextIrCode = irCode;
+	irCode_t *nextIrCode = NULL;
+	GETLISTHEAD(irCode, nextIrCode);
 	// for each irCode line
 	while (nextIrCode != NULL) {
 		res = valueAsString(nextIrCode->res);
@@ -460,12 +463,13 @@ char* opToStr(operation_t ops) {
 
 /**
  * @brief return list of all irCodes
+ * TODO Nicolai remove
  * @return irCode HEAD
  */
 irCode_t* getIRCode() {
 	irCode_t* head = NULL;
-	if (irListTail != NULL) {
-		GETLISTHEAD(irListTail, head);
+	if (curSymbol->ircode != NULL) {
+		GETLISTHEAD(curSymbol->ircode, head);
 	}
 	return head;
 }

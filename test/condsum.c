@@ -10,6 +10,16 @@ int main () {
   if(a == 1)
 	  a = 2;
 }
+
+void test() {
+	int a;
+	a = 1;
+}
+
+void blubb() {
+	int a;
+	a = 1;
+}
 //int global, a[42];
 //int test;
 //int scan();

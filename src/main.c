@@ -9,6 +9,7 @@
 #include "address_code.h"
 #include "mips32gen.h"
 #include "symboltable.h"
+#include "generalParserFunc.h"
 
 #include "main.h"
 
@@ -329,8 +330,13 @@ int main(int argc, char *argv[]) {
 			print_symTab(irFile);
 
 			// get ir code and print it into irFile
-			ircode = getIRCode();
-			printIRCode(irFile, ircode);
+			struct func_t *func, *tmp;
+			HASH_ITER(hh, getSymbolTable()->symFunc, func, tmp) {
+				if(func->symbol != NULL) {
+					fprintf(irFile, "Function %s:\n", func->id);
+					printIRCode(irFile, func->symbol->ircode);
+				}
+			}
 
 			fclose(irFile);
 		}

@@ -94,6 +94,45 @@ typedef struct expr_t {
 } expr_t;
 
 /**
+ *	@brief Possible operations, based on the expression-rules from the parser.y
+ */
+typedef enum operation_t {
+	OP_ASSIGN, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_SHR, // shift right
+	OP_SHL, // shift left
+	OP_MINUS,
+	OP_IFEQ,
+	OP_IFNE,
+	OP_IFGT,
+	OP_IFGE,
+	OP_IFLT,
+	OP_IFLE,
+	OP_GOTO,
+	OP_RETURN_VAL,
+	OP_RETURN_VOID,
+	OP_CALL_RES,
+	OP_CALL_VOID,
+	OP_ARRAY_LD,
+	OP_ARRAY_ST
+} operation_t;
+
+/**
+ * 	@brief One row of a IR 3-address code with references to next and previous line
+ */
+typedef struct irCode_t {
+	/** row/index of current line */
+	int row;
+	/** kind of address code operation */
+	operation_t ops;
+	/** result (depending on ops) */
+	expr_t* res;
+	/** first argument (depending on ops) */
+	expr_t* arg0;
+	/** second argument (depending on ops) */
+	expr_t* arg1;
+	struct irCode_t *prev, *next;
+} irCode_t;
+
+/**
  * @brief statement type for parser
  */
 typedef struct stmt_t {
@@ -160,48 +199,11 @@ struct symbol_t {
 	func_t* symFunc;
 	/** offset (next free memory location) of variable declaration (for new vars) */
 	int offset;
+	/** ircode of this function */
+	irCode_t* ircode;
 	/** overlying scope, should always be the global scope, as there are only two layers */
 	struct symbol_t* next;
 };
-
-/**
- *	@brief Possible operations, based on the expression-rules from the parser.y
- */
-typedef enum operation_t {
-	OP_ASSIGN, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_SHR, // shift right
-	OP_SHL, // shift left
-	OP_MINUS,
-	OP_IFEQ,
-	OP_IFNE,
-	OP_IFGT,
-	OP_IFGE,
-	OP_IFLT,
-	OP_IFLE,
-	OP_GOTO,
-	OP_RETURN_VAL,
-	OP_RETURN_VOID,
-	OP_CALL_RES,
-	OP_CALL_VOID,
-	OP_ARRAY_LD,
-	OP_ARRAY_ST
-} operation_t;
-
-/**
- * 	@brief One row of a IR 3-address code with references to next and previous line
- */
-typedef struct irCode_t {
-	/** row/index of current line */
-	int row;
-	/** kind of address code operation */
-	operation_t ops;
-	/** result (depending on ops) */
-	expr_t* res;
-	/** first argument (depending on ops) */
-	expr_t* arg0;
-	/** second argument (depending on ops) */
-	expr_t* arg1;
-	struct irCode_t *prev, *next;
-} irCode_t;
 
 /**
  * @brief List of parameters represented as strings, only used for error messages
