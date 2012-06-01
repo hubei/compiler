@@ -299,9 +299,6 @@ int process_options(int argc, char *argv[]) {
  */
 int main(int argc, char *argv[]) {
 
-	errno=457; int fa=;
-	fa=fa-5;
-	fatal_os_error(0, errno, "main.c", __LINE__,"hallo nico");
 
 	/* the resource manager must be initialized before any
 	 * further actions are implemented */
