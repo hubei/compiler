@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 //#include "symboltable.h"
 #include "parser.h"
 #include "address_code.h"
 #include "mips32gen.h"
 #include "symboltable.h"
+
 
 #include "main.h"
 
@@ -292,6 +294,10 @@ int process_options(int argc, char *argv[]) {
  * \param argv The input parameters.
  */
 int main(int argc, char *argv[]) {
+
+	//errno=457;
+//	fatal_os_error(0, errno, "main.c", 296,"hallo nico");
+
 	/* the resource manager must be initialized before any
 	 * further actions are implemented */
 	rm_init(&resource_mgr);
