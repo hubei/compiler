@@ -25,13 +25,16 @@ char* valueAsString(expr_t* arg) {
 		switch (arg->valueKind) {
 		case VAL_ID:
 			res = malloc(strlen(arg->value.id) + 1);
+			if(res==NULL){
+					FATAL_OS_ERROR(OUT_OF_MEMORY,1, "adress_code.c", __LINE__,"");
+				}
 			strcpy(res, arg->value.id);
 			break;
 		case VAL_NUM:
 			res = malloc(11); // int has max 10 digits + end of string
 			if (res == NULL) {
 				// TODO error memory
-				FATAL_OS_ERROR(0, errno, "generalParserFunc.c", __LINE__,"");
+				FATAL_OS_ERROR(OUT_OF_MEMORY,1, "generalParserFunc.c", __LINE__,"");
 			}
 			sprintf(res, "%d", arg->value.num);
 			break;
@@ -43,6 +46,9 @@ char* valueAsString(expr_t* arg) {
 		// lets reserve memory for an empty string so that we can free
 		// it without problems later :)
 		res = malloc(1);
+		if(res==NULL){
+				FATAL_OS_ERROR(OUT_OF_MEMORY,1, "adress_code.c", __LINE__,"");
+			}
 		strcpy(res, "");
 	}
 	return res;

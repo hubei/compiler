@@ -33,6 +33,9 @@ void rm_register_handler (resource_mgr_t *mgr, rm_cleanup_fp handler, void *data
   int new_num = mgr->num_entries + 1;
   mgr->entries = realloc(mgr->entries, new_num * sizeof(*mgr->entries)); 
   resource_entry_t *entry = malloc(sizeof(*entry));
+  if(entry==NULL){
+  		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "adress_code.c", __LINE__,"");
+  	}
   if (mgr->entries == NULL || entry == NULL) {
     /* call the handler since it already contains resources to be freed */
     handler(data);

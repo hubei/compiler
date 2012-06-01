@@ -10,6 +10,9 @@
 #include "typechecking.h"
 #include "address_code.h" 
 #include "generalParserFunc.h"
+#include <errno.h>
+
+
 
 #define YYERROR_VERBOSE
 	

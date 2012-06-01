@@ -85,7 +85,7 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 			paList_t* paraListItem = malloc(sizeof(paList_t));
 			if (paraListItem == NULL) {
 				// TODO error memory
-				FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"");
+				FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"");
 			}
 			paraListItem->parameter = typeToString(s->expr->type);
 			paraListItem->next = NULL;
@@ -98,7 +98,7 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 			paList_t* paraListItem = malloc(sizeof(paList_t));
 			if (paraListItem == NULL) {
 				// TODO error memory
-				FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"");
+				FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"");
 			}
 			paraListItem->parameter = typeToString(s->var->type);
 			paraListItem->next = NULL;
