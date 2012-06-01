@@ -9,6 +9,7 @@ typedef enum {
   OUT_OF_MEMORY = 0,    //!< OUT_OF_MEMORY
   FILE_ACCESS = 1,      //!< FILE_ACCESS
   PROCESS_RESOURCES = 2,//!< PROCESS_RESOURCES
+
   TYPE = 3,
   /* add new error codes above */
   NUM_OS_ERRORS         //!< NUM_OS_ERRORS

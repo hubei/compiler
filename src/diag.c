@@ -11,7 +11,10 @@
 const char *os_err_msgs[] = {
   [OUT_OF_MEMORY] = "out of memory",
   [FILE_ACCESS] = "file access",
+
+
   [TYPE] = "type error"
+
 };
 
 /**

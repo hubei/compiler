@@ -10,6 +10,8 @@
 #include "types.h"
 #include <stdio.h>
 #include "generalParserFunc.h"
+#include "diag.h"
+#include <errno.h>
 
 /**
  * @brief Return a string representation of a value (id or num)
@@ -29,6 +31,7 @@ char* valueAsString(expr_t* arg) {
 			res = malloc(11); // int has max 10 digits + end of string
 			if (res == NULL) {
 				// TODO error memory
+				FATAL_OS_ERROR(0, errno, "generalParserFunc.c", __LINE__,"");
 			}
 			sprintf(res, "%d", arg->value.num);
 			break;

@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 extern int errorCode;
 
@@ -84,6 +85,7 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 			paList_t* paraListItem = malloc(sizeof(paList_t));
 			if (paraListItem == NULL) {
 				// TODO error memory
+				FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"");
 			}
 			paraListItem->parameter = typeToString(s->expr->type);
 			paraListItem->next = NULL;
@@ -96,6 +98,7 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 			paList_t* paraListItem = malloc(sizeof(paList_t));
 			if (paraListItem == NULL) {
 				// TODO error memory
+				FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"");
 			}
 			paraListItem->parameter = typeToString(s->var->type);
 			paraListItem->next = NULL;

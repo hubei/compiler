@@ -1,8 +1,8 @@
 #include "address_code.h"
 #include "generalParserFunc.h"
 #include "symboltable.h"
-
-
+#include <errno.h>
+#include "diag.h"
 int instruction = 0;
 int nextTmpVar = 0;
 exprList_t* allExpr = NULL;
@@ -93,6 +93,7 @@ indexList_t* newIndexList(int i) {
 	indexList_t* newList = malloc(sizeof(indexList_t));
 	if (newList == NULL) {
 		// TODO error
+		FATAL_OS_ERROR(0, errno, "adress_code.c", __LINE__,"new indexList could not be constructed");
 	}
 	newList->index = i;
 	newList->next = NULL;
@@ -134,7 +135,7 @@ expr_t* newAnonymousExpr() {
 	expr_t* newE = malloc(sizeof(expr_t));
 	if (newE == NULL) {
 		// TODO error
-	}
+		FATAL_OS_ERROR(0, errno, "adress_code.c", __LINE__,"new Expression could not be constructed");	}
 
 	// set default values
 	newE->value.id = NULL;
@@ -213,6 +214,8 @@ stmt_t* newStmt() {
 	stmt_t* stmt = malloc(sizeof(stmt_t));
 	if (stmt == NULL) {
 		// TODO error
+		FATAL_OS_ERROR(0, errno, "adress_code.c", __LINE__,"new Statement could not be constructed");
+
 	}
 	stmt->nextList = NULL;
 	stmt->returnType = T_UNKNOWN;
@@ -245,6 +248,7 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 	irCode_t *newIRCode = (irCode_t*) malloc(sizeof(struct irCode_t));
 	if (newIRCode == NULL) {
 		// TODO error
+		FATAL_OS_ERROR(0, errno, "adress_code.c", __LINE__,"new IR code Line could not be constructed");
 	}
 
 	// initialize
