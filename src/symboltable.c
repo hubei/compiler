@@ -89,7 +89,7 @@ symbol_t* createSymbol() {
 	newSymbol = malloc(sizeof(symbol_t));
 	if (newSymbol == NULL) {
 		// TODO error memory
-		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new Symbol could not be constructed");
+		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new Symbol could not be constructed");
 
 	}
 
@@ -119,12 +119,12 @@ var_t* createVar(string id) {
 	var_t *newVar = malloc(sizeof(var_t));
 	if (newVar == NULL) {
 		// TODO error memory
-		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new variable could not be constructed");
+		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new variable could not be constructed");
 	}
 	newVar->id = malloc(strlen(id) + 1);
 	if (newVar->id == NULL) {
 		// TODO error memory
-		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new variable id could not be constructed");
+		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new variable id could not be constructed");
 	}
 	strcpy(newVar->id, id);
 
@@ -147,12 +147,12 @@ func_t* createFunc(string id) {
 	newFunc = malloc(sizeof(struct func_t));
 	if (newFunc == NULL) {
 		// TODO error memory
-		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new function could not be constructed");
+		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new function could not be constructed");
 	}
 	newFunc->id = malloc(strlen(id) + 1);
 	if (newFunc->id == NULL) {
 		// TODO error memory
-		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new function id could not be constructed");
+		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new function id could not be constructed");
 	}
 	strcpy(newFunc->id, id);
 
@@ -177,7 +177,7 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
 	newParam = malloc(sizeof(param_t));
 	if (newParam == NULL) {
 		// TODO error
-		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new Param could not be constructed");
+		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new Param could not be constructed");
 	}
 
 	// initialize

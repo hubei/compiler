@@ -47,6 +47,9 @@ cc_options_t cc_options = { .print_ir = 0, .ir_file = NULL, .input_file = NULL,
 char *strdup(const char *str) {
 	int n = strlen(str) + 1;
 	char *dup = malloc(n);
+	if(dup==NULL){
+			FATAL_OS_ERROR(OUT_OF_MEMORY,1, "adress_code.c", __LINE__,"");
+		}
 	if (dup) {
 		strcpy(dup, str);
 	}
