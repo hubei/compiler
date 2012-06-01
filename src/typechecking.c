@@ -11,10 +11,14 @@
 #include "symboltable.h"
 #include "typechecking.h"
 #include "generalParserFunc.h"
+#include "diag.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+
+extern int errorCode;
 
 /**
  * error function for type checking
@@ -23,12 +27,17 @@
  * @param ... list of parameters used in the string
  */
 void typeError(int line, const char *msg, ...) {
+
 	va_list fmtargs;
 	char buffer[1024];
 	va_start(fmtargs, msg);
 	vsnprintf(buffer, sizeof(buffer) - 1, msg, fmtargs);
 	va_end(fmtargs);
-	fprintf(stderr, "line %d: %s\n", line, buffer);
+	//fprintf(stderr, "line %d: %s\n", line, buffer);
+	compilerError(line, 0, buffer);
+	//fatal_os_error (TYPE, 0, "typechecking.c", line, const char *msg, ...)
+
+	errorCode = 2;
 }
 
 /**
@@ -52,6 +61,9 @@ paList_t* setToNextReference(paList_t* list, paList_t* newItem) {
  * @return pointer to the first item
  */
 paList_t* reverseParametersList(paList_t* paList) {
+	if(paList == NULL) {
+		return NULL;
+	}
 	while(paList->prev != NULL) {
 		paList = paList->prev;
 	}
@@ -72,9 +84,12 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 		for (exprList_t* s = expressions; s != NULL; s = s->next) {
 			paList_t* paraListItem = malloc(sizeof(paList_t));
 			if (paraListItem == NULL) {
-				error("Could not allocate paraListItem");
+				// TODO error memory
+				FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"");
 			}
 			paraListItem->parameter = typeToString(s->expr->type);
+			paraListItem->next = NULL;
+			paraListItem->prev = NULL;
 			paraList = setToNextReference(paraList, paraListItem);
 		}
 	}
@@ -82,9 +97,12 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
 		for (param_t* s = parameters; s != NULL; s = s->next) {
 			paList_t* paraListItem = malloc(sizeof(paList_t));
 			if (paraListItem == NULL) {
-				error("Could not allocate paraListItem");
+				// TODO error memory
+				FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"");
 			}
 			paraListItem->parameter = typeToString(s->var->type);
+			paraListItem->next = NULL;
+			paraListItem->prev = NULL;
 			paraList = setToNextReference(paraList, paraListItem);
 		}
 	}
@@ -99,10 +117,12 @@ paList_t* getTypesOfAllParameters(exprList_t* expressions, param_t* parameters,
  */
 void printPaList(exprList_t* expressions, param_t* parameters,
 		int isExpressionList) {
-	for (paList_t* s = getTypesOfAllParameters(expressions, parameters, isExpressionList);
+	paList_t* paList = getTypesOfAllParameters(expressions, parameters, isExpressionList);
+	for (paList_t* s = paList;
 			s != NULL; s = s->next) {
 		fprintf(stderr, "%s, ", s->parameter);
 	}
+	clean_paList(paList);
 }
 
 /**
@@ -143,6 +163,9 @@ int correctFuncTypesReal(int line, symbol_t* curSymbol, string funcID,
 	param_t* parametersOrg = parameters;
 
 	func_t* function = findFunc(curSymbol, funcID);
+
+	assert(function != NULL);
+
 	param_t* parametersHash = function->param;
 	int count = 1;
 	for (param_t* s = parametersHash; s != NULL; s = s->next) {
@@ -168,12 +191,8 @@ int correctFuncTypesReal(int line, symbol_t* curSymbol, string funcID,
 
 		//check if the found and expected types are the same, if not throws an error
 		if(s->var->type != paraExprType) {
-			string strType = typeToString(s->var->type);
-			string strTypeExpr = typeToString(paraExprType);
-			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",count,function->id,strType,strTypeExpr);
+			typeError(line, "Type of parameter %d is incompatible in function call %s; %s expected, but %s found",count,function->id,typeToString(s->var->type),typeToString(paraExprType));
 			printExpectedFound(line, parametersHash, expressionsOrg, parametersOrg, isExpressionList);
-			free((char*)strType);
-			free((char*)strTypeExpr);
 			return 0;
 		}
 
@@ -298,8 +317,18 @@ int checkLValue(int line, expr_t* lvalue) {
  */
 void checkReturnTypes(int line, type_t returnType, type_t returned) {
 	if (returnType != returned && returned !=  T_UNKNOWN) {
-		typeError(line, "return type %s expected, but %s found", typeToString(returnType), typeToString(returned));
+		typeError(line, "return type %s expected, but %s was returned", typeToString(returnType), typeToString(returned));
 	}
 }
 
-
+void clean_paList(paList_t* paList) {
+	if(paList == NULL)
+		return;
+	paList_t* tmp = NULL;
+	GETLISTHEAD(paList, tmp);
+	while(tmp != NULL) {
+		paList = tmp;
+		tmp = tmp->next;
+		free(paList);
+	}
+}

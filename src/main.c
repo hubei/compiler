@@ -11,15 +11,19 @@
 #include "mips32gen.h"
 #include "symboltable.h"
 
+#include "generalParserFunc.h"
 
 #include "main.h"
 
-// define yyparse function, which is defined by bison, but not included and thus causes a warning
+/** define yyparse function, which is defined by bison, but not included and thus causes a warning */
 void yyparse();
 
-// get a reference to the yyin und yyout variables for flex
+/** get a reference to the yyin und yyout variables for flex */
 extern FILE *yyin;
 extern FILE *yyout;
+
+/** default return code is 0 (success) */
+int errorCode = 0;
 
 
 /* Constants */
@@ -295,8 +299,9 @@ int process_options(int argc, char *argv[]) {
  */
 int main(int argc, char *argv[]) {
 
-	//errno=457;
-//	fatal_os_error(0, errno, "main.c", 296,"hallo nico");
+	errno=457; int fa=;
+	fa=fa-5;
+	fatal_os_error(0, errno, "main.c", __LINE__,"hallo nico");
 
 	/* the resource manager must be initialized before any
 	 * further actions are implemented */
@@ -308,7 +313,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if(cc_options.print_only_errors != 1) {
-		printf("\nInput: %s\n", cc_options.input_file);
+		printf("Input: %s\n", cc_options.input_file);
 		printf("Output: %s\n", cc_options.output_file);
 		printf("IR: %s\n", cc_options.ir_file);
 	}
@@ -332,8 +337,13 @@ int main(int argc, char *argv[]) {
 			print_symTab(irFile);
 
 			// get ir code and print it into irFile
-			ircode = getIRCode();
-			printIRCode(irFile, ircode);
+			struct func_t *func, *tmp;
+			HASH_ITER(hh, getSymbolTable()->symFunc, func, tmp) {
+				if(func->symbol != NULL) {
+					fprintf(irFile, "Function %s:\n", func->id);
+					printIRCode(irFile, func->symbol->ircode);
+				}
+			}
 
 			fclose(irFile);
 		}
@@ -350,10 +360,10 @@ int main(int argc, char *argv[]) {
 			}
 			fclose(yyout);
 		}
-		free(ircode);
 	}
 
-	free(getSymbolTable());
+	clean_symbol(getSymbolTable());
+	clean_all_expr();
 	if(cc_options.print_only_errors != 1) {
 		fprintf(stdout, "\nFinished.");
 	} else {
@@ -361,6 +371,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	rm_cleanup_resources(&resource_mgr);
-	return 0;
+	return errorCode;
 }
 

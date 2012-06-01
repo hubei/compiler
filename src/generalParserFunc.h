@@ -19,8 +19,10 @@ symbol_t* curSymbol;
  */
 #define GETLISTHEAD(list, result) \
 	result = list; \
-	while(result->prev != NULL) { \
-		result = result->prev; \
+	if(result != NULL) { \
+		while(result->prev != NULL) { \
+			result = result->prev; \
+		} \
 	} \
 
 /**
@@ -28,12 +30,16 @@ symbol_t* curSymbol;
  */
 #define GETLISTTAIL(list, result) \
 	result = list; \
-	while(result->next != NULL) { \
-		result = result->next; \
+	if(result != NULL) { \
+		while(result->next != NULL) { \
+			result = result->next; \
+		} \
 	} \
 
 
 char* valueAsString(expr_t*);
+void clean_stmt(stmt_t* stmt);
+void clean_indexList(indexList_t* il);
 
 #endif
 

@@ -77,7 +77,7 @@ return					return RETURN;
 "<<"					return(SHIFT_LEFT);
 ">>"					return(SHIFT_RIGHT);
 
-[A-Za-z_][A-Za-z_0-9]*	{ 	yylval.str = strdup(yytext); 
+[A-Za-z_][A-Za-z_0-9]*	{ 	yylval.str = strdup(yytext);
 							return ID;}
 0|[1-9][0-9]*			{	yylval.num=atoi(yytext); 
 							return NUM;}

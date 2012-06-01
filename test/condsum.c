@@ -1,16 +1,31 @@
-int i;
 int main () {
   int i;
+  int a,b;
+  a = b = 1;
+  i = (a == 1) || (b == 1);
+  int zwei4zig[42];
+  a = (zwei4zig[13] = zwei4zig[37]) == 42;
+  return i;
+
+  if(a == 1)
+	  a = 2;
 }
-int func () {
-  int i;
+
+void test() {
+	int a;
+	a = 1;
+}
+
+void blubb() {
+	int a;
+	a = 1;
 }
 //int global, a[42];
 //int test;
 //int scan();
 //void print(int i);
 //void exit(int i);
-////int func(int len, int threshold, int arr[10]);
+//int func(int len, int threshold, int arr[10]);
 //
 ///**
 // *
@@ -72,15 +87,16 @@ int func () {
 //	global = 1;
 //	a[1] = 5;
 //	a[2] = func(5, 5 + 5, a);
+//	global = 1 + 1;
 //
 //	print(scan());
 //
 //	exit(0);
 //
-//	if(!(4 < 5))
+//	if (!(4 < 5))
 //		global = 4;
-//	if( 4 < 5 && 5 < 6)
+//	if (4 < 5 && 5 < 6)
 //		global = 2;
-//	if( 4 < 5 || 5 < 6)
+//	if (4 < 5 || 5 < 6)
 //		global = 3;
 //}

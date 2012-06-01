@@ -1,12 +1,11 @@
 #include "address_code.h"
 #include "generalParserFunc.h"
-
-/** @brief current instruction line */
+#include "symboltable.h"
+#include <errno.h>
+#include "diag.h"
 int instruction = 0;
-/** @brief numbering temporary variables */
 int nextTmpVar = 0;
-/** @brief Pointer to the last element of irList */
-irCode_t* irListTail = NULL;
+exprList_t* allExpr = NULL;
 
 /**
  * @brief return the next instruction
@@ -25,12 +24,14 @@ int getNextInstr() {
 void backpatch(indexList_t* list, int index) {
 	if (list == NULL)
 		return;
+
 	indexList_t* lHead = NULL;
 	GETLISTHEAD(list, lHead);
 
 	irCode_t* irhead = NULL;
 	irCode_t* ir = NULL;
-	GETLISTHEAD(irListTail, irhead);
+
+	GETLISTHEAD(curSymbol->ircode, irhead);
 	// loop through all indices in given list
 	while (lHead != NULL) {
 		ir = irhead;
@@ -46,6 +47,7 @@ void backpatch(indexList_t* list, int index) {
 		}
 		lHead = lHead->next;
 	}
+	clean_indexList(list);
 }
 
 /**
@@ -91,6 +93,7 @@ indexList_t* newIndexList(int i) {
 	indexList_t* newList = malloc(sizeof(indexList_t));
 	if (newList == NULL) {
 		// TODO error
+		FATAL_OS_ERROR(0, errno, "adress_code.c", __LINE__,"new indexList could not be constructed");
 	}
 	newList->index = i;
 	newList->next = NULL;
@@ -119,6 +122,8 @@ expr_t* newTmp(type_t type) {
 	insertVar(curSymbol, var);
 	// increase number
 	nextTmpVar++;
+	// clean
+	free(id);
 	return newT;
 }
 
@@ -130,20 +135,44 @@ expr_t* newAnonymousExpr() {
 	expr_t* newE = malloc(sizeof(expr_t));
 	if (newE == NULL) {
 		// TODO error
-	}
+		FATAL_OS_ERROR(0, errno, "adress_code.c", __LINE__,"new Expression could not be constructed");	}
 
 	// set default values
-	newE->value.id = "";
+	newE->value.id = NULL;
 	newE->jump = 0;
 	newE->type = T_UNKNOWN;
-	newE->lvalue = 0; // FIXME Dirk do I have to do sth here??
-	newE->valueKind = VAL_ID;
+	newE->lvalue = 0;
+	newE->valueKind = VAL_UNKOWN;
 	newE->trueList = NULL;
 	newE->falseList = NULL;
 	newE->arrInd = NULL;
 	newE->postEmit = PE_NONE;
 	newE->params = NULL;
+
+	// add expr to allExpr list
+	if (allExpr == NULL) {
+		allExpr = newExprList(newE);
+	} else {
+		exprList_t* tmp = allExpr;
+		while (tmp->next != NULL) {
+			tmp = tmp->next;
+		}
+		tmp->next = newExprList(newE);
+	}
 	return newE;
+}
+
+/**
+ * @brief Create a new expression list with the given single entry
+ * @param expr first initial entry
+ * @return list of expression with one entry
+ */
+exprList_t* newExprList(expr_t* expr) {
+	exprList_t* newEL = malloc(sizeof(expr_t));
+	newEL->expr = expr;
+	newEL->next = NULL;
+	newEL->prev = NULL;
+	return newEL;
 }
 
 /**
@@ -152,9 +181,11 @@ expr_t* newAnonymousExpr() {
  * @param type data type
  * @return new expression
  */
-expr_t* newExpr(char* id, type_t type) {
+expr_t* newExpr(const char* id, type_t type) {
 	expr_t* newE = newAnonymousExpr();
-	newE->value.id = id;
+	char* newId = malloc(strlen(id) + 1);
+	strcpy(newId, id);
+	newE->value.id = newId;
 	newE->type = type;
 	newE->valueKind = VAL_ID;
 	return newE;
@@ -183,6 +214,8 @@ stmt_t* newStmt() {
 	stmt_t* stmt = malloc(sizeof(stmt_t));
 	if (stmt == NULL) {
 		// TODO error
+		FATAL_OS_ERROR(0, errno, "adress_code.c", __LINE__,"new Statement could not be constructed");
+
 	}
 	stmt->nextList = NULL;
 	stmt->returnType = T_UNKNOWN;
@@ -193,9 +226,9 @@ stmt_t* newStmt() {
  * @brief Delete last instruction line and decrease counter
  */
 void delLastInstr() {
-	if (irListTail != NULL) {
-		irCode_t* lastIR = irListTail;
-		irListTail = irListTail->prev;
+	if (curSymbol->ircode != NULL) {
+		irCode_t* lastIR = curSymbol->ircode;
+		curSymbol->ircode = curSymbol->ircode->prev;
 		destroyVar(curSymbol, lastIR->res->value.id);
 		free(lastIR);
 		instruction--;
@@ -210,10 +243,12 @@ void delLastInstr() {
  * @param arg1
  */
 void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
+
 	// create a new ircode line
 	irCode_t *newIRCode = (irCode_t*) malloc(sizeof(struct irCode_t));
 	if (newIRCode == NULL) {
 		// TODO error
+		FATAL_OS_ERROR(0, errno, "adress_code.c", __LINE__,"new IR code Line could not be constructed");
 	}
 
 	// initialize
@@ -225,12 +260,12 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 	newIRCode->res = res;
 
 	// insert into list
-	if (irListTail != NULL) {
-		irListTail->next = newIRCode;
+	if (curSymbol->ircode != NULL) {
+		curSymbol->ircode->next = newIRCode;
 	}
-	newIRCode->prev = irListTail;
+	newIRCode->prev = curSymbol->ircode;
 	newIRCode->row = getNextInstr();
-	irListTail = newIRCode; // new tail
+	curSymbol->ircode = newIRCode; // new tail
 	instruction++; // one more instruction
 }
 
@@ -242,7 +277,7 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 void printIRCode(FILE *out, irCode_t *irCode) {
 	if (out == NULL)
 		out = stdout;
-	if(irCode == NULL)
+	if (irCode == NULL)
 		return;
 
 	// store string representations of the args
@@ -251,7 +286,8 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 	char* arg0 = NULL;
 	char* exprL = NULL;
 
-	irCode_t *nextIrCode = irCode;
+	irCode_t *nextIrCode = NULL;
+	GETLISTHEAD(irCode, nextIrCode);
 	// for each irCode line
 	while (nextIrCode != NULL) {
 		res = valueAsString(nextIrCode->res);
@@ -324,19 +360,10 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 			break;
 		}
 
-		// free allocated mem for string rep. of numbers
-		if (res != NULL && nextIrCode->res != NULL
-				&& nextIrCode->res->valueKind == VAL_NUM) {
-			free(res);
-		}
-		if (arg0 != NULL && nextIrCode->arg0 != NULL
-				&& nextIrCode->arg0->valueKind == VAL_NUM) {
-			free(arg0);
-		}
-		if (arg1 != NULL && nextIrCode->arg1 != NULL
-				&& nextIrCode->arg1->valueKind == VAL_NUM) {
-			free(arg1);
-		}
+		// we do not need the strings anymore
+		free(res);
+		free(arg0);
+		free(arg1);
 
 		nextIrCode = nextIrCode->next;
 	}
@@ -350,6 +377,8 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 char* exprListToStr(exprList_t* el) {
 	char* result = NULL;
 	if (el == NULL) {
+		// we return an empty string, but we'll allocate memory
+		// so that it can be free'd without a special case
 		result = malloc(1);
 		strcpy(result, "");
 		return result;
@@ -438,12 +467,55 @@ char* opToStr(operation_t ops) {
 
 /**
  * @brief return list of all irCodes
+ * TODO Nicolai remove
  * @return irCode HEAD
  */
 irCode_t* getIRCode() {
 	irCode_t* head = NULL;
-	if (irListTail) {
-		GETLISTHEAD(irListTail, head);
+	if (curSymbol->ircode != NULL) {
+		GETLISTHEAD(curSymbol->ircode, head);
 	}
 	return head;
+}
+
+/**
+ * @brief loop through the list of all expression and clean each one
+ */
+void clean_all_expr() {
+	while (allExpr != NULL) {
+		exprList_t* tmp = allExpr;
+		allExpr = allExpr->next;
+		clean_expr(tmp->expr);
+		free(tmp);
+	}
+}
+
+/**
+ * @brief clean a complete expression list
+ * @param exprList
+ */
+void clean_exprList(exprList_t* exprList) {
+	while (exprList != NULL) {
+		exprList_t* tmp = exprList;
+		exprList = exprList->next;
+		free(tmp);
+	}
+}
+
+/**
+ * @brief free memory of a expression
+ * Hint: Most containing data is free'd elsewhere<br>
+ * e.g. parentId is a reference to id of parent -> do not free
+ * @param expr
+ */
+void clean_expr(expr_t* expr) {
+	if (expr == NULL)
+		return;
+	if (expr->valueKind == VAL_ID) {
+		if (expr->value.id != NULL) {
+			free(expr->value.id);
+		}
+	}
+	clean_exprList(expr->params);
+	free(expr);
 }

@@ -29,6 +29,7 @@ int getParamCount(param_t*);
 
 void insertVar(symbol_t*, var_t*);
 void insertFunc(symbol_t*, func_t*);
+
 var_t* findVar(symbol_t*, string); // find in current scope or scopes above
 func_t* findFunc(symbol_t*, string);
 int exists(symbol_t*, string); // only in current scope
@@ -36,7 +37,10 @@ void destroyVar(symbol_t*, string);
 
 char* setString(char*);
 string typeToString(type_t);
-void error(string);
+
+void errorFuncDeclared(int line, string id);
+void errorVarDeclared(int line, string id);
+void errorIdDeclared(int line, string id);
 
 void print_param(FILE*,param_t*);
 void print_var(FILE*,var_t*);
@@ -45,5 +49,14 @@ void print_symTab(FILE*);
 
 symbol_t* getSymbolTable();
 void setSymbolTable(symbol_t*);
+
+void clean_func(func_t* func);
+void clean_var(var_t* var);
+void clean_symbol(symbol_t* symbol);
+void clean_varList(var_t* varList);
+void clean_funcList(func_t* funcList);
+void clean_paramList(param_t* paramList);
+void clean_paramList2(param_t* paramList, int rmVars);
+void clean_ircode(irCode_t* ircode);
 
 #endif

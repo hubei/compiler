@@ -11,9 +11,12 @@
 #include "types.h"
 #include "symboltable.h"
 
-irCode_t* irListTail;
+/** @brief current instruction line */
 int instruction;
+/** @brief numbering temporary variables */
 int nextTmpVar;
+/** @brief A list of all expressions (for cleaning) */
+exprList_t* allExpr;
 
 // general irCode functions
 void backpatch(indexList_t*, int);
@@ -23,10 +26,11 @@ indexList_t* merge(indexList_t*, indexList_t*);
 // creation functions
 indexList_t* newIndexList(int);
 expr_t* newTmp(type_t);
-expr_t* newExpr(char*, type_t);
+expr_t* newExpr(const char*, type_t);
 expr_t* newAnonymousExpr();
 expr_t* newExprNum(int, type_t);
 stmt_t* newStmt();
+exprList_t* newExprList(expr_t* expr);
 
 // delete functions
 void delLastInstr();
@@ -38,5 +42,9 @@ char* exprListToStr(exprList_t*);
 
 // interface for getting complete irCode at the end
 irCode_t* getIRCode();
+
+void clean_expr(expr_t* expr);
+void clean_all_expr();
+void clean_exprList(exprList_t* exprList);
 
 #endif

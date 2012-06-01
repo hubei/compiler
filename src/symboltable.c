@@ -13,36 +13,43 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "diag.h"
+#include "generalParserFunc.h"
+#include <errno.h>
 
+/** reference to the global scope of the symbol table */
 struct symbol_t* symbolTable = NULL;
 
 /**
- * @brief Take a string (like "this is a string"), allocate memory for it and return the address.
- * @param source A string that should be stored in memory
- * @return A reference to the stored string
+ * @brief Throw error
+ * @param line where error occurred
+ * @param id The name of the function
  */
-char* setString(char* source) {
-	char* target = NULL;
-	if (source != NULL) {
-		target = malloc(strlen(source) + 1);
-		if (target == NULL) {
-			// TODO error
-		}
-		strcpy(target, source);
-	} else {
-		error("setString: Source is not initialized!");
-	}
-	return target;
+void errorFuncDeclared(int line, string id) {
+	compilerError(line, 1, "Function \"%s\" is already declared.", id);
 }
 
 /**
- * @brief Output given message and exit program
- * @param msg message to be printed to stderr
+ * @brief Throw error
+ * @param line where error occurred
+ * @param id The name of the variable
  */
-void error(string msg) {
-	// TODO error
-	fprintf(stderr, "\n%s\nExiting...\n", msg);
-	exit(1);
+void errorVarDeclared(int line, string id) {
+	compilerError(line, 2, "Variable \"%s\" is already declared.", id);
+}
+
+/**
+ * @brief Throw error - if id was declared, but is not equal to the type of the declared
+ * So, if declared is var and new is func or vice versa
+ * @param line where error occurred
+ * @param id The name of the identifier
+ */
+void errorIdDeclared(int line, string id) {
+	compilerError(line, 3, "Identifier \"%s\" is already declared.", id);
+}
+
+void errorFuncCall(int line, string id) {
+	compilerError(line, 4, "Function \"%s\" does not exist", id);
 }
 
 /**
@@ -81,8 +88,9 @@ symbol_t* createSymbol() {
 	symbol_t *newSymbol = NULL;
 	newSymbol = malloc(sizeof(symbol_t));
 	if (newSymbol == NULL) {
-		// TODO error
-		error("createSymbol: Could not allocate newSymbol");
+		// TODO error memory
+		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new Symbol could not be constructed");
+
 	}
 
 	/* initialize all pointers to NULL
@@ -96,6 +104,7 @@ symbol_t* createSymbol() {
 	newSymbol->symFunc = NULL;
 	newSymbol->next = NULL;
 	newSymbol->offset = 0;
+	newSymbol->ircode = NULL;
 	return newSymbol;
 }
 
@@ -107,16 +116,15 @@ symbol_t* createSymbol() {
 var_t* createVar(string id) {
 	assert(id != NULL);
 
-	var_t *newVar = NULL;
-	newVar = malloc(sizeof(var_t));
+	var_t *newVar = malloc(sizeof(var_t));
 	if (newVar == NULL) {
-		// TODO error
-		error("Variable could not be created");
+		// TODO error memory
+		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new variable could not be constructed");
 	}
 	newVar->id = malloc(strlen(id) + 1);
 	if (newVar->id == NULL) {
-		// TODO error
-		error("createVar: Could not allocate id");
+		// TODO error memory
+		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new variable id could not be constructed");
 	}
 	strcpy(newVar->id, id);
 
@@ -138,13 +146,13 @@ func_t* createFunc(string id) {
 	func_t *newFunc = NULL;
 	newFunc = malloc(sizeof(struct func_t));
 	if (newFunc == NULL) {
-		// TODO error
-		error("Function could not be created");
+		// TODO error memory
+		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new function could not be constructed");
 	}
 	newFunc->id = malloc(strlen(id) + 1);
 	if (newFunc->id == NULL) {
-		// TODO error
-		error("createFunc: Could not allocate id");
+		// TODO error memory
+		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new function id could not be constructed");
 	}
 	strcpy(newFunc->id, id);
 
@@ -157,7 +165,7 @@ func_t* createFunc(string id) {
 
 /**
  * @brief create a new param from given paramVar and add it to the end of other params
- * @param prevParam end of list of all previouse params
+ * @param prevParam end of list of all previous params
  * @param paramVar var object that represents the param
  * @return reference to new param
  */
@@ -166,9 +174,10 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
 	assert(paramVar->id!=NULL);
 
 	struct param_t* newParam = NULL;
-	newParam = malloc(sizeof(var_t));
+	newParam = malloc(sizeof(param_t));
 	if (newParam == NULL) {
 		// TODO error
+		FATAL_OS_ERROR(0, errno, "symboltable.c", __LINE__,"new Param could not be constructed");
 	}
 
 	// initialize
@@ -195,10 +204,8 @@ void insertVar(symbol_t* symbol, var_t* var) {
 	assert(var != NULL);
 	assert(var->id != NULL);
 
-	if (exists(symbol, var->id)) {
-		// TODO error
-		error("Function is already in symbol table");
-	}
+	// existing functions/variables should be catched earlier
+	assert(!exists(symbol, var->id));
 
 	// offset
 	var->offset = symbol->offset;
@@ -216,9 +223,9 @@ void insertVar(symbol_t* symbol, var_t* var) {
 void destroyVar(symbol_t* curSymbol, string id) {
 	assert(id != NULL);
 	var_t* var = findVar(curSymbol, id);
-	if(var != NULL) {
+	if (var != NULL) {
 		HASH_DEL(curSymbol->symVar, var);
-		free(var);
+		clean_var(var);
 	}
 }
 
@@ -232,10 +239,8 @@ void insertFunc(symbol_t* symbol, func_t* func) {
 	assert(func != NULL);
 	assert(func->id != NULL);
 
-	if (exists(symbol, func->id)) {
-		// TODO error
-		error("Function is already symbol table");
-	}
+	// existing functions/variables should be catched earlier
+	assert(!exists(symbol, func->id));
 
 	//einfügen in die hashmap
 	HASH_ADD_KEYPTR( hh, symbol->symFunc, func->id, strlen(func->id), func);
@@ -252,8 +257,17 @@ void insertParams(func_t* func, param_t* lastParam) {
 	assert(func!=NULL);
 	assert(func->symbol != NULL);
 	param_t* param = lastParam;
+	GETLISTTAIL(lastParam, param);
 	var_t* var = NULL;
 	int paramCount = 0;
+
+	if(func->param != NULL) {
+		// params were defined before
+		// this is the case, if there was a prototype
+		// lets just clean the list and apply the new one :)
+		clean_paramList2(func->param, 1);
+	}
+
 	while (param != NULL) {
 		var = param->var;
 		assert(var!=NULL);
@@ -380,11 +394,9 @@ void print_var(FILE* file, var_t* symVar) {
 	struct var_t *k = NULL, *tmp = NULL;
 	HASH_ITER(hh, symVar, k, tmp) {
 		assert(k->id != NULL);
-		string strType = typeToString(k->type);
 		fprintf(file,
 				"var %s\n\ttype: %s - size: %d - width: %d - offset: %d\n",
-				k->id, strType, k->size, k->width, k->offset);
-		free((char*)strType);
+				k->id, typeToString(k->type), k->size, k->width, k->offset);
 	}
 }
 
@@ -402,12 +414,10 @@ void print_param(FILE* file, param_t* paramHead) {
 	while (param != NULL) {
 		var = param->var;
 		assert(var!=NULL);
-		string strType = typeToString(var->type);
 		fprintf(file,
 				"\tparam %s\n\t\ttype: %s - size: %d - width: %d - offset: %d\n",
-				var->id, strType, var->size, var->width,
+				var->id, typeToString(var->type), var->size, var->width,
 				var->offset);
-		free((char*)strType);
 		param = param->next;
 	}
 }
@@ -424,10 +434,8 @@ void print_func(FILE* file, func_t* symFunc) {
 	struct func_t *func, *tmp;
 	HASH_ITER(hh, symFunc, func, tmp) {
 		assert(func->id != NULL);
-		string strType = typeToString(func->returnType);
 		fprintf(file, "func %s\n\treturntype: %s - num_params: %d\n", func->id,
-				strType, func->num_params);
-		free((char*)strType);
+				typeToString(func->returnType), func->num_params);
 
 		// print params, if there are any
 		print_param(file, func->param);
@@ -463,24 +471,132 @@ void print_symTab(FILE* file) {
 }
 
 /**
- *
- * @param type
- * @return
+ * @brief Return a string representation of the given data type
+ * @param type a data type
+ * @return string representation of type
  */
 string typeToString(type_t type) {
 	switch (type) {
 	case T_INT:
-		return setString("INT");
+		return "INT";
 		break;
 	case T_INT_A:
-		return setString("INT array");
+		return "INT array";
 		break;
 	case T_VOID:
-		return setString("VOID");
+		return "VOID";
 	case T_UNKNOWN:
-		return setString("UNKOWN");
+		return "UNKOWN";
 		break;
 	}
-	return setString("no valid type");
+	return "no valid type";
+}
+
+/**
+ * @brief free memory for a simple var and its id
+ * @param var
+ */
+void clean_var(var_t* var) {
+	if (var == NULL)
+		return;
+	free(var->id);
+	free(var);
+}
+
+/**
+ * @brief free memory for a simple function, its id, symbol and params
+ * @param func
+ */
+void clean_func(func_t* func) {
+	if (func == NULL)
+		return;
+	free(func->id);
+	clean_symbol(func->symbol);
+	// if there is no symbol, this function was a prototype only
+	// this means, there are vars, that are not in the symTab and
+	// should be free'd now
+	clean_paramList2(func->param, func->symbol == NULL?1:0);
+	free(func);
+}
+
+/**
+ * @brief free memory for a paramList without freeing the vars
+ * @param paramList
+ */
+void clean_paramList(param_t* paramList) {
+	clean_paramList2(paramList, 0);
+}
+
+/**
+ * @brief free memory for a paramList
+ * Hint: Be carefull with deleting vars. They might already be free'd
+ * @param paramList
+ * @param rmVars bool: also delete corresponding vars for params
+ */
+void clean_paramList2(param_t* paramList, int rmVars) {
+	if (paramList == NULL)
+			return;
+	param_t* tmp = paramList;
+	GETLISTHEAD(paramList, tmp);
+	while(tmp != NULL) {
+		paramList = tmp;
+		tmp = tmp->next;
+		if(rmVars) {
+			clean_var(paramList->var);
+		}
+		free(paramList);
+	}
+}
+
+/**
+ * @brief free a complete var list
+ * @param varList
+ */
+void clean_varList(var_t* varList) {
+	if (varList == NULL)
+		return;
+	struct var_t *var, *tmp;
+	HASH_ITER(hh, varList, var, tmp) {
+		HASH_DEL(varList, var);
+		clean_var(var);
+	}
+}
+
+/**
+ * @brief free a complete func list
+ * @param funcList
+ */
+void clean_funcList(func_t* funcList) {
+	if (funcList == NULL)
+		return;
+	struct func_t *func, *tmp;
+	HASH_ITER(hh, funcList, func, tmp) {
+		HASH_DEL(funcList, func);
+		clean_func(func);
+	}
+}
+
+/**
+ * @brief free the var and func lists and the symbol itself
+ * @param symbol
+ */
+void clean_symbol(symbol_t* symbol) {
+	if (symbol == NULL) {
+		return;
+	}
+	clean_varList(symbol->symVar);
+	clean_funcList(symbol->symFunc);
+	clean_ircode(symbol->ircode);
+	free(symbol);
+}
+
+void clean_ircode(irCode_t* ircode) {
+	irCode_t* tmp = NULL;
+	GETLISTHEAD(ircode, tmp);
+	while(tmp != NULL) {
+		ircode = tmp;
+		tmp = tmp->next;
+		free(ircode);
+	}
 }
 
