@@ -427,9 +427,12 @@ stmt_block
  */									
      stmt_conditional
           : IF PARA_OPEN expression {
-         	 if($3->lvalue == 1) { //TODO review: can we use lvalue here? If lvalue is 1, expression is a single variable, what is with functions, arrays? create new flag?
+        	  //TODO review: can we use lvalue here? If lvalue is 1, expression is a single variable, what is with functions, arrays? create new flag?
+        	  // => might work... functions should be lvalues as well, but arrays could be...
+        	  // new flag might be safer
+         	 if($3->lvalue == 1) { 
          		 delLastInstr();
-         		 emit($3, $3,OP_IFGT,0); //TODO what is "res"?
+         		 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); //TODO what is "res"? => result, but depending on OP; for if, it is only used for the GOTO number
          	 }
           } PARA_CLOSE M stmt {
           	 backpatch($3->trueList, $6.instr);
@@ -439,7 +442,7 @@ stmt_block
           | IF PARA_OPEN expression {
          	 if($3->lvalue == 1) { //TODO review: can we use lvalue here? If lvalue is 1, expression is a single variable, what is with functions, arrays? create new flag?
          		 delLastInstr();
-         		 emit($3, $3,OP_IFGT,0); //TODO what is "res"?
+         		 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); //TODO what is "res"?
          	 }
           }  PARA_CLOSE M stmt ELSE {
          	 $7->nextList = merge($7->nextList, newIndexList(getNextInstr()));

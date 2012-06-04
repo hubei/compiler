@@ -3,23 +3,22 @@ int main () {
   int a,b;
   a = b = 1;
   i = (a == 1) || (b == 1);
-  int zwei4zig[42];
-  a = (zwei4zig[13] = zwei4zig[37]) == 42;
   return i;
-
-  if(a == 1)
-	  a = 2;
 }
 
-void test() {
-	int a;
-	a = 1;
-}
+//int main () {
+//  int i;
+//  int a,b;
+//  a = b = 1;
+//  i = (a == 1) || (b == 1);
+//  int zwei4zig[42];
+//  a = (zwei4zig[13] = zwei4zig[37]) == 42;
+//  return i;
+//
+//  if(a == 1)
+//	  a = 2;
+//}
 
-void blubb() {
-	int a;
-	a = 1;
-}
 //int global, a[42];
 //int test;
 //int scan();
