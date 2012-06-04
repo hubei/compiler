@@ -110,8 +110,7 @@ expr_t* newTmp(type_t type) {
 	// generate new id
 	char* id = malloc(11 + 4);
 	if (id == NULL) {
-		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__,
-				"new tmp variable could not be constructed");
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 1, "");
 	}
 	sprintf(id, "#V_%d", nextTmpVar);
 
@@ -139,8 +138,7 @@ expr_t* newAnonymousExpr() {
 	expr_t* newE = malloc(sizeof(expr_t));
 	if (newE == NULL) {
 		// TODO error
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 1,
-				"adress_code.c", __LINE__, "new Expression could not be constructed");
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 1, "new Expression could not be constructed");
 	}
 
 	// set default values
