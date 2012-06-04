@@ -425,23 +425,33 @@ stmt_block
  * The non-terminal 'stmt_conditional' contains the conditional statements of the language. The second rule
  * produces a SHIFT/REDUCE error which is solved by the default behavior of bison (see above).
  */									
-stmt_conditional
-     : IF PARA_OPEN expression PARA_CLOSE M stmt {
-     	 backpatch($3->trueList, $5.instr);
-    	 backpatch($3->falseList, getNextInstr());
-    	 clean_stmt($6);
-     }
-     | IF PARA_OPEN expression PARA_CLOSE M stmt ELSE {
-    	 $6->nextList = merge($6->nextList, newIndexList(getNextInstr()));
-    	 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
-     } M stmt {
-     	 backpatch($3->trueList, $5.instr);
-    	 backpatch($3->falseList, $9.instr);
-    	 backpatch($6->nextList,getNextInstr());
-    	 clean_stmt($6);
-    	 clean_stmt($10);
-     }
-     ;
+     stmt_conditional
+          : IF PARA_OPEN expression {
+         	 if($3->lvalue == 1) { //TODO review: can we use lvalue here? If lvalue is 1, expression is a single variable, what is with functions, arrays? create new flag?
+         		 delLastInstr();
+         		 emit($3, $3,OP_IFGT,0); //TODO what is "res"?
+         	 }
+          } PARA_CLOSE M stmt {
+          	 backpatch($3->trueList, $6.instr);
+         	 backpatch($3->falseList, getNextInstr());
+         	 clean_stmt($7);
+          }
+          | IF PARA_OPEN expression {
+         	 if($3->lvalue == 1) { //TODO review: can we use lvalue here? If lvalue is 1, expression is a single variable, what is with functions, arrays? create new flag?
+         		 delLastInstr();
+         		 emit($3, $3,OP_IFGT,0); //TODO what is "res"?
+         	 }
+          }  PARA_CLOSE M stmt ELSE {
+         	 $7->nextList = merge($7->nextList, newIndexList(getNextInstr()));
+         	 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
+          } M stmt {
+          	 backpatch($3->trueList, $6.instr);
+         	 backpatch($3->falseList, $10.instr);
+         	 backpatch($7->nextList,getNextInstr());
+         	 clean_stmt($7);
+         	 clean_stmt($11);
+          }
+          ;
 									
 /*
  * The non-terminal 'stmt_loop' contains the loop statements of the language.
