@@ -391,7 +391,10 @@ stmt
     	 $$ = newStmt();
     	 if($1->postEmit == PE_FUNCC) {
     		 delLastInstr();
-			 emit(NULL,newExpr($1->parentId,T_UNKNOWN),OP_CALL_VOID,NULL);
+    		 expr_t* tmp = newExpr($1->parentId,T_UNKNOWN);
+    		 tmp->params = $1->params;
+    		 
+			 emit(NULL,tmp,OP_CALL_VOID,NULL);
 		}
      }
      | stmt_conditional {$$ = newStmt();}

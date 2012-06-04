@@ -351,14 +351,14 @@ void printIRCode(FILE *out, irCode_t *irCode) {
 			break;
 		case OP_CALL_RES:
 			// R = CALL FUNC, (LISTE)
-			exprL = exprListToStr(nextIrCode->arg0->params);
+			exprL = exprListToStr(nextIrCode->res == NULL ? NULL : nextIrCode->res->params);
 			fprintf(out, "<%.4d> %s = CALL %s, (%s)\n", nextIrCode->row, res,
 					arg0, exprL);
 			free(exprL);
 			break;
 		case OP_CALL_VOID:
 			// CALL FUNC, (LISTE)
-			exprL = exprListToStr(nextIrCode->arg0->params);
+			exprL = exprListToStr(nextIrCode->arg0 == NULL ? NULL : nextIrCode->arg0->params);
 			fprintf(out, "<%.4d> CALL %s, (%s)\n", nextIrCode->row, arg0,
 					exprL);
 			free(exprL);
