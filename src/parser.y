@@ -391,7 +391,10 @@ stmt
     	 $$ = newStmt();
     	 if($1->postEmit == PE_FUNCC) {
     		 delLastInstr();
-			 emit(NULL,newExpr($1->parentId,T_UNKNOWN),OP_CALL_VOID,NULL);
+    		 expr_t* tmp = newExpr($1->parentId,T_UNKNOWN);
+    		 tmp->params = $1->params;
+    		 
+			 emit(NULL,tmp,OP_CALL_VOID,NULL);
 		}
      }
      | stmt_conditional {$$ = newStmt();}
@@ -479,9 +482,8 @@ stmt_loop
 expression
 	: expression ASSIGN {if($1->postEmit == PE_ARR) delLastInstr();} expression {
 		$$ = NULL;
+
 		
-		backpatch($4->falseList, getNextInstr());
-		backpatch($4->trueList, getNextInstr());
 		
 		// check for postEmit expressions
 		int normalAssign = 1;
@@ -512,11 +514,13 @@ expression
 				expr_t *newEx = newExpr($1->parentId,T_INT);
 				checkCompatibleTypes(@1.first_line, $4, newEx);
 				emit(newEx,$1->arrInd,OP_ARRAY_ST,$4);
+				$$ = $4;
 			} else {
 				// arr[i] = tmpE
 				expr_t *newEx = newExpr($1->parentId,T_INT);
 				checkCompatibleTypes(@1.first_line, tmpE, newEx);
 				emit(newEx,$1->arrInd,OP_ARRAY_ST,tmpE);
+				$$ = tmpE;
 			}
 			normalAssign = 0;
 		} else {
@@ -529,16 +533,23 @@ expression
 			int isAssignAllowed = checkCompatibleTypesAssign(@1.first_line, $1, $4);
 			//types are compatible and the left value is an assignable expression
 			if(isAssignAllowed>0 && checkLValue(@1.first_line, $1)) {
-				emit($1,$4,OP_ASSIGN,NULL);
-				// TODO Dirk review
-//				$$ = newAnonymousExpr();
-//				$$->type = $1->type;
-				$$ = $1;
+				if($4->falseList != NULL || $4->trueList != NULL) {
+					$$ = newTmp(T_INT);
+					backpatch($4->trueList, getNextInstr());
+					emit($$,newExprNum(1,T_INT), OP_ASSIGN,NULL);
+					emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
+					backpatch($4->falseList, getNextInstr());
+					
+					emit($$,newExprNum(0,T_INT), OP_ASSIGN,NULL);
+					backpatch(newIndexList(getNextInstr() - 2), getNextInstr());
+					emit($1,$$,OP_ASSIGN,NULL);
+				} else {
+					emit($1,$4,OP_ASSIGN,NULL);
+					$$ = $1;
+				}
 			}
 		}
 		if($$ == NULL) {
-//			$$ = newAnonymousExpr();
-//			$$->type = T_INT;
 			$$ = $1;
 		}
      }
@@ -552,11 +563,14 @@ expression
 	 }
      | expression LOGICAL_AND M expression { 
     	 checkCompatibleTypes(@1.first_line, $1, $4);
-		 $$ = newAnonymousExpr();
+//		 $$ = newTmp(T_INT);
+    	 $$ = $4;
 		 $$->type = $1->type;
 		 backpatch($1->trueList, $3.instr);
 		 $$->trueList = $4->trueList;
 		 $$->falseList = merge($1->falseList, $4->falseList);
+		 // tmp = 1
+//		 emit($$,newExprNum(2,T_INT), OP_ASSIGN,NULL);
      }
      | LOGICAL_NOT expression { 
     	 $$=$2;
@@ -566,56 +580,86 @@ expression
      }
      | expression EQ expression {
     	 checkCompatibleTypes(@1.first_line, $1, $3);
-		 $$ = newAnonymousExpr();
-		 $$->type = T_INT;
+		 $$ = newTmp(T_INT);
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
+		 // tmp = 1
+//		 emit($$,newExprNum(1,T_INT), OP_ASSIGN,NULL);
+		 // if $1 OP $3 GOTO
 		 emit($$,$1,OP_IFEQ,$3);
+		 // tmp = 0
+//		 emit($$,newExprNum(0,T_INT), OP_ASSIGN,NULL);
+		 // GOTO
 		 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
      }
      | expression NE expression { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
-		 $$ = newAnonymousExpr();
-		 $$->type = T_INT;
+		 $$ = newTmp(T_INT);
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
+		 // tmp = 1
+//		 emit($$,newExprNum(1,T_INT), OP_ASSIGN,NULL);
+		 // if $1 OP $3 GOTO
 		 emit($$,$1,OP_IFNE,$3);
+		 // tmp = 0
+//		 emit($$,newExprNum(0,T_INT), OP_ASSIGN,NULL);
+		 // GOTO
 		 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
      }
      | expression LS expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
-		 $$ = newAnonymousExpr();
-		 $$->type = T_INT;
+		 $$ = newTmp(T_INT);
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
+		 // tmp = 1
+//		 emit($$,newExprNum(1,T_INT), OP_ASSIGN,NULL);
+		 // if $1 OP $3 GOTO
 		 emit($$,$1,OP_IFLT,$3);
+		 // tmp = 0
+//		 emit($$,newExprNum(0,T_INT), OP_ASSIGN,NULL);
+		 // GOTO
 		 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
      }
      | expression LSEQ expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
-		 $$ = newAnonymousExpr();
-		 $$->type = T_INT;
+		 $$ = newTmp(T_INT);
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
+		 // tmp = 1
+//		 emit($$,newExprNum(1,T_INT), OP_ASSIGN,NULL);
+		 // if $1 OP $3 GOTO
 		 emit($$,$1,OP_IFLE,$3);
+		 // tmp = 0
+//		 emit($$,newExprNum(0,T_INT), OP_ASSIGN,NULL);
+		 // GOTO
 		 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
      }
      | expression GTEQ expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
-		 $$ = newAnonymousExpr();
-		 $$->type = T_INT;
+		 $$ = newTmp(T_INT);
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
+		 // tmp = 1
+//		 emit($$,newExprNum(1,T_INT), OP_ASSIGN,NULL);
+		 // if $1 OP $3 GOTO
 		 emit($$,$1,OP_IFGE,$3);
+		 // tmp = 0
+//		 emit($$,newExprNum(0,T_INT), OP_ASSIGN,NULL);
+		 // GOTO
 		 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
      }
      | expression GT expression { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
-		 $$ = newAnonymousExpr();
-		 $$->type = T_INT;
+		 $$ = newTmp(T_INT);
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
+		 // tmp = 1
+//		 emit($$,newExprNum(1,T_INT), OP_ASSIGN,NULL);
+		 // if $1 OP $3 GOTO
 		 emit($$,$1,OP_IFGT,$3);
+		 // tmp = 0
+//		 emit($$,newExprNum(0,T_INT), OP_ASSIGN,NULL);
+		 // GOTO
 		 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
      }
      | expression PLUS expression { 
