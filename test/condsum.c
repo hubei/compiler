@@ -1,25 +1,59 @@
+
+
+void test(int a, int b) {
+
+}
+
+int add (int i, int j) {
+  return i+j;
+}
+
 int main () {
-  int i;
-  int a,b;
-  a = b = 1;
-  i = (a == 1) || (b == 1);
-  int zwei4zig[42];
-  a = (zwei4zig[13] = zwei4zig[37]) == 42;
-  return i;
-
-  if(a == 1)
-	  a = 2;
+	add(1,2);
+	test(4,5);
+  return add(1,2);
 }
 
-void test() {
-	int a;
-	a = 1;
-}
+//int main() {
+//	int i;
+//	int a, b;
+//
+//	a = (1 == (2 < 3));
+//	i = (a > 1) && (b != 1);
+//
+//	a = b = 1;
+//	i = (a <= 1);
+//	int zwei4zig[42];
+//	a = (zwei4zig[13] = zwei4zig[37]) == 42;
+//
+//	a = (b = zwei4zig[37]) == 42;
+//	return i;
+//
+//	if (42 == 42) {
+//		a = 42;
+//		b = 2 * 42;
+//	} else {
+//		a = b = 0;
+//	}
+//
+//	int arr[10];
+//	if (arr[0] == arr[1]) {
+//		arr[0] = 1;
+//	}
+//
+//	if (a == 1)
+//		a = 2;
+//}
 
-void blubb() {
-	int a;
-	a = 1;
-}
+//void test() {
+//	int a;
+//	a = 1;
+//}
+//
+//void blubb() {
+//	int a;
+//	a = 1;
+//}
 //int global, a[42];
 //int test;
 //int scan();
