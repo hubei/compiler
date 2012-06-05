@@ -443,7 +443,7 @@ stmt_block
          	 if($3->lvalue == 1) { //TODO review: can we use lvalue here? If lvalue is 1, expression is a single variable, what is with functions, arrays? create new flag?
          		 delLastInstr();
          		 emit($3, $3,OP_IFGT,0); //TODO what is "res"?
-         	 }
+         	 } 
           }  PARA_CLOSE M stmt ELSE {
          	 $7->nextList = merge($7->nextList, newIndexList(getNextInstr()));
          	 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
