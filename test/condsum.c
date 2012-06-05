@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 
 void test(int a, int b) {
@@ -54,6 +55,7 @@ int main () {
 //	int a;
 //	a = 1;
 //}
+
 //int global, a[42];
 //int test;
 //int scan();
