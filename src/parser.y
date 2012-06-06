@@ -104,7 +104,7 @@
 
 %type <var>identifier_declaration function_parameter
 %type <param>function_parameter_list
-%type <expr>expression function_call primary
+%type <expr>expression function_call primary stmt_conditional_start
 %type <typeExt>type variable_declaration
 %type <exprList>function_call_parameters
 %type <statmt>stmt stmt_conditional stmt_loop stmt_block stmt_list
@@ -428,34 +428,33 @@ stmt_block
  * The non-terminal 'stmt_conditional' contains the conditional statements of the language. The second rule
  * produces a SHIFT/REDUCE error which is solved by the default behavior of bison (see above).
  */									
-     stmt_conditional
+     stmt_conditional_start
           : IF PARA_OPEN expression {
         	  //TODO review: compound added, default = 0, set to 1 if two expressions are compounded
          	 if($3->compound == 1) { 
          		 delLastInstr();
          		 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); //TODO what is "res"? => result, but depending on OP; for if, it is only used for the GOTO number
          	 }
-          } PARA_CLOSE M stmt {
-          	 backpatch($3->trueList, $6.instr);
-         	 backpatch($3->falseList, getNextInstr());
-         	 clean_stmt($7);
-          }
-          | IF PARA_OPEN expression {
-         	 if($3->lvalue == 1) { //TODO review: can we use lvalue here? If lvalue is 1, expression is a single variable, what is with functions, arrays? create new flag?
-         		 delLastInstr();
-         		 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); //TODO what is "res"?
-         	 }
-          }  PARA_CLOSE M stmt ELSE {
-         	 $7->nextList = merge($7->nextList, newIndexList(getNextInstr()));
-         	 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
-          } M stmt {
-          	 backpatch($3->trueList, $6.instr);
-         	 backpatch($3->falseList, $10.instr);
-         	 backpatch($7->nextList,getNextInstr());
-         	 clean_stmt($7);
-         	 clean_stmt($11);
-          }
-          ;
+         	 $$ = $3;
+          };
+          
+	  stmt_conditional
+          : stmt_conditional_start PARA_CLOSE M stmt {
+           	 backpatch($1->trueList, $3.instr);
+          	 backpatch($1->falseList, getNextInstr());
+          	 clean_stmt($4);
+           }
+          | stmt_conditional_start PARA_CLOSE M stmt ELSE {
+          	 $4->nextList = merge($4->nextList, newIndexList(getNextInstr()));
+          	 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
+           } M stmt {
+           	 backpatch($1->trueList, $3.instr);
+          	 backpatch($1->falseList, $7.instr);
+          	 backpatch($4->nextList,getNextInstr());
+          	 clean_stmt($4);
+          	 clean_stmt($8);
+           }
+           ;
 									
 /*
  * The non-terminal 'stmt_loop' contains the loop statements of the language.
