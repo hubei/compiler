@@ -431,9 +431,9 @@ stmt_block
      stmt_conditional_start
           : IF PARA_OPEN expression {
         	  //TODO review: compound added, default = 0, set to 1 if two expressions are compounded
-         	 if($3->compound == 1) { 
-         		 delLastInstr();
-         		 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); //TODO what is "res"? => result, but depending on OP; for if, it is only used for the GOTO number
+         	 if($3->compound == 0) { 
+         		 //delLastInstr();
+         		 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); 
          	 }
          	 $$ = $3;
           };

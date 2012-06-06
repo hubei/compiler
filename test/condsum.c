@@ -1,18 +1,20 @@
 
 
 void test(int a, int b) {
-
+	if(a) {
+		return;
+	}
 }
 
-int add (int i, int j) {
-  return i+j;
-}
-
-int main () {
-	add(1,2);
-	test(4,5);
-  return add(1,2);
-}
+//int add (int i, int j) {
+//  return i+j;
+//}
+//
+//int main () {
+//	add(1,2);
+//	test(4,5);
+//  return add(1,2);
+//}
 
 //int main() {
 //	int i;
