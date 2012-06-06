@@ -70,6 +70,8 @@ typedef struct expr_t {
 	type_t type;
 	/** bool: whether the expression can stand on the left side of an assignment */
 	int lvalue;
+	/** bool: whether the expression is compound or raw */
+	int compound;
 	/** for array and function calls: emit later to decide if function is standalone or array is lvalue */
 	postEmit_t postEmit;
 	/** for goto statements to set jump location */

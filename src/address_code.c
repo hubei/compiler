@@ -146,6 +146,7 @@ expr_t* newAnonymousExpr() {
 	newE->jump = 0;
 	newE->type = T_UNKNOWN;
 	newE->lvalue = 0;
+	newE->compound = 0;
 	newE->valueKind = VAL_UNKOWN;
 	newE->trueList = NULL;
 	newE->falseList = NULL;

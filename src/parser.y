@@ -430,10 +430,8 @@ stmt_block
  */									
      stmt_conditional
           : IF PARA_OPEN expression {
-        	  //TODO review: can we use lvalue here? If lvalue is 1, expression is a single variable, what is with functions, arrays? create new flag?
-        	  // => might work... functions should be lvalues as well, but arrays could be...
-        	  // new flag might be safer
-         	 if($3->lvalue == 1) { 
+        	  //TODO review: compound added, default = 0, set to 1 if two expressions are compounded
+         	 if($3->compound == 1) { 
          		 delLastInstr();
          		 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); //TODO what is "res"? => result, but depending on OP; for if, it is only used for the GOTO number
          	 }
@@ -560,6 +558,7 @@ expression
     	 checkCompatibleTypes(@1.first_line, $1, $4);
 		 $$ = newAnonymousExpr();
 		 $$->type = $1->type;
+		 $$->compound = 1;
 		 backpatch($1->falseList, $3.instr);
 		 $$->trueList = merge($1->trueList, $4->trueList);
 		 $$->falseList = $4->falseList;
@@ -569,6 +568,7 @@ expression
 //		 $$ = newTmp(T_INT);
     	 $$ = $4;
 		 $$->type = $1->type;
+		 $$->compound = 1;
 		 backpatch($1->trueList, $3.instr);
 		 $$->trueList = $4->trueList;
 		 $$->falseList = merge($1->falseList, $4->falseList);
@@ -598,6 +598,7 @@ expression
      | expression NE expression { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
 		 // tmp = 1
@@ -612,6 +613,7 @@ expression
      | expression LS expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
 		 // tmp = 1
@@ -626,6 +628,7 @@ expression
      | expression LSEQ expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
 		 // tmp = 1
@@ -640,6 +643,7 @@ expression
      | expression GTEQ expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
 		 // tmp = 1
@@ -654,6 +658,7 @@ expression
      | expression GT expression { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
 		 // tmp = 1
@@ -668,45 +673,54 @@ expression
      | expression PLUS expression { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 emit($$,$1,OP_ADD,$3);
      }
      | expression MINUS expression { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 emit($$,$1,OP_SUB,$3);
      }
      | expression MUL expression { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 emit($$,$1,OP_MUL,$3);
      }
      | expression DIV expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 emit($$,$1,OP_DIV,$3);
      }
      | expression MOD expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 emit($$,$1,OP_MOD,$3);
      }
      | expression SHIFT_LEFT expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 emit($$,$1,OP_MOD,$3);
      }
      | expression SHIFT_RIGHT expression  { 
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 emit($$,$1,OP_MOD,$3);
      }
      | MINUS expression %prec UNARY_MINUS {
-    	 // TODO Dirk type checking -> just check if $2 is INT?
+    	 checkCompatibleTypesRaw(@1.first_line, $2->type, T_INT);
     	 $$ = newTmp(T_INT);
+    	 $$->compound = 1;
 		 emit($$,$2,OP_MINUS,NULL);
      }
      | ID BRACKET_OPEN primary BRACKET_CLOSE {
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 // check type
 		 if($3->type!=T_INT) {
 			typeError(@1.first_line, "Size of an array has to be of type int, but is of type %s", $1);
