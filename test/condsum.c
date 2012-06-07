@@ -1,7 +1,7 @@
 
 
 void test(int a, int b) {
-	if(a) {
+	if(a < 0) {
 		return;
 	}
 }
@@ -57,11 +57,11 @@ void test(int a, int b) {
 //	a = 1;
 //}
 
-//int global, a[42];
+int global, a[42];
 //int test;
-//int scan();
-//void print(int i);
-//void exit(int i);
+int scan();
+void print(int i);
+void exit(int i);
 //int func(int len, int threshold, int arr[10]);
 //
 ///**
@@ -71,44 +71,44 @@ void test(int a, int b) {
 // * @param threshold
 // * @return
 // */
-//int func(int len, int threshold, int arr[10]) {
-//	int i, sum;
-//	i = scan();
-//	sum = 20;
-//
-//	arr[0] = scan();
-//	i = arr[1];
-//	arr[3] = arr[4];
-//
-//	while (scan() >= scan()) {
-//		i = 42;
-//		i = 3;
-//		i = 2;
-//	}
-//
-//	if (i < sum) {
-//		i = 3;
-//		i = 2;
-//		i = 1;
-//	} else {
-//		i = 2;
-//	}
-//	print(i);
-//
-//	while (arr[i] < len) {
-//		if (i <= threshold)
-//			sum = sum + 1;
-//		i = i + 1;
-//		print(i);
-//	}
-//
-//	i = 0;
-//	do {
-//		print(i);
-//		i = i + 1;
-//	} while(i < 5);
-//	return sum;
-//}
+int func(int len, int threshold, int arr[10]) {
+	int i, sum;
+	i = scan();
+	sum = 20;
+
+	arr[0] = scan();
+	i = arr[1];
+	arr[3] = arr[4];
+
+	while (scan() >= scan()) {
+		i = 42;
+		i = 3;
+		i = 2;
+	}
+
+	if (i < sum) {
+		i = 3;
+		i = 2;
+		i = 1;
+	} else {
+		i = 2;
+	}
+	print(i);
+
+	while (arr[i] < len) {
+		if (i <= threshold)
+			sum = sum + 1;
+		i = i + 1;
+		print(i);
+	}
+
+	i = 0;
+	do {
+		print(i);
+		i = i + 1;
+	} while(i < 5);
+	return sum;
+}
 //
 //void error() {
 ////	main() = 4;
