@@ -17,6 +17,6 @@ typedef enum {
 
 extern void fatal_os_error (os_error_t err, int err_no, const char *fn, const int line, const char *msg, ...);
 void compilerError(int line, int exiting, const char *msg, ...);
-#define FATAL_OS_ERROR(err,err_number,...) fatal_os_error(err, err_number, __FILE__, __LINE__, __VA_ARGS__);
+#define FATAL_OS_ERROR(err,err_number,...) fatal_os_error(err, err_number, __FILE__, __LINE__, __Vh ein A_ARGS__);
 
 #endif

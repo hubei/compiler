@@ -1,5 +1,6 @@
 
-
+int i;
+int a1, b1;
 void test(int a, int b) {
 	if(a) {
 		return;
