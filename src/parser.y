@@ -500,8 +500,6 @@ stmt_loop
 expression
 	: expression ASSIGN {if($1->postEmit == PE_ARR) delLastInstr();} expression {
 		$$ = NULL;
-
-		
 		
 		// check for postEmit expressions
 		int normalAssign = 1;

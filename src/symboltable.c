@@ -272,12 +272,9 @@ void insertParams(func_t* func, param_t* lastParam) {
 		var = param->var;
 		assert(var!=NULL);
 
-		// offset
-		var->offset = func->symbol->offset;
-		func->symbol->offset += var->width;
+		insertVar(func->symbol, var);
+		assert(findVar(func->symbol, var->id) != NULL);
 
-		HASH_ADD_KEYPTR( hh, func->symbol->symVar, var->id, strlen(var->id),
-				var);
 		func->param = param;
 		param = param->prev;
 		paramCount++;

@@ -247,7 +247,7 @@ void delLastInstr() {
 	if (curSymbol->ircode != NULL) {
 		irCode_t* lastIR = curSymbol->ircode;
 		curSymbol->ircode = curSymbol->ircode->prev;
-		destroyVar(curSymbol, lastIR->res->value.id);
+//		destroyVar(curSymbol, lastIR->res->value.id);
 		free(lastIR);
 		instruction--;
 	}

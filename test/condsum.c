@@ -1,7 +1,7 @@
 
 
-void test(int a, int b) {
-	if(a < 0) {
+void test(int a, int b, int c[1]) {
+	if(a) {
 		return;
 	}
 }
@@ -76,7 +76,7 @@ int func(int len, int threshold, int arr[10]) {
 	i = scan();
 	sum = 20;
 
-	arr[0] = scan();
+	arr[0] = 42;
 	i = arr[1];
 	arr[3] = arr[4];
 

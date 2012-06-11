@@ -363,7 +363,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	clean_symbol(getSymbolTable());
-	clean_all_expr();
+//	clean_all_expr();
 	if(cc_options.print_only_errors != 1) {
 		fprintf(stdout, "\nFinished.");
 	} else {
