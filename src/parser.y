@@ -436,7 +436,7 @@ stmt_conditional_start
 			 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); 
 		 }
 		 $$ = $3;
-	  };
+	  }; 
 	  
 stmt_conditional
 	  : stmt_conditional_start PARA_CLOSE M stmt {
