@@ -429,32 +429,50 @@ stmt_block
  * produces a SHIFT/REDUCE error which is solved by the default behavior of bison (see above).
  */									
 stmt_conditional_start
-	  : IF PARA_OPEN expression {
-		  //TODO review: compound added, default = 0, set to 1 if two expressions are compounded
-		 if($3->compound == 0) { 
-			 //delLastInstr();
-			 emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); 
-		 }
-		 $$ = $3;
-	  }; 
-	  
+	: IF PARA_OPEN expression {
+	//TODO review: compound added, default = 0, set to 1 if two expressions are compounded
+	if($3->compound == 0) { 
+		//delLastInstr();
+		emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); 
+	}
+		$$ = $3;
+	};
+
 stmt_conditional
-	  : stmt_conditional_start PARA_CLOSE M stmt {
-		 backpatch($1->trueList, $3.instr);
-		 backpatch($1->falseList, getNextInstr());
-		 clean_stmt($4);
-	   }
-	  | stmt_conditional_start PARA_CLOSE M stmt ELSE {
-		 $4->nextList = merge($4->nextList, newIndexList(getNextInstr()));
-		 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
-	   } M stmt {
-		 backpatch($1->trueList, $3.instr);
-		 backpatch($1->falseList, $7.instr);
-		 backpatch($4->nextList,getNextInstr());
-		 clean_stmt($4);
-		 clean_stmt($8);
-	   }
-	   ;
+	: stmt_conditional_start PARA_CLOSE M stmt {
+		backpatch($1->trueList, $3.instr);
+		backpatch($1->falseList, getNextInstr());
+		clean_stmt($4);
+	}
+	| stmt_conditional_start PARA_CLOSE M stmt ELSE {
+		$4->nextList = merge($4->nextList, newIndexList(getNextInstr()));
+		emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
+	} M stmt {
+		backpatch($1->trueList, $3.instr);
+		backpatch($1->falseList, $7.instr);
+		backpatch($4->nextList,getNextInstr());
+		clean_stmt($4);
+		clean_stmt($8);
+	}
+	;
+	
+//stmt_conditional
+//	 : IF PARA_OPEN expression PARA_CLOSE M stmt {
+//		 backpatch($3->trueList, $5.instr);
+//		 backpatch($3->falseList, getNextInstr());
+//		 clean_stmt($6);
+//	 }
+//	 | IF PARA_OPEN expression PARA_CLOSE M stmt ELSE {
+//		 $6->nextList = merge($6->nextList, newIndexList(getNextInstr()));
+//		 emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
+//	 } M stmt {
+//		 backpatch($3->trueList, $5.instr);
+//		 backpatch($3->falseList, $9.instr);
+//		 backpatch($6->nextList,getNextInstr());
+//		 clean_stmt($6);
+//		 clean_stmt($10);
+//	 }
+//	 ;
 									
 /*
  * The non-terminal 'stmt_loop' contains the loop statements of the language.
