@@ -24,7 +24,7 @@ for c in $(ls); do
 		echo "-----------------"
 		cat $c
 		echo "-----------------"
-   		valgrind -q --error-exitcode=21 --leak-check=yes ./../../bin/dhbwcc -p -t -o $s $c
+   		valgrind -q --error-exitcode=21 ./../../bin/dhbwcc -p -t -o $s $c
 		errCode=$?
 		if [ $errCode -eq 21 ]; then
 			echo "!!! Valgrind reported an error"

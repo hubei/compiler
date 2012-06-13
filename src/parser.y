@@ -430,12 +430,16 @@ stmt_block
  */									
 stmt_conditional_start
 	: IF PARA_OPEN expression {
-	//TODO review: compound added, default = 0, set to 1 if two expressions are compounded
-	if($3->compound == 0) { 
-		//delLastInstr();
-		emit($3, $3,OP_IFGT,newExprNum(0, T_INT)); 
-	}
+		//TODO review: compound added, default = 0, set to 1 if two expressions are compounded
 		$$ = $3;
+		if($3->compound == 0) { 
+			//delLastInstr();
+			$$->falseList = newIndexList(getNextInstr() + 1);
+			$$->trueList = newIndexList(getNextInstr());
+			emit($3, $3,OP_IFGT,newExprNum(0, T_INT));
+			emit(newAnonymousExpr(), NULL, OP_GOTO, NULL);
+	//		packpatch()
+		}
 	};
 
 stmt_conditional
@@ -599,6 +603,7 @@ expression
      | expression EQ expression {
     	 checkCompatibleTypes(@1.first_line, $1, $3);
 		 $$ = newTmp(T_INT);
+		 $$->compound = 1;
 		 $$->falseList = newIndexList(getNextInstr() + 1);
 		 $$->trueList = newIndexList(getNextInstr());
 		 // tmp = 1
