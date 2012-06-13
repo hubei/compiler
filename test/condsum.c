@@ -1,9 +1,16 @@
-void test(int a, int b) {
-	if(a) {
-		b = 42;
-		return;
-	}
-	b = 2;
+int main () {
+  int i;
+  i = 0;
+  if (i) {
+    i = 12;
+  }
+  else
+  {
+    if (!(i == 10)) {
+      i = 0;
+    }
+  }
+  return i;
 }
 
 //int add (int i, int j) {
