@@ -88,9 +88,7 @@ symbol_t* createSymbol() {
 	symbol_t *newSymbol = NULL;
 	newSymbol = malloc(sizeof(symbol_t));
 	if (newSymbol == NULL) {
-		// TODO error memory
-		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new Symbol could not be constructed");
-
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 
 	/* initialize all pointers to NULL
@@ -118,13 +116,11 @@ var_t* createVar(string id) {
 
 	var_t *newVar = malloc(sizeof(var_t));
 	if (newVar == NULL) {
-		// TODO error memory
-		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new variable could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 	newVar->id = malloc(strlen(id) + 1);
 	if (newVar->id == NULL) {
-		// TODO error memory
-		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new variable id could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 	strcpy(newVar->id, id);
 
@@ -146,13 +142,11 @@ func_t* createFunc(string id) {
 	func_t *newFunc = NULL;
 	newFunc = malloc(sizeof(struct func_t));
 	if (newFunc == NULL) {
-		// TODO error memory
-		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new function could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 	newFunc->id = malloc(strlen(id) + 1);
 	if (newFunc->id == NULL) {
-		// TODO error memory
-		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new function id could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 	strcpy(newFunc->id, id);
 
@@ -176,8 +170,7 @@ param_t* addParam(param_t* prevParam, var_t* paramVar) {
 	struct param_t* newParam = NULL;
 	newParam = malloc(sizeof(param_t));
 	if (newParam == NULL) {
-		// TODO error
-		FATAL_OS_ERROR(OUT_OF_MEMORY,1, "symboltable.c", __LINE__,"new Param could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 
 	// initialize
@@ -261,7 +254,7 @@ void insertParams(func_t* func, param_t* lastParam) {
 	var_t* var = NULL;
 	int paramCount = 0;
 
-	if(func->param != NULL) {
+	if (func->param != NULL) {
 		// params were defined before
 		// this is the case, if there was a prototype
 		// lets just clean the list and apply the new one :)
@@ -512,7 +505,7 @@ void clean_func(func_t* func) {
 	// if there is no symbol, this function was a prototype only
 	// this means, there are vars, that are not in the symTab and
 	// should be free'd now
-	clean_paramList2(func->param, func->symbol == NULL?1:0);
+	clean_paramList2(func->param, func->symbol == NULL ? 1 : 0);
 	free(func);
 }
 
@@ -532,13 +525,13 @@ void clean_paramList(param_t* paramList) {
  */
 void clean_paramList2(param_t* paramList, int rmVars) {
 	if (paramList == NULL)
-			return;
+		return;
 	param_t* tmp = paramList;
 	GETLISTHEAD(paramList, tmp);
-	while(tmp != NULL) {
+	while (tmp != NULL) {
 		paramList = tmp;
 		tmp = tmp->next;
-		if(rmVars) {
+		if (rmVars) {
 			clean_var(paramList->var);
 		}
 		free(paramList);
@@ -590,7 +583,7 @@ void clean_symbol(symbol_t* symbol) {
 void clean_ircode(irCode_t* ircode) {
 	irCode_t* tmp = NULL;
 	GETLISTHEAD(ircode, tmp);
-	while(tmp != NULL) {
+	while (tmp != NULL) {
 		ircode = tmp;
 		tmp = tmp->next;
 		free(ircode);

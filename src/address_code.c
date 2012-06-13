@@ -92,8 +92,7 @@ indexList_t* merge(indexList_t* l1, indexList_t* l2) {
 indexList_t* newIndexList(int i) {
 	indexList_t* newList = malloc(sizeof(indexList_t));
 	if (newList == NULL) {
-		// TODO error
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 1, "new indexList could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 	newList->index = i;
 	newList->next = NULL;
@@ -110,7 +109,7 @@ expr_t* newTmp(type_t type) {
 	// generate new id
 	char* id = malloc(11 + 4);
 	if (id == NULL) {
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 1, "");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 	sprintf(id, "#V_%d", nextTmpVar);
 
@@ -137,8 +136,7 @@ expr_t* newTmp(type_t type) {
 expr_t* newAnonymousExpr() {
 	expr_t* newE = malloc(sizeof(expr_t));
 	if (newE == NULL) {
-		// TODO error
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 1, "new Expression could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 
 	// set default values
@@ -176,8 +174,7 @@ exprList_t* newExprList(expr_t* expr) {
 	exprList_t* newEL = malloc(sizeof(expr_t));
 
 	if (newEL == NULL) {
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 1,
-				"adress_code.c", __LINE__, "new Expression could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 
 	newEL->expr = expr;
@@ -197,8 +194,7 @@ expr_t* newExpr(const char* id, type_t type) {
 	char* newId = malloc(strlen(id) + 1);
 
 	if (newId == NULL) {
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 1,
-				"adress_code.c", __LINE__, "new Expression could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 
 	strcpy(newId, id);
@@ -230,10 +226,7 @@ expr_t* newExprNum(int num, type_t type) {
 stmt_t* newStmt() {
 	stmt_t* stmt = malloc(sizeof(stmt_t));
 	if (stmt == NULL) {
-		// TODO error
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 1,
-				"adress_code.c", __LINE__, "new Statement could not be constructed");
-
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 	stmt->nextList = NULL;
 	stmt->returnType = T_UNKNOWN;
@@ -265,9 +258,7 @@ void emit(expr_t* res, expr_t* arg0, operation_t op, expr_t* arg1) {
 	// create a new ircode line
 	irCode_t *newIRCode = (irCode_t*) malloc(sizeof(struct irCode_t));
 	if (newIRCode == NULL) {
-		// TODO error
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 1,
-				"adress_code.c", __LINE__, "new IR code Line could not be constructed");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 	}
 
 	// initialize
@@ -401,7 +392,7 @@ char* exprListToStr(exprList_t* el) {
 		result = malloc(1);
 
 		if (result == NULL) {
-			FATAL_OS_ERROR(OUT_OF_MEMORY, 1, "adress_code.c", __LINE__, "");
+			fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 		}
 
 		strcpy(result, "");
@@ -417,8 +408,7 @@ char* exprListToStr(exprList_t* el) {
 			char* old = result;
 			result = malloc(strlen(new) + strlen(old) + 2);
 			if (result == NULL) {
-				FATAL_OS_ERROR(OUT_OF_MEMORY, 1,
-						"adress_code.c", __LINE__, "new Expression could not be constructed");
+				fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 			}
 			sprintf(result, "%s,%s", old, new);
 		}

@@ -10,6 +10,8 @@
 #include "address_code.h"
 #include "mips32gen.h"
 #include "symboltable.h"
+#include "diag.h"
+#include <stdarg.h>
 
 #include "generalParserFunc.h"
 
@@ -24,7 +26,6 @@ extern FILE *yyout;
 
 /** default return code is 0 (success) */
 int errorCode = 0;
-
 
 /* Constants */
 static const char *C_EXT = ".c";
@@ -47,9 +48,9 @@ cc_options_t cc_options = { .print_ir = 0, .ir_file = NULL, .input_file = NULL,
 char *strdup(const char *str) {
 	int n = strlen(str) + 1;
 	char *dup = malloc(n);
-	if(dup==NULL){
-			FATAL_OS_ERROR(OUT_OF_MEMORY,1, "adress_code.c", __LINE__,"");
-		}
+	if (dup == NULL) {
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
+	}
 	if (dup) {
 		strcpy(dup, str);
 	}
@@ -118,7 +119,7 @@ char *get_file_basename(const char *file) {
 
 		filebase = malloc((baselen + 1) * sizeof(*filebase));
 		if (filebase == NULL) {
-			FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "get_file_basename -> malloc");
+			fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 			return NULL;
 		}
 		strncpy(filebase, file, baselen);
@@ -127,7 +128,7 @@ char *get_file_basename(const char *file) {
 		/* No file extensions found */
 		char *tmp = strdup(file);
 		if (tmp == NULL) {
-			FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "get_file_basename -> strdup");
+			fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 			return NULL;
 		}
 		return tmp;
@@ -154,8 +155,7 @@ char *get_filename_with_ext(const char *filebase, const char *ext) {
 	if (ext == NULL) {
 		char *tmp = strdup(filebase);
 		if (tmp == NULL) {
-			FATAL_OS_ERROR(OUT_OF_MEMORY, 0,
-					"get_filename_with_ext while calling strdup");
+			fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 			return NULL;
 		}
 		return tmp;
@@ -167,8 +167,7 @@ char *get_filename_with_ext(const char *filebase, const char *ext) {
 
 	char *file = malloc(strlen * sizeof(*file));
 	if (file == NULL) {
-		FATAL_OS_ERROR(OUT_OF_MEMORY, 0,
-				"get_filename_with_ext while calling malloc");
+		fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 		return NULL;
 	}
 	sprintf(file, "%s%s", filebase, ext);
@@ -226,8 +225,7 @@ int process_options(int argc, char *argv[]) {
 			/* output file */
 			cc_options.output_file = strdup(optarg);
 			if (cc_options.output_file == NULL) {
-				FATAL_OS_ERROR(OUT_OF_MEMORY, 0,
-						"process_options while calling strdup");
+				fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 				return 1;
 			}
 			break;
@@ -256,8 +254,7 @@ int process_options(int argc, char *argv[]) {
 	} else {
 		cc_options.input_file = strdup(argv[optind]);
 		if (cc_options.input_file == NULL) {
-			FATAL_OS_ERROR(OUT_OF_MEMORY, 0,
-					"process_options while calling strdup");
+			fatal_os_error(OUT_OF_MEMORY, 1, __FILE__, __LINE__, "");
 			return 1;
 		}
 
@@ -302,7 +299,6 @@ int process_options(int argc, char *argv[]) {
  */
 int main(int argc, char *argv[]) {
 
-
 	/* the resource manager must be initialized before any
 	 * further actions are implemented */
 	rm_init(&resource_mgr);
@@ -312,7 +308,7 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	if(cc_options.print_only_errors != 1) {
+	if (cc_options.print_only_errors != 1) {
 		printf("Input: %s\n", cc_options.input_file);
 		printf("Output: %s\n", cc_options.output_file);
 		printf("IR: %s\n", cc_options.ir_file);
@@ -320,8 +316,7 @@ int main(int argc, char *argv[]) {
 
 	yyin = fopen(cc_options.input_file, "r");
 	if (!yyin) {
-		fprintf(
-				stderr,
+		fprintf(stderr,
 				"Input file could not be opened for reading. Maybe, file does not exist?");
 	} else {
 		setSymbolTable(createSymbol());
@@ -329,7 +324,7 @@ int main(int argc, char *argv[]) {
 		fclose(yyin);
 		irCode_t* ircode = NULL;
 
-		if(cc_options.ir_file!=NULL) {
+		if (cc_options.ir_file != NULL) {
 			FILE *irFile;
 			irFile = fopen(cc_options.ir_file, "w+");
 
@@ -339,7 +334,7 @@ int main(int argc, char *argv[]) {
 			// get ir code and print it into irFile
 			struct func_t *func, *tmp;
 			HASH_ITER(hh, getSymbolTable()->symFunc, func, tmp) {
-				if(func->symbol != NULL) {
+				if (func->symbol != NULL) {
 					fprintf(irFile, "Function %s:\n", func->id);
 					printIRCode(irFile, func->symbol->ircode);
 				}
@@ -350,13 +345,13 @@ int main(int argc, char *argv[]) {
 
 		yyout = fopen(cc_options.output_file, "w+");
 		if (!yyout) {
-			fprintf(
-					stderr,
+			fprintf(stderr,
 					"Output file could not be opened for writing. Maybe, file does not exist?");
 		} else {
-			int ret = mips32gen(yyout,ircode,getSymbolTable());
-			if(ret!=0) {
-				fprintf(stderr, "Error generating mips32 code with code: %d\n", ret);
+			int ret = mips32gen(yyout, ircode, getSymbolTable());
+			if (ret != 0) {
+				fprintf(stderr, "Error generating mips32 code with code: %d\n",
+						ret);
 			}
 			fclose(yyout);
 		}
@@ -364,7 +359,7 @@ int main(int argc, char *argv[]) {
 
 	clean_symbol(getSymbolTable());
 //	clean_all_expr();
-	if(cc_options.print_only_errors != 1) {
+	if (cc_options.print_only_errors != 1) {
 		fprintf(stdout, "\nFinished.");
 	} else {
 		printf("Finished: %s\n", cc_options.input_file);
